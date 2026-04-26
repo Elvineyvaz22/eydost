@@ -78,6 +78,16 @@ export const translations = {
       step4Desc: 'Global coverage, local expertise.',
       ctaButton: 'Book Taxi on WhatsApp',
     },
+    taxiSteps: {
+      title: 'Book your trip on your phone or computer',
+      step1Title: 'Add your trip details',
+      step1Desc: 'Enter your pickup spot and destination, and check prices for your trip.',
+      step2Title: 'Pay easily',
+      step2Desc: 'Add your preferred payment method, then choose among the ride options available in your location.',
+      step3Title: 'Meet your driver',
+      step3Desc: 'Ey Dost will match you with a driver nearby, and you’ll get updates on WhatsApp about when to meet them.',
+      cta: 'Book your first ride',
+    },
     whyUs: {
       title: 'Why Choose Ey Dost',
       feature1Title: 'No App Download',
@@ -237,6 +247,16 @@ export const translations = {
       step4Title: 'H\u0259r Yer\u0259 Gedin',
       step4Desc: 'Qlobal \u0259hat\u0259, yerli t\u0259cr\u00fcb\u0259.',
       ctaButton: 'WhatsApp-da Taksi \u00c7a\u011f\u0131r',
+    },
+    taxiSteps: {
+      title: 'Səyahətinizi telefonunuzdan və ya kompüterinizdən asanlıqla planlayın',
+      step1Title: 'Səyahət detallarını daxil edin',
+      step1Desc: 'Götürülmə nöqtəsini və gedəcəyiniz ünvanı daxil edin, səfəriniz üçün təxmini qiymətləri dərhal yoxlayın.',
+      step2Title: 'Rahat ödəniş edin',
+      step2Desc: 'Üstünlük verdiyiniz ödəniş üsulunu (Apple Pay və ya Google Pay) seçin və yerləşdiyiniz ərazidəki mövcud avtomobil siniflərindən birini təyin edin.',
+      step3Title: 'Sürücü ilə görüşün',
+      step3Desc: 'Ey Dost sizi ən yaxın sürücü ilə uyğunlaşdıracaq və sürücünün nə vaxt gələcəyi barədə birbaşa WhatsApp vasitəsilə məlumat alacaqsınız.',
+      cta: 'İlk sifarişinizi edin',
     },
     whyUs: {
       title: 'Niy\u0259 Ey Dost-u Se\u00e7m\u0259li',

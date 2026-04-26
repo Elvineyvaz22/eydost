@@ -492,7 +492,7 @@ export default function Taxi() {
   // RENDER MOBILE UI (UBER STYLE)
   // -----------------------------------------------------
   return (
-    <div className="h-[100dvh] w-full flex flex-col bg-gray-100 overflow-hidden relative">
+    <div className="min-h-screen w-full flex flex-col bg-gray-100 relative overflow-y-auto">
       <div className="absolute top-0 left-0 w-full z-50">
          <Header />
       </div>
@@ -696,6 +696,75 @@ export default function Taxi() {
           </div>
         </div>
       </main>
+
+      {/* Uber-style How it Works Section */}
+      <section className="bg-white py-20 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center lg:text-left max-w-2xl">
+            {t.taxiSteps.title}
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 sm:gap-16">
+            {/* Step 1 */}
+            <div className="group">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
+                <img 
+                  src="/assets/taxi/step1.png" 
+                  alt="Trip Details" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step1Title}</h3>
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+                {t.taxiSteps.step1Desc}
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="group">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
+                <img 
+                  src="/assets/taxi/step2.png" 
+                  alt="Easy Payment" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step2Title}</h3>
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+                {t.taxiSteps.step2Desc}
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="group">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
+                <img 
+                  src="/assets/taxi/step3.png" 
+                  alt="Meet Driver" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step3Title}</h3>
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+                {t.taxiSteps.step3Desc}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-16 text-center lg:text-left">
+            <a
+              href={WA_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-black text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors shadow-xl"
+            >
+              {t.taxiSteps.cta}
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }
