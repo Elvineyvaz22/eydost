@@ -101,6 +101,22 @@ async def list_packages(
         raise _handle_esim_error(exc)
 
 
+@router.get("/countries", summary="Get optimized country list with cheapest prices")
+async def get_countries(
+    refresh: bool = Query(False, description="Force refresh cache"),
+    svc: ESIMService = Depends(get_service),
+):
+    """
+    Returns a summarized list of countries and regional packages.
+    Extremely fast because it's cached on the backend.
+    """
+    try:
+        result = svc.get_country_groups(force_refresh=refresh)
+        return {"success": True, **result}
+    except ESIMAccessError as exc:
+        raise _handle_esim_error(exc)
+
+
 @router.get("/packages/topup", summary="List available top-up packages for an eSIM")
 async def list_topup_packages(
     package_code: Optional[str] = Query(None),

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, ArrowLeft, Globe2, MapPin, Rocket, Globe, ChevronRight, X, Loader2 } from 'lucide-react';
+import { Search, Globe2, Globe, ChevronRight, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePackages } from '../contexts/PackagesContext';
@@ -7,23 +7,25 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
-import { formatPrice, type ESIMCountryGroup, type ESIMPackageRaw } from '../services/esimApi';
+import type { PackageData, RegionalPackage } from '../data/esimPackages';
 
-function LiveCountryCard({ group }: { group: ESIMCountryGroup }) {
+function CountryCard({ pkg }: { pkg: PackageData }) {
   const { t } = useLanguage();
   const esimT = t.esimPackages as Record<string, string>;
-  const cheapest = group.packages[0];
+  const cheapest = pkg.plans[0];
   
   return (
     <Link
-      to={`/${group.countryCode.toLowerCase()}`}
+      to={`/${pkg.slug}`}
       className="bg-white rounded-2xl border border-gray-100 p-5 hover:border-blue-200 hover:shadow-xl transition-all duration-300 group flex flex-col h-full"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <FlagImage flag={group.flag} countryCode={group.countryCode} size="md" className="rounded-full shadow-sm" />
+          <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm border border-gray-100">
+            <FlagImage flag={pkg.flag} countryCode={pkg.countryCode} size="full" />
+          </div>
           <span className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-            {group.countryName}
+            {pkg.country}
           </span>
         </div>
         <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-transform group-hover:translate-x-1 duration-300" />
@@ -34,28 +36,29 @@ function LiveCountryCard({ group }: { group: ESIMCountryGroup }) {
           {esimT.costPerGB || 'From'}
         </span>
         <span className="text-lg font-extrabold text-green-600">
-          {cheapest ? formatPrice(cheapest.price) : '—'}
+          {cheapest ? cheapest.price : '—'}
         </span>
       </div>
     </Link>
   );
 }
 
-function LiveRegionalCard({ pkg }: { pkg: ESIMPackageRaw }) {
+function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
   const { t } = useLanguage();
   const esimT = t.esimPackages as Record<string, string>;
-  const locs = (pkg.location || '').split(',');
+  const cheapest = pkg.plans[0];
   
   return (
-    <div
+    <Link
+      to={`/${pkg.slug}`}
       className="bg-white rounded-2xl border border-gray-100 p-5 hover:border-blue-200 hover:shadow-xl transition-all duration-300 group flex flex-col h-full"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="flex -space-x-2">
-            {locs.slice(0, 3).map((f, i) => (
+            {pkg.flags.slice(0, 3).map((f, i) => (
               <div key={i} className="w-8 h-8 rounded-full border-2 border-white shadow-sm bg-gray-100 flex items-center justify-center text-sm overflow-hidden">
-                <FlagImage flag="" countryCode={f.trim()} size="sm" className="w-full h-full object-cover" />
+                <FlagImage flag={f} size="full" />
               </div>
             ))}
           </div>
@@ -71,20 +74,20 @@ function LiveRegionalCard({ pkg }: { pkg: ESIMPackageRaw }) {
           <span className="text-xs font-medium text-gray-400 uppercase tracking-wider block">
             {esimT.costPerGB || 'From'}
           </span>
-          <span className="text-[10px] text-gray-400">{locs.length} {esimT.countriesLabel || 'countries'}</span>
+          <span className="text-[10px] text-gray-400">{pkg.countryCount} {esimT.countriesLabel || 'countries'}</span>
         </div>
         <span className="text-lg font-extrabold text-green-600">
-          {formatPrice(pkg.price)}
+          {cheapest ? cheapest.price : '—'}
         </span>
       </div>
-    </div>
+    </Link>
   );
 }
 
 export default function AllPackages() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { liveCountryGroups, liveRegionalPackages, liveLoading, packages, regionalPackages, globalPackage } = usePackages();
+  const { packages, regionalPackages, globalPackage } = usePackages();
   
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'countries' | 'regional' | 'global'>('countries');
@@ -96,7 +99,6 @@ export default function AllPackages() {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    // Close suggestions when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
@@ -107,23 +109,23 @@ export default function AllPackages() {
   }, []);
 
   const filteredCountries = useMemo(() => {
-    return liveCountryGroups
-      .filter(p => (p.countryName || '').toLowerCase().includes(search.toLowerCase()))
-      .sort((a, b) => (a.countryName || '').localeCompare(b.countryName || ''));
-  }, [liveCountryGroups, search]);
+    return packages
+      .filter(p => p.country.toLowerCase().includes(search.toLowerCase()))
+      .sort((a, b) => a.country.localeCompare(b.country));
+  }, [packages, search]);
 
   const filteredRegional = useMemo(() => {
-    return liveRegionalPackages.filter(p => 
-      (p.name || '').toLowerCase().includes(search.toLowerCase())
+    return regionalPackages.filter(p => 
+      p.name.toLowerCase().includes(search.toLowerCase())
     );
-  }, [liveRegionalPackages, search]);
+  }, [regionalPackages, search]);
 
   const suggestions = useMemo(() => {
     if (search.length === 0) return [];
-    return [...filteredCountries].slice(0, 5);
+    return filteredCountries.slice(0, 5);
   }, [filteredCountries, search]);
 
-  const showGlobal = (globalPackage?.name || '').toLowerCase().includes(search.toLowerCase());
+  const showGlobal = globalPackage.name.toLowerCase().includes(search.toLowerCase());
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
@@ -133,7 +135,7 @@ export default function AllPackages() {
         {/* Hero Section */}
         <div className="bg-gray-50 pt-32 pb-16 border-b border-gray-100">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
+            <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 leading-tight uppercase">
               {esimT.destinationsTitle}
             </h1>
             
@@ -172,16 +174,18 @@ export default function AllPackages() {
                       <button
                         key={i}
                         onClick={() => {
-                          navigate(`/${pkg.countryCode.toLowerCase()}`);
+                          navigate(`/${pkg.slug}`);
                           setShowSuggestions(false);
                         }}
                         className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors group"
                       >
                         <div className="flex items-center gap-4">
-                          <FlagImage flag={pkg.flag} countryCode={pkg.countryCode} size="md" className="rounded-full" />
+                          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                            <FlagImage flag={pkg.flag} countryCode={pkg.countryCode} size="full" />
+                          </div>
                           <div className="flex flex-col">
                             <span className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                              {pkg.countryName} eSIM Plans
+                              {pkg.country} eSIM Plans
                             </span>
                             <span className="text-xs text-gray-400">Instant delivery via WhatsApp</span>
                           </div>
@@ -197,8 +201,8 @@ export default function AllPackages() {
             {/* Tab Switcher */}
             <div className="flex items-center justify-center gap-2 mt-12">
               {[
-                { id: 'countries', label: esimT.tabCountries, count: liveCountryGroups.length },
-                { id: 'regional', label: esimT.tabRegional, count: liveRegionalPackages.length },
+                { id: 'countries', label: esimT.tabCountries, count: packages.length },
+                { id: 'regional', label: esimT.tabRegional, count: regionalPackages.length },
                 { id: 'global', label: esimT.tabGlobal, count: 1 },
               ].map((item) => (
                 <button
@@ -224,62 +228,55 @@ export default function AllPackages() {
           <div className="flex items-center gap-2 text-sm text-gray-400 mb-10">
             <Link to="/" className="hover:text-blue-600 transition-colors">Homepage</Link>
             <ChevronRight className="w-4 h-4" />
-            <span className="text-gray-900 font-semibold">{esimT.tabCountries}</span>
+            <span className="text-gray-900 font-semibold uppercase">{tab === 'countries' ? esimT.tabCountries : tab === 'regional' ? esimT.tabRegional : esimT.tabGlobal}</span>
           </div>
 
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 uppercase">
             {tab === 'countries' ? esimT.tabCountries : tab === 'regional' ? esimT.tabRegional : esimT.tabGlobal}
           </h2>
 
-          {liveLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-            </div>
-          ) : (
-            <>
-              {/* Regional Grid */}
-              {tab === 'regional' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {filteredRegional.map((pkg, i) => (
-                    <LiveRegionalCard key={i} pkg={pkg} />
-                  ))}
-                  {filteredRegional.length === 0 && (
-                    <div className="col-span-full py-20 text-center text-gray-400">
-                      {esimT.noResults}
-                    </div>
-                  )}
-                </div>
-              )}
+          <div className="min-h-[400px]">
+            {/* Regional Grid */}
+            {tab === 'regional' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredRegional.map((pkg, i) => (
+                  <RegionalCard key={i} pkg={pkg} />
+                ))}
+                {filteredRegional.length === 0 && (
+                  <div className="col-span-full py-20 text-center text-gray-400">
+                    {esimT.noResults}
+                  </div>
+                )}
+              </div>
+            )}
 
-              {/* Global Card - For now just using the old global logic since we only have one or we can fetch a specific global package */}
-              {tab === 'global' && (
-                <div className="max-w-sm">
-                  {showGlobal ? (
-                    <div className="py-10 text-center text-gray-400">Global package integration in progress...</div>
-                  ) : (
-                    <div className="py-20 text-center text-gray-400">
-                      {esimT.noResults}
-                    </div>
-                  )}
-                </div>
-              )}
+            {/* Global Card */}
+            {tab === 'global' && (
+              <div className="max-w-sm">
+                {showGlobal ? (
+                  <RegionalCard pkg={globalPackage} />
+                ) : (
+                  <div className="py-20 text-center text-gray-400">
+                    {esimT.noResults}
+                  </div>
+                )}
+              </div>
+            )}
 
-              {/* Countries Grid */}
-              {tab === 'countries' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {filteredCountries.map((group, i) => (
-                    <LiveCountryCard key={i} group={group} />
-                  ))}
-                  {filteredCountries.length === 0 && (
-                    <div className="col-span-full py-20 text-center text-gray-400">
-                      {esimT.noResults}
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
+            {/* Countries Grid */}
+            {tab === 'countries' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {filteredCountries.map((pkg, i) => (
+                  <CountryCard key={i} pkg={pkg} />
+                ))}
+                {filteredCountries.length === 0 && (
+                  <div className="col-span-full py-20 text-center text-gray-400">
+                    {esimT.noResults}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </main>
 

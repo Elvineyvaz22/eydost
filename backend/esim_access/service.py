@@ -26,6 +26,9 @@ from .client import (
     ESIMAccessError,
 )
 
+import time
+import threading
+
 logger = logging.getLogger("esim_access.service")
 
 
@@ -309,3 +312,66 @@ class ESIMService:
             "/api/v1/open/esim/unsuspend", {"esimTranNo": esim_tran_no}
         )
         return response.obj or {}
+
+    # ── OPTIMIZATION: CACHED COUNTRY GROUPS ──────────────────────────────────
+    _cache_groups = None
+    _cache_time = 0
+    _cache_lock = threading.Lock()
+
+    def get_country_groups(self, force_refresh: bool = False) -> dict:
+        """
+        Returns a summarized view of countries and regional packages.
+        Optimized for the main AllPackages list.
+        Caches for 1 hour to keep it extremely fast.
+        """
+        now = time.time()
+        with self._cache_lock:
+            if not force_refresh and self._cache_groups and (now - self._cache_time < 3600):
+                return self._cache_groups
+
+            logger.info("Refreshing country groups cache...")
+            packages = self.list_packages(package_type="BASE")
+            
+            country_map = {}
+            regional = []
+
+            for p in packages:
+                locs = [l.strip() for l in (p.get("location") or "").split(",") if l.strip()]
+                if len(locs) == 1 and not locs[0].startswith("!"):
+                    code = locs[0].upper()
+                    if code not in country_map:
+                        country_map[code] = {
+                            "countryCode": code,
+                            "packageCount": 0,
+                            "cheapestPrice": p.get("price", 9999999),
+                            "name": p.get("name", ""),
+                            "speed": p.get("speed", "")
+                        }
+                    
+                    c = country_map[code]
+                    c["packageCount"] += 1
+                    if p.get("price", 9999999) < c["cheapestPrice"]:
+                        c["cheapestPrice"] = p["price"]
+                        c["speed"] = p.get("speed", "")
+                else:
+                    # Simplify regional package for the list
+                    regional.append({
+                        "packageCode": p.get("packageCode"),
+                        "name": p.get("name"),
+                        "price": p.get("price"),
+                        "location": p.get("location"),
+                        "volume": p.get("volume"),
+                        "duration": p.get("duration"),
+                        "durationUnit": p.get("durationUnit"),
+                        "speed": p.get("speed")
+                    })
+
+            result = {
+                "countries": sorted(list(country_map.values()), key=lambda x: x["countryCode"]),
+                "regional": regional,
+                "count": len(packages)
+            }
+            
+            self._cache_groups = result
+            self._cache_time = now
+            return result
