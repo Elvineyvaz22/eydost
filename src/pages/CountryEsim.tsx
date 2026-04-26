@@ -21,7 +21,7 @@ function PlanCard({ pkg, countryName, flag }: { pkg: ESIMPackageRaw; countryName
   const { t } = useLanguage();
   const gb = formatGB(pkg.volume);
   const price = formatPrice(pkg.price);
-  const isMultiCountry = pkg.location.split(',').length > 1;
+  const isMultiCountry = (pkg.location || '').split(',').length > 1;
 
   const waMsg = encodeURIComponent(
     `Hi! I'd like to buy an eSIM for ${countryName}.\n📦 Plan: ${pkg.name}\n📊 Data: ${gb}\n⏱ Validity: ${pkg.duration} ${pkg.durationUnit}\n💰 Price: ${price}\n📦 Code: ${pkg.packageCode}`
