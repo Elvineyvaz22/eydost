@@ -1,15 +1,20 @@
 import { useState } from 'react';
-import { MessageCircle, Menu, X } from 'lucide-react';
+import { MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useLocation } from 'react-router-dom';
 
 const WA_LINK = 'https://wa.me/994512778085';
 
 export default function Header() {
   const { language, setLanguage, t, brand } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
 
   const langs = ['EN', 'AZ', 'RU'] as const;
   const langMap = { EN: 'en', AZ: 'az', RU: 'ru' } as const;
+
+  const isTaxiPage = location.pathname === '/taxi';
+  const isPackagesPage = location.pathname === '/packages';
 
   const navLinks = [
     { href: '/packages', label: t.nav.esim },
@@ -44,13 +49,26 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* eSIM Al button for mobile only */}
-            <a
-              href="/packages"
-              className="lg:hidden flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95"
-            >
-              eSIM Al
-            </a>
+            {/* Conditional Mobile Buttons */}
+            {isTaxiPage && (
+              <a
+                href="/packages"
+                className="lg:hidden flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95"
+              >
+                <Smartphone className="w-3 h-3" />
+                eSIM Al
+              </a>
+            )}
+
+            {isPackagesPage && (
+              <a
+                href="/taxi"
+                className="lg:hidden flex items-center gap-1.5 bg-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-all shadow-md active:scale-95"
+              >
+                <Car className="w-3 h-3" />
+                Taksi Çağır
+              </a>
+            )}
 
             <div className="flex items-center bg-gray-100 rounded-lg overflow-hidden text-[10px] sm:text-sm">
               {langs.map(l => (
