@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Search, ArrowLeft, Globe2, MapPin, Rocket, Globe, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Search, ArrowLeft, Globe2, MapPin, Rocket, Globe, ChevronRight, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePackages } from '../contexts/PackagesContext';
 import Header from '../components/Header';
@@ -80,15 +80,40 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
 
 export default function AllPackages() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { packages, regionalPackages, globalPackage } = usePackages();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'countries' | 'regional' | 'global'>('countries');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const esimT = t.esimPackages as Record<string, string>;
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    
+    // Close suggestions when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const suggestions = search.length > 0
+    ? [...packages]
+        .filter(p => p.country.toLowerCase().includes(search.toLowerCase()))
+        .sort((a, b) => {
+          const aStarts = a.country.toLowerCase().startsWith(search.toLowerCase());
+          const bStarts = b.country.toLowerCase().startsWith(search.toLowerCase());
+          if (aStarts && !bStarts) return -1;
+          if (!aStarts && bStarts) return 1;
+          return a.country.localeCompare(b.country);
+        })
+        .slice(0, 5)
+    : [];
 
   const filteredCountries = packages.filter(p => 
     p.country.toLowerCase().includes(search.toLowerCase())
@@ -112,18 +137,61 @@ export default function AllPackages() {
               {esimT.destinationsTitle}
             </h1>
             
-            {/* Search Bar */}
-            <div className="relative max-w-2xl mx-auto mt-10">
-              <div className="absolute left-6 top-1/2 -translate-y-1/2">
-                <Search className="w-6 h-6 text-gray-400" />
+            {/* Search Bar with Suggestions */}
+            <div ref={searchRef} className="relative max-w-2xl mx-auto mt-10 z-30">
+              <div className="relative">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2">
+                  <Search className="w-6 h-6 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={search}
+                  onFocus={() => setShowSuggestions(true)}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  placeholder={esimT.searchPlaceholder}
+                  className="w-full pl-16 pr-14 py-5 bg-white border-2 border-transparent rounded-full shadow-2xl focus:border-blue-500 focus:ring-0 outline-none text-lg transition-all placeholder-gray-400"
+                />
+                {search.length > 0 && (
+                  <button
+                    onClick={() => { setSearch(''); setShowSuggestions(false); }}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-400" />
+                  </button>
+                )}
               </div>
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder={esimT.searchPlaceholder}
-                className="w-full pl-16 pr-8 py-5 bg-white border-2 border-transparent rounded-full shadow-2xl focus:border-blue-500 focus:ring-0 outline-none text-lg transition-all placeholder-gray-400"
-              />
+
+              {/* Suggestions Dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden text-left animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="py-2">
+                    {suggestions.map((pkg, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          navigate(`/${pkg.slug}`);
+                          setShowSuggestions(false);
+                        }}
+                        className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <FlagImage flag={pkg.flag} countryCode={pkg.countryCode} size="md" className="rounded-full" />
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                              {pkg.country} eSIM Plans
+                            </span>
+                            <span className="text-xs text-gray-400">Instant delivery via WhatsApp</span>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-transform group-hover:translate-x-1" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Tab Switcher */}
