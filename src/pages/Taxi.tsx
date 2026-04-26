@@ -497,7 +497,7 @@ export default function Taxi() {
          <Header />
       </div>
 
-      <main className="flex-1 relative h-full w-full">
+      <main className="relative h-[100dvh] w-full flex-shrink-0">
         {/* Full Screen Map */}
         <div className="absolute inset-0 z-0 pt-16">
           {!isLoaded ? (
