@@ -44,10 +44,10 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* eSIM Al button for both desktop and mobile */}
+            {/* eSIM Al button for mobile only */}
             <a
               href="/packages"
-              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+              className="lg:hidden flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95"
             >
               eSIM Al
             </a>
