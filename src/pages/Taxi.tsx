@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLeft, LocateFixed } from 'lucide-react';
-import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete, Marker } from '@react-google-maps/api';
+import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { trackEvent, EVENTS } from '../utils/analytics';
@@ -50,7 +50,6 @@ export default function Taxi() {
 
   const [pickupAutocomplete, setPickupAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [dropoffAutocomplete, setDropoffAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-  const [fakeDrivers, setFakeDrivers] = useState<{lat: number, lng: number, rotation: number}[]>([]);
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
@@ -179,16 +178,6 @@ export default function Taxi() {
   };
 
   useEffect(() => {
-    if (pickupCoords) {
-      // Generate fake drivers
-      const drivers = Array.from({ length: 5 }).map(() => ({
-        lat: pickupCoords.lat + (Math.random() - 0.5) * 0.008,
-        lng: pickupCoords.lng + (Math.random() - 0.5) * 0.008,
-        rotation: Math.random() * 360
-      }));
-      setFakeDrivers(drivers);
-    }
-
     if (!isMobile) {
       if (pickupCoords && dropoffCoords) {
         calculateRoute(pickupCoords, dropoffCoords);
@@ -464,24 +453,6 @@ export default function Taxi() {
                           options={{ polylineOptions: { strokeColor: '#22c55e', strokeWeight: 5 }, suppressMarkers: false }}
                         />
                       )}
-
-                      {/* Fake Drivers */}
-                      {fakeDrivers.map((driver, i) => (
-                        <Marker
-                          key={i}
-                          position={{ lat: driver.lat, lng: driver.lng }}
-                          icon={{
-                            path: "M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z",
-                            fillColor: "#f59e0b",
-                            fillOpacity: 1,
-                            strokeWeight: 1,
-                            strokeColor: "#ffffff",
-                            rotation: driver.rotation,
-                            scale: 1.2,
-                            anchor: new google.maps.Point(12, 12),
-                          }}
-                        />
-                      ))}
                     </GoogleMap>
                   
                   {/* Locate Me Button Desktop */}
@@ -561,24 +532,6 @@ export default function Taxi() {
                   options={{ polylineOptions: { strokeColor: '#000000', strokeWeight: 4 }, suppressMarkers: false }}
                 />
               )}
-
-              {/* Fake Drivers Mobile */}
-              {fakeDrivers.map((driver, i) => (
-                <Marker
-                  key={i}
-                  position={{ lat: driver.lat, lng: driver.lng }}
-                  icon={{
-                    path: "M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z",
-                    fillColor: "#f59e0b",
-                    fillOpacity: 1,
-                    strokeWeight: 1,
-                    strokeColor: "#ffffff",
-                    rotation: driver.rotation,
-                    scale: 1,
-                    anchor: new google.maps.Point(12, 12),
-                  }}
-                />
-              ))}
             </GoogleMap>
           )}
         </div>

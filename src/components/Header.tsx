@@ -27,7 +27,7 @@ export default function Header() {
             <img
               src={brand?.logoUrl || 'https://i.postimg.cc/9WJByvB7/Whats-App-Image-2025-12-11-at-23-51-41.jpg'}
               alt="Ey Dost"
-              className="h-[50px] object-contain"
+              className="h-10 lg:h-[60px] object-contain transition-all"
             />
           </a>
 
