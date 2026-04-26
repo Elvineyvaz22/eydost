@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import StatsBar from './components/StatsBar';
 import EsimPackages from './components/EsimPackages';
+import TaxiSection from './components/TaxiSection';
 import HowEsimWorks from './components/HowEsimWorks';
 import WhyEyDost from './components/WhyEyDost';
 import FAQ from './components/FAQ';
@@ -38,6 +39,7 @@ function HomePage() {
       <Hero />
       <StatsBar />
       <EsimPackages />
+      <TaxiSection />
       <HowEsimWorks />
       <WhyEyDost />
       <FAQ />
