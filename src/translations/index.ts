@@ -47,7 +47,7 @@ export const translations = {
       showAll: 'Show all countries',
       showLess: 'Show less',
       costPerGB: 'Cost per GB',
-      destinationsTitle: 'Discover Seamless eSIM Internet Connection Plans Available in Over 200 Destinations',
+      destinationsTitle: 'Global eSIM: 200+ Destinations',
     },
     howEsim: {
       title: 'How eSIM Works',
@@ -217,7 +217,7 @@ export const translations = {
       showAll: 'B\u00fct\u00fcn \u00f6lk\u0259l\u0259ri g\u00f6st\u0259r',
       showLess: 'Az g\u00f6st\u0259r',
       costPerGB: '1 GB \u00fc\u00e7\u00fcn qiym\u0259t',
-      destinationsTitle: '200-d\u0259n \u00e7ox istiqam\u0259td\u0259 m\u00f6vcud olan k\u0259sintisiz eSIM internet paketl\u0259rini k\u0259\u015ff edin',
+      destinationsTitle: 'Qlobal eSIM: 200+ \u0130stiqam\u0259t',
     },
     howEsim: {
       title: 'eSIM Nec\u0259 \u0130\u015fl\u0259yir',
@@ -387,7 +387,7 @@ export const translations = {
       showAll: '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0432\u0441\u0435 \u0441\u0442\u0440\u0430\u043d\u044b',
       showLess: '\u041c\u0435\u043d\u044c\u0448\u0435',
       costPerGB: '\u0426\u0435\u043d\u0430 \u0437\u0430 1 \u0413\u0411',
-      destinationsTitle: '\u041e\u0442\u043a\u0440\u043e\u0439\u0442\u0435 \u0434\u043b\u044f \u0441\u0435\u0431\u044f \u0431\u0435\u0441\u043f\u0435\u0440\u0435\u0431\u043e\u0439\u043d\u044b\u0435 \u0442\u0430\u0440\u0438\u0444\u043d\u044b\u0435 \u043f\u043b\u0430\u043d\u044b eSIM \u0431\u043e\u043b\u0435\u0435 \u0447\u0435\u043c \u0432 200 \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f\u0445',
+      destinationsTitle: '\u0413\u043b\u043e\u0431\u0430\u043b\u044c\u043d\u0430\u044f eSIM: 200+ \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0439',
     },
     howEsim: {
       title: '\u041a\u0430\u043a \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 eSIM',

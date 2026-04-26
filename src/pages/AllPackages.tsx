@@ -133,14 +133,14 @@ export default function AllPackages() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <div className="bg-gray-50 pt-32 pb-16 border-b border-gray-100">
+        <div className="bg-gray-50 pt-28 pb-12 border-b border-gray-100">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 leading-tight uppercase">
+            <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 leading-tight uppercase">
               {esimT.destinationsTitle}
             </h1>
             
             {/* Search Bar with Suggestions */}
-            <div ref={searchRef} className="relative max-w-2xl mx-auto mt-10 z-30">
+            <div ref={searchRef} className="relative max-w-2xl mx-auto mt-6 z-30">
               <div className="relative">
                 <div className="absolute left-6 top-1/2 -translate-y-1/2">
                   <Search className="w-6 h-6 text-gray-400" />
