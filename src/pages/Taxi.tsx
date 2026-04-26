@@ -3,6 +3,7 @@ import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLe
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 
 const WA_LINK = 'https://wa.me/994512778085';
@@ -19,6 +20,7 @@ const CAR_CLASSES = [
 ];
 
 export default function Taxi() {
+  const { t } = useLanguage();
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries,
