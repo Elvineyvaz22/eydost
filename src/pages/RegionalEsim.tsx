@@ -42,7 +42,7 @@ export default function RegionalEsim() {
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Link to="/" className="hover:text-blue-600 transition-colors">{t.countryEsim.home}</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <Link to="/#esim-packages" className="hover:text-blue-600 transition-colors">eSIM</Link>
+            <Link to="/packages" className="hover:text-blue-600 transition-colors">eSIM</Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-gray-900 font-medium">{pkg.name}</span>
           </div>
@@ -52,7 +52,7 @@ export default function RegionalEsim() {
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <Link
-            to="/#esim-packages"
+            to="/packages"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />

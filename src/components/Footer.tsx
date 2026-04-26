@@ -25,7 +25,7 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 text-sm">{t.footer.quickLinks}</h4>
             <ul className="space-y-2 text-sm">
               <li><a href="#how-esim" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.howItWorks}</a></li>
-              <li><a href="#esim-packages" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.features}</a></li>
+              <li><a href="/packages" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.features}</a></li>
               <li><a href="#faq" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.faq}</a></li>
               <li><a href="#contact" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.contact}</a></li>
             </ul>

@@ -12,7 +12,7 @@ export default function Header() {
   const langMap = { EN: 'en', AZ: 'az', RU: 'ru' } as const;
 
   const navLinks = [
-    { href: '/#esim-packages', label: t.nav.esim },
+    { href: '/packages', label: t.nav.esim },
     { href: '/taxi', label: t.nav.taxi },
     { href: '/#how-esim', label: t.nav.howItWorks },
     { href: '/#faq', label: t.nav.faq },

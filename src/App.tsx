@@ -15,6 +15,7 @@ import CountryEsim from './pages/CountryEsim';
 import RegionalEsim from './pages/RegionalEsim';
 import AdminLogin from './pages/admin/Login';
 import Taxi from './pages/Taxi';
+import AllPackages from './pages/AllPackages';
 
 const REGIONAL_SLUGS = ['europe-esim', 'asia-esim', 'middle-east-africa-esim', 'americas-esim', 'global-esim'];
 
@@ -58,6 +59,7 @@ function App() {
             <Routes>
               {/* ... routes ... */}
               <Route path="/" element={<HomePage />} />
+              <Route path="/packages" element={<AllPackages />} />
               <Route path="/taxi" element={<Taxi />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

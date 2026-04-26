@@ -30,7 +30,7 @@ export default function CountryEsim() {
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Link to="/" className="hover:text-blue-600 transition-colors">{t.countryEsim.home}</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <Link to="/#esim-packages" className="hover:text-blue-600 transition-colors">eSIM</Link>
+            <Link to="/packages" className="hover:text-blue-600 transition-colors">eSIM</Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-gray-900 font-medium">{pkg.country}</span>
           </div>
@@ -42,7 +42,7 @@ export default function CountryEsim() {
 
           {/* Back link */}
           <Link
-            to="/#esim-packages"
+            to="/packages"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -149,7 +149,7 @@ export default function CountryEsim() {
                   ))}
                 </div>
                 <Link
-                  to="/#esim-packages"
+                  to="/packages"
                   className="block text-center text-sm text-blue-600 font-semibold mt-4 py-2 hover:underline"
                 >
                   {t.countryEsim.viewAll}

@@ -154,12 +154,12 @@ export default function EsimPackages() {
               ))}
             </div>
             <div className="text-center mt-8">
-              <button
-                onClick={() => setTab('countries')}
+              <Link
+                to="/packages"
                 className="inline-flex items-center gap-2 border border-gray-200 bg-white rounded-full px-6 py-2.5 text-sm font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 transition-all"
               >
                 {esimT.viewAllCountries} →
-              </button>
+              </Link>
             </div>
           </div>
         )}
@@ -174,12 +174,12 @@ export default function EsimPackages() {
             </div>
             {allSorted.length > 4 && (
               <div className="text-center mt-8">
-                <button
-                  onClick={() => setShowAll(!showAll)}
+                <Link
+                  to="/packages"
                   className="inline-flex items-center gap-2 border border-gray-200 bg-white rounded-full px-6 py-2.5 text-sm font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-600 transition-all"
                 >
-                  {showAll ? esimT.showLess : esimT.showAll}
-                </button>
+                  {esimT.viewAllCountries} →
+                </Link>
               </div>
             )}
           </div>
