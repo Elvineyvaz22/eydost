@@ -20,9 +20,9 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 lg:h-20 transition-all">
           <a href="/" className="flex items-center gap-2 shrink-0">
             <img
               src={brand?.logoUrl || 'https://i.postimg.cc/9WJByvB7/Whats-App-Image-2025-12-11-at-23-51-41.jpg'}
@@ -43,13 +43,21 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center bg-gray-100 rounded-lg overflow-hidden text-sm">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* eSIM Al button for both desktop and mobile */}
+            <a
+              href="/packages"
+              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+            >
+              eSIM Al
+            </a>
+
+            <div className="flex items-center bg-gray-100 rounded-lg overflow-hidden text-[10px] sm:text-sm">
               {langs.map(l => (
                 <button
                   key={l}
                   onClick={() => setLanguage(langMap[l])}
-                  className={`px-3 py-1.5 font-medium transition-colors ${
+                  className={`px-2 py-1.5 sm:px-3 font-medium transition-colors ${
                     language === langMap[l]
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-600 hover:text-blue-600'

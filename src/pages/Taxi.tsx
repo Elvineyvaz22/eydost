@@ -493,7 +493,7 @@ export default function Taxi() {
   // -----------------------------------------------------
   return (
     <div className="h-[100dvh] w-full flex flex-col bg-gray-100 overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full z-50 pointer-events-none">
+      <div className="absolute top-0 left-0 w-full z-50">
          <Header />
       </div>
 
