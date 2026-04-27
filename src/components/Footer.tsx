@@ -71,7 +71,6 @@ export default function Footer() {
 
         <div className="mt-10 pt-6 border-t border-gray-800 text-center text-sm text-gray-500">
           &copy; {year} {t.footer.copyright}
-          <p className="mt-2 text-xs text-gray-400">Impact-Site-Verification: f6d191a4-c211-495c-8071-65433a365d99</p>
         </div>
       </div>
     </footer>
