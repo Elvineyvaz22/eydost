@@ -19,12 +19,16 @@ export default function Contact() {
         .from('contact_submissions')
         .insert([{ name: formData.name, email: formData.email, phone: '', message: formData.message }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase insert error details:", error);
+        throw error;
+      }
 
       setStatus('success');
       setFormData({ name: '', email: '', message: '' });
       setTimeout(() => setStatus('idle'), 5000);
-    } catch {
+    } catch (err) {
+      console.error("Contact form submission failed:", err);
       setStatus('error');
       setTimeout(() => setStatus('idle'), 5000);
     }
