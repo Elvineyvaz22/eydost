@@ -1,8 +1,13 @@
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Layout, Sparkles, FileText, Rocket, Activity, Users } from 'lucide-react';
+import { Layout, Sparkles, FileText, Rocket, Activity, Wallet, RefreshCw } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { fetchBalance } from '../../services/esimApi';
 
 export default function Dashboard() {
+  const [balance, setBalance] = useState<{ balance: number; currencyCode?: string } | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const stats = [
     { label: 'eSIM Paketləri', count: '150+', icon: Layout, path: '/admin/esim', color: 'bg-blue-500' },
     { label: 'Taksi Sinifləri', count: '4', icon: Sparkles, path: '/admin/taxi', color: 'bg-green-500' },
@@ -10,12 +15,50 @@ export default function Dashboard() {
     { label: 'Girişlər (Bugün)', count: 'Canlı', icon: Activity, path: '/admin/analytics', color: 'bg-purple-500' },
   ];
 
+  const getBalance = async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await fetchBalance();
+      setBalance(data);
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    getBalance();
+  }, []);
+
   return (
     <AdminLayout>
       <div className="max-w-6xl">
-        <header className="mb-10">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Xoş gəldiniz, Elvin!</h1>
-          <p className="text-gray-500">Ey Dost Super App portalının idarəetmə mərkəzi.</p>
+        <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Xoş gəldiniz, Elvin!</h1>
+            <p className="text-gray-500">Ey Dost Super App portalının idarəetmə mərkəzi.</p>
+          </div>
+          
+          {/* Balance Card */}
+          <div className="bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className="w-10 h-10 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600">
+              <Wallet className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">API Balansı</p>
+              <p className="text-xl font-black text-gray-900">
+                {balance ? `${(balance.balance / 10000).toFixed(2)} ${balance.currencyCode || 'USD'}` : '...'}
+              </p>
+            </div>
+            <button 
+              onClick={getBalance}
+              disabled={isRefreshing}
+              className={`p-2 hover:bg-gray-50 rounded-lg transition-colors ${isRefreshing ? 'animate-spin' : ''}`}
+            >
+              <RefreshCw className="w-4 h-4 text-gray-400" />
+            </button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
