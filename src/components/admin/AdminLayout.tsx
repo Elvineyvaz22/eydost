@@ -10,6 +10,7 @@ import {
   FileText,
   Languages,
   LogOut,
+  MessageSquare,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -27,6 +28,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const menuItems = [
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'İdarə Paneli' },
+    { path: '/admin/messages', icon: MessageSquare, label: 'Mesajlar' },
     { path: '/admin/esim', icon: Layout, label: 'eSIM Paketləri' },
     { path: '/admin/taxi', icon: Sparkles, label: 'Taksi Tənzimləmələri' },
     { path: '/admin/faq', icon: FileText, label: 'Sual-Cavablar (FAQ)' },

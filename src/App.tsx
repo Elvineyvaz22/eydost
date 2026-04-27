@@ -30,6 +30,7 @@ import EsimEditor from './pages/admin/EsimEditor';
 import TaxiEditor from './pages/admin/TaxiEditor';
 import Analytics from './pages/admin/Analytics';
 import TranslationsEditor from './pages/admin/TranslationsEditor';
+import Messages from './pages/admin/Messages';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
 function HomePage() {
@@ -93,6 +94,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Dashboard /> {/* Temporary placeholder */}
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/messages"
+                element={
+                  <ProtectedRoute>
+                    <Messages />
                   </ProtectedRoute>
                 }
               />
