@@ -20,7 +20,7 @@ export default function Contact() {
         .insert([{ name: formData.name, email: formData.email, phone: '', message: formData.message }]);
 
       if (error) {
-        console.error("Supabase insert error details:", error);
+        console.error("Supabase insert error details:", JSON.stringify(error, null, 2));
         throw error;
       }
 
@@ -28,7 +28,7 @@ export default function Contact() {
       setFormData({ name: '', email: '', message: '' });
       setTimeout(() => setStatus('idle'), 5000);
     } catch (err) {
-      console.error("Contact form submission failed:", err);
+      console.error("Contact form submission failed:", JSON.stringify(err, null, 2));
       setStatus('error');
       setTimeout(() => setStatus('idle'), 5000);
     }
