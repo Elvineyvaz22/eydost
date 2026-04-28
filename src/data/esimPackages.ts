@@ -1,4 +1,4 @@
-export interface Plan { gb: number; days: number; price: string }
+export interface Plan { gb: number; days: number; price: string; code?: string; id?: string }
 export interface PackageData {
   flag: string;
   country: string;

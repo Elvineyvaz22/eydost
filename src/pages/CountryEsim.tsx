@@ -5,15 +5,20 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { getPackageBySlug, type PackageData, type Plan } from '../data/esimPackages';
+import { getPlanCode } from '../data/planCodeMap';
 import FlagImage from '../components/FlagImage';
 
 const WA_LINK = 'https://wa.me/994512778085';
 
-function PlanCard({ plan, countryName, flag }: { plan: Plan; countryName: string; flag: string }) {
+function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: Plan; countryName: string; flag: string; countryCode: string; planIndex: number }) {
   const { t } = useLanguage();
 
+  const planCodeEntry = getPlanCode(countryCode, planIndex);
+
   const waMsg = encodeURIComponent(
-    `Hi! I'd like to buy an eSIM for ${countryName}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`
+    planCodeEntry
+      ? `Salam! eSIM almaq istəyirəm.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
+      : `Salam! ${countryName} üçün eSIM almaq istəyirəm.\n📊 Data: ${plan.gb}GB\n⏱ Etibarlılıq: ${plan.days} gün\n💰 Qiymət: ${plan.price}`
   );
 
   return (
@@ -150,7 +155,7 @@ export default function CountryEsim() {
             <h2 className="text-xl font-bold text-gray-900 mb-6">{t.countryEsim.availablePlans}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {pkg.plans.map((plan, i) => (
-                <PlanCard key={i} plan={plan} countryName={pkg.country} flag={pkg.flag} />
+                <PlanCard key={i} plan={plan} countryName={pkg.country} flag={pkg.flag} countryCode={pkg.countryCode} planIndex={i} />
               ))}
             </div>
           </div>
