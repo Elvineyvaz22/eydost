@@ -30,7 +30,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 lg:h-20 transition-all">
           <a href="/" className="flex items-center gap-2 shrink-0">
             <img
-              src={brand?.logoUrl || 'https://i.postimg.cc/9WJByvB7/Whats-App-Image-2025-12-11-at-23-51-41.jpg'}
+              src={brand?.logoUrl || '/logo.png'}
               alt="Ey Dost"
               className="h-10 lg:h-[60px] object-contain transition-all"
             />
