@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
+import { MessageCircle, Menu, X, Car, Smartphone, Send } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation } from 'react-router-dom';
 
 const WA_LINK = 'https://wa.me/994512778085';
+const TG_LINK = 'https://t.me/eydost_esim_bot';
 
 export default function Header() {
   const { language, setLanguage, t, brand } = useLanguage();
@@ -26,6 +27,24 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+      {/* Top Banner for Telegram Verification */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-2 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium">
+            <Send className="w-3.5 h-3.5" />
+            <span>Bizim Telegram Botumuz:</span>
+            <a 
+              href={TG_LINK} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-blue-100 transition-colors font-bold"
+            >
+              t.me/eydost_esim_bot
+            </a>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20 transition-all">
           <a href="/" className="flex items-center gap-2 shrink-0">
