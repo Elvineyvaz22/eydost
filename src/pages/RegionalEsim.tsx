@@ -20,6 +20,16 @@ export default function RegionalEsim() {
   const { t } = useLanguage();
   const pkg = slug ? getRegionalBySlug(slug) : undefined;
 
+  const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
+
+  const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string) => {
+    if (isTelegramWebApp) {
+      e.preventDefault();
+      (window as any).Telegram.WebApp.sendData(rawMsg);
+      (window as any).Telegram.WebApp.close();
+    }
+  };
+
   if (!pkg) return <Navigate to="/" replace />;
 
   return (
@@ -75,7 +85,9 @@ export default function RegionalEsim() {
               {t.countryEsim.availablePlans}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pkg.plans.map((plan, i) => (
+              {pkg.plans.map((plan, i) => {
+                const rawMsg = `Hi! I would like to buy an eSIM package for ${pkg.name} region: ${plan.gb}GB (${plan.days} days). Price: ${plan.price}`;
+                return (
                 <div
                   key={i}
                   className="bg-white rounded-2xl border border-gray-100 p-8 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 flex flex-col h-full group"
@@ -116,18 +128,21 @@ export default function RegionalEsim() {
                     </div>
                   </div>
                   <a
-                    href={`${WA_LINK}?text=${encodeURIComponent(
-                      `Hi! I would like to buy an eSIM package for ${pkg.name} region: ${plan.gb}GB (${plan.days} days). Price: ${plan.price}`
-                    )}`}
-                    target="_blank"
+                    href={`${WA_LINK}?text=${encodeURIComponent(rawMsg)}`}
+                    target={isTelegramWebApp ? "_self" : "_blank"}
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-3 w-full bg-[#25D366] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#20bd5a] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-green-200"
+                    onClick={(e) => handleBuyClick(e, rawMsg)}
+                    className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg text-white ${
+                      isTelegramWebApp 
+                        ? 'bg-[#24A1DE] hover:bg-[#1f8ec4] shadow-blue-200' 
+                        : 'bg-[#25D366] hover:bg-[#20bd5a] shadow-green-200'
+                    }`}
                   >
                     <MessageCircle className="w-5 h-5" />
-                    {t.esimPackages.buyButton}
+                    {isTelegramWebApp ? 'Telegram ilə Al' : t.esimPackages.buyButton}
                   </a>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         </div>

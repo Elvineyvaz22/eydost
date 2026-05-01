@@ -15,11 +15,21 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
 
   const planCodeEntry = getPlanCode(countryCode, planIndex);
 
-  const waMsg = encodeURIComponent(
-    planCodeEntry
-      ? `Salam! eSIM almaq istəyirəm.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-      : `Salam! ${countryName} üçün eSIM almaq istəyirəm.\n📊 Data: ${plan.gb}GB\n⏱ Etibarlılıq: ${plan.days} gün\n💰 Qiymət: ${plan.price}`
-  );
+  const rawMsg = planCodeEntry
+    ? `Salam! eSIM almaq istəyirəm.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
+    : `Salam! ${countryName} üçün eSIM almaq istəyirəm.\n📊 Data: ${plan.gb}GB\n⏱ Etibarlılıq: ${plan.days} gün\n💰 Qiymət: ${plan.price}`;
+
+  const waMsg = encodeURIComponent(rawMsg);
+
+  const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
+
+  const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (isTelegramWebApp) {
+      e.preventDefault();
+      (window as any).Telegram.WebApp.sendData(rawMsg);
+      (window as any).Telegram.WebApp.close();
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 group flex flex-col">
@@ -68,12 +78,17 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
       {/* Buy button */}
       <a
         href={`${WA_LINK}?text=${waMsg}`}
-        target="_blank"
+        target={isTelegramWebApp ? "_self" : "_blank"}
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-3 rounded-xl font-semibold text-sm hover:bg-[#20bd5a] transition-colors mt-auto"
+        onClick={handleBuyClick}
+        className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors mt-auto text-white ${
+          isTelegramWebApp 
+            ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' 
+            : 'bg-[#25D366] hover:bg-[#20bd5a]'
+        }`}
       >
         <MessageCircle className="w-4 h-4" />
-        {t.esimPackages.buyButton}
+        {isTelegramWebApp ? 'Telegram ilə Al' : t.esimPackages.buyButton}
       </a>
     </div>
   );

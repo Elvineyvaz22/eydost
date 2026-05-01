@@ -189,6 +189,8 @@ export default function Taxi() {
     }
   }, [pickupCoords, dropoffCoords, isMobile]);
 
+  const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
+
   const handleBooking = () => {
     if (!pickupAddress || !dropoffAddress) {
       alert("Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin.");
@@ -225,7 +227,12 @@ export default function Taxi() {
       estimated_price: priceText
     });
 
-    window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
+    if (isTelegramWebApp) {
+      (window as any).Telegram.WebApp.sendData(msg);
+      (window as any).Telegram.WebApp.close();
+    } else {
+      window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
   };
 
   // Mobile Handlers
@@ -413,10 +420,12 @@ export default function Taxi() {
 
                   <button
                     onClick={handleBooking}
-                    className="w-full mt-6 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"
+                    className={`w-full mt-6 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg ${
+                      isTelegramWebApp ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' : 'bg-[#25D366] hover:bg-[#20bd5a]'
+                    }`}
                   >
                     <MessageCircle className="w-5 h-5" />
-                    WhatsApp ilə Sifariş Et
+                    {isTelegramWebApp ? 'Telegram ilə Sifariş Et' : 'WhatsApp ilə Sifariş Et'}
                   </button>
                 </div>
               </div>
@@ -688,9 +697,11 @@ export default function Taxi() {
                   </p>
                 )}
 
-                <button onClick={handleBooking} className="w-full bg-[#25D366] text-white py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-[#25D366]/30">
+                <button onClick={handleBooking} className={`w-full text-white py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg ${
+                  isTelegramWebApp ? 'bg-[#24A1DE] shadow-[#24A1DE]/30' : 'bg-[#25D366] shadow-[#25D366]/30'
+                }`}>
                   <MessageCircle className="w-5 h-5" />
-                  Sifariş Et
+                  {isTelegramWebApp ? 'Telegram ilə Sifariş Et' : 'Sifariş Et'}
                 </button>
               </div>
             )}
