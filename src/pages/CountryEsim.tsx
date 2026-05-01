@@ -23,8 +23,33 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
 
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
-  const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // Relying entirely on href so no need for preventDefault or Telegram APIs that might fail
+  const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (isTelegramWebApp) {
+      e.preventDefault();
+      const tg = (window as any).Telegram.WebApp;
+      const user = tg.initDataUnsafe?.user;
+      
+      if (user && user.id) {
+        const TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
+        const text = `📦 <b>Yeni Sifariş!</b>\n\n${rawMsg}\n\n<i>Zəhmət olmasa ödənişi gözləyin və ya operatorun cavabını gözləyin.</i>`;
+        
+        try {
+          await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: user.id,
+              text: text,
+              parse_mode: 'HTML'
+            })
+          });
+        } catch (err) {
+          console.error("Bot API xətası:", err);
+        }
+      }
+      
+      tg.close();
+    }
   };
 
   return (
@@ -73,8 +98,8 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
 
       {/* Buy button */}
       <a
-        href={isTelegramWebApp ? `https://t.me/esimdat_bot?text=${encodeURIComponent(rawMsg)}` : `${WA_LINK}?text=${waMsg}`}
-        target="_blank"
+        href={isTelegramWebApp ? "#" : `${WA_LINK}?text=${waMsg}`}
+        target={isTelegramWebApp ? "_self" : "_blank"}
         rel="noopener noreferrer"
         onClick={handleBuyClick}
         className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors mt-auto text-white ${

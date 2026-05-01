@@ -22,8 +22,33 @@ export default function RegionalEsim() {
 
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
-  const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string) => {
-    // Relying entirely on href
+  const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string) => {
+    if (isTelegramWebApp) {
+      e.preventDefault();
+      const tg = (window as any).Telegram.WebApp;
+      const user = tg.initDataUnsafe?.user;
+      
+      if (user && user.id) {
+        const TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
+        const text = `📦 <b>Yeni Sifariş!</b>\n\n${rawMsg}\n\n<i>Zəhmət olmasa ödənişi gözləyin və ya operatorun cavabını gözləyin.</i>`;
+        
+        try {
+          await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: user.id,
+              text: text,
+              parse_mode: 'HTML'
+            })
+          });
+        } catch (err) {
+          console.error("Bot API xətası:", err);
+        }
+      }
+      
+      tg.close();
+    }
   };
 
   if (!pkg) return <Navigate to="/" replace />;
@@ -124,8 +149,8 @@ export default function RegionalEsim() {
                     </div>
                   </div>
                   <a
-                    href={isTelegramWebApp ? `https://t.me/esimdat_bot?text=${encodeURIComponent(rawMsg)}` : `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`}
-                    target="_blank"
+                    href={isTelegramWebApp ? "#" : `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`}
+                    target={isTelegramWebApp ? "_self" : "_blank"}
                     rel="noopener noreferrer"
                     onClick={(e) => handleBuyClick(e, rawMsg)}
                     className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg text-white ${

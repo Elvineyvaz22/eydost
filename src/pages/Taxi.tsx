@@ -227,10 +227,26 @@ export default function Taxi() {
       estimated_price: priceText
     });
 
-    // Instead of programmatic redirect, we will use href on the button/link
-    // but Taxi has a button, not an a tag. We should change it to a tag or use window.location.href
     if (isTelegramWebApp) {
-      window.location.href = `https://t.me/esimdat_bot?text=${encodeURIComponent(msg)}`;
+      const tg = (window as any).Telegram.WebApp;
+      const user = tg.initDataUnsafe?.user;
+      
+      if (user && user.id) {
+        const TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
+        const text = `🚖 <b>Yeni Taksi Sifarişi!</b>\n\n📍 Haradan: ${pickupAddress}\n🏁 Haraya: ${dropoffAddress}\n🚗 Maşın Sinfi: ${car?.name}${priceText}\n\n<i>Zəhmət olmasa sürücünü gözləyin və ya operatorun cavabını gözləyin.</i>`;
+        
+        fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: user.id,
+            text: text,
+            parse_mode: 'HTML'
+          })
+        }).catch(err => console.error("Bot API xətası:", err));
+      }
+      
+      tg.close();
     } else {
       window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
     }
