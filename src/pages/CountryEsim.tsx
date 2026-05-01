@@ -8,7 +8,7 @@ import { getPackageBySlug, type PackageData, type Plan } from '../data/esimPacka
 import { getPlanCode } from '../data/planCodeMap';
 import FlagImage from '../components/FlagImage';
 
-const WA_LINK = 'https://wa.me/994512778085';
+const WA_LINK = 'https://wa.me/15551656616';
 
 function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: Plan; countryName: string; flag: string; countryCode: string; planIndex: number }) {
   const { t } = useLanguage();
@@ -16,8 +16,8 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
   const planCodeEntry = getPlanCode(countryCode, planIndex);
 
   const rawMsg = planCodeEntry
-    ? `Salam! eSIM almaq istəyirəm.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-    : `Salam! ${countryName} üçün eSIM almaq istəyirəm.\n📊 Data: ${plan.gb}GB\n⏱ Etibarlılıq: ${plan.days} gün\n💰 Qiymət: ${plan.price}`;
+    ? `[TEST_ORDER]\nSalam! eSIM almaq istəyirəm.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
+    : `[TEST_ORDER]\nSalam! ${countryName} üçün eSIM almaq istəyirəm.\n📊 Data: ${plan.gb}GB\n⏱ Etibarlılıq: ${plan.days} gün\n💰 Qiymət: ${plan.price}`;
 
   const waMsg = encodeURIComponent(rawMsg);
 
@@ -27,27 +27,7 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
     if (isTelegramWebApp) {
       e.preventDefault();
       const tg = (window as any).Telegram.WebApp;
-      const user = tg.initDataUnsafe?.user;
-      
-      if (user && user.id) {
-        const TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
-        const text = `📦 <b>Yeni Sifariş!</b>\n\n${rawMsg}\n\n<i>Zəhmət olmasa ödənişi gözləyin və ya operatorun cavabını gözləyin.</i>`;
-        
-        try {
-          await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: user.id,
-              text: text,
-              parse_mode: 'HTML'
-            })
-          });
-        } catch (err) {
-          console.error("Bot API xətası:", err);
-        }
-      }
-      
+      tg.sendData(rawMsg);
       tg.close();
     }
   };

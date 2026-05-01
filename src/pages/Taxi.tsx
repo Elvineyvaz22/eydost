@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 
-const WA_LINK = 'https://wa.me/994512778085';
+const WA_LINK = 'https://wa.me/15551656616';
 
 const libraries: ("places" | "geocoding")[] = ["places"];
 
@@ -217,7 +217,7 @@ export default function Taxi() {
       priceText = ` (~$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)})`;
     }
 
-    const msg = `Hi! I want to order a taxi.\n📍 Pickup: ${pickupAddress}\n🏁 Drop-off: ${dropoffAddress}\n🚗 Car Class: ${car?.name}${priceText}`;
+    const msg = `[TEST_ORDER]\nHi! I want to order a taxi.\n📍 Pickup: ${pickupAddress}\n🏁 Drop-off: ${dropoffAddress}\n🚗 Car Class: ${car?.name}${priceText}`;
     
     // Track Analytics
     trackEvent(EVENTS.WHATSAPP_TAXI_ORDER, {
@@ -229,23 +229,7 @@ export default function Taxi() {
 
     if (isTelegramWebApp) {
       const tg = (window as any).Telegram.WebApp;
-      const user = tg.initDataUnsafe?.user;
-      
-      if (user && user.id) {
-        const TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
-        const text = `🚖 <b>Yeni Taksi Sifarişi!</b>\n\n📍 Haradan: ${pickupAddress}\n🏁 Haraya: ${dropoffAddress}\n🚗 Maşın Sinfi: ${car?.name}${priceText}\n\n<i>Zəhmət olmasa sürücünü gözləyin və ya operatorun cavabını gözləyin.</i>`;
-        
-        fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: user.id,
-            text: text,
-            parse_mode: 'HTML'
-          })
-        }).catch(err => console.error("Bot API xətası:", err));
-      }
-      
+      tg.sendData(msg);
       tg.close();
     } else {
       window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');

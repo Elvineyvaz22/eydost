@@ -15,6 +15,7 @@ load_dotenv()
 
 from esim_access.api import router as esim_router
 from esim_access.webhooks import router as webhook_router
+from esim_access.whatsapp import router as whatsapp_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +40,7 @@ app.add_middleware(
 # ── Mount Routers ─────────────────────────────────────────────────────────────
 app.include_router(esim_router, prefix="/api/esim", tags=["eSIM"])
 app.include_router(webhook_router, prefix="", tags=["Webhooks"])
+app.include_router(whatsapp_router, prefix="", tags=["WhatsApp"])
 
 
 @app.get("/health", tags=["Health"])

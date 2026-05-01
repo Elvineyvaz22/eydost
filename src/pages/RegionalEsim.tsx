@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
 
-const WA_LINK = 'https://wa.me/994512778085';
+const WA_LINK = 'https://wa.me/15551656616';
 
 function getRegionalBySlug(slug: string): RegionalPackage | undefined {
   if (globalPackage.slug === slug) return globalPackage;
@@ -26,27 +26,7 @@ export default function RegionalEsim() {
     if (isTelegramWebApp) {
       e.preventDefault();
       const tg = (window as any).Telegram.WebApp;
-      const user = tg.initDataUnsafe?.user;
-      
-      if (user && user.id) {
-        const TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
-        const text = `📦 <b>Yeni Sifariş!</b>\n\n${rawMsg}\n\n<i>Zəhmət olmasa ödənişi gözləyin və ya operatorun cavabını gözləyin.</i>`;
-        
-        try {
-          await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: user.id,
-              text: text,
-              parse_mode: 'HTML'
-            })
-          });
-        } catch (err) {
-          console.error("Bot API xətası:", err);
-        }
-      }
-      
+      tg.sendData(rawMsg);
       tg.close();
     }
   };
@@ -107,7 +87,7 @@ export default function RegionalEsim() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {pkg.plans.map((plan, i) => {
-                const rawMsg = `Hi! I would like to buy an eSIM package for ${pkg.name} region: ${plan.gb}GB (${plan.days} days). Price: ${plan.price}`;
+                const rawMsg = `[TEST_ORDER]\nHi! I would like to buy an eSIM package for ${pkg.name} region: ${plan.gb}GB (${plan.days} days). Price: ${plan.price}`;
                 return (
                 <div
                   key={i}
