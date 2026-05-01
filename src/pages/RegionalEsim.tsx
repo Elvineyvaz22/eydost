@@ -25,8 +25,8 @@ export default function RegionalEsim() {
   const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string) => {
     if (isTelegramWebApp) {
       e.preventDefault();
-      (window as any).Telegram.WebApp.sendData(rawMsg);
-      (window as any).Telegram.WebApp.close();
+      const tMeLink = `https://t.me/esimdat_bot?text=${encodeURIComponent(rawMsg)}`;
+      (window as any).Telegram.WebApp.openTelegramLink(tMeLink);
     }
   };
 

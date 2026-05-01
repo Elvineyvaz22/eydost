@@ -228,8 +228,8 @@ export default function Taxi() {
     });
 
     if (isTelegramWebApp) {
-      (window as any).Telegram.WebApp.sendData(msg);
-      (window as any).Telegram.WebApp.close();
+      const tMeLink = `https://t.me/esimdat_bot?text=${encodeURIComponent(msg)}`;
+      (window as any).Telegram.WebApp.openTelegramLink(tMeLink);
     } else {
       window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
     }

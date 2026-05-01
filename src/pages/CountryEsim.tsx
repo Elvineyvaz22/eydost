@@ -26,8 +26,9 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
   const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (isTelegramWebApp) {
       e.preventDefault();
-      (window as any).Telegram.WebApp.sendData(rawMsg);
-      (window as any).Telegram.WebApp.close();
+      // Telegram Mini App daxilində mətni botun çatına hazır yazılmış şəkildə ötürmək üçün:
+      const tMeLink = `https://t.me/esimdat_bot?text=${encodeURIComponent(rawMsg)}`;
+      (window as any).Telegram.WebApp.openTelegramLink(tMeLink);
     }
   };
 

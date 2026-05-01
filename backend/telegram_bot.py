@@ -6,13 +6,12 @@ URL = f"https://api.telegram.org/bot{TOKEN}"
 
 def get_updates(offset=None):
     url = f"{URL}/getUpdates"
-    # timeout=100 long-polling üçün istifadə olunur
     params = {"timeout": 100, "offset": offset}
     try:
         response = requests.get(url, params=params)
         return response.json()
     except Exception as e:
-        print("Telegram API ilə əlaqə xətası:", e)
+        print("Telegram API Error:", e)
         return {"ok": False}
 
 def send_message(chat_id, text):
@@ -25,7 +24,7 @@ def send_message(chat_id, text):
     requests.post(url, json=payload)
 
 def main():
-    print("Bot işə düşdü və Telegram-dan sifarişləri (web_app_data) gözləyir...")
+    print("Bot is running and waiting for web_app_data...")
     offset = None
     while True:
         updates = get_updates(offset)
@@ -40,19 +39,13 @@ def main():
                 
                 chat_id = message["chat"]["id"]
                 
-                # Saytdan (Mini App-dən) gələn datanı tuturuq:
                 if "web_app_data" in message:
                     data = message["web_app_data"]["data"]
-                    print(f"Yeni Sifariş! Web App-dan gələn məlumat:\n{data}")
+                    print(f"New Order Received from Web App!")
                     
-                    # İstifadəçiyə mesajı olduğu kimi qaytarırıq (və ya təsdiq mesajı əlavə edirik)
                     reply_text = f"<b>Yeni Sifarişiniz qeydə alındı:</b>\n\n<code>{data}</code>\n\nZəhmət olmasa ödənişi gözləyin və ya operatorun cavabını gözləyin."
                     send_message(chat_id, reply_text)
                     
-                    # QEYD: Əgər adminlərə də bildiriş getməsini istəyirsinizsə:
-                    # send_message("SİZİN_TELEGRAM_ID", f"YENİ SİFARİŞ GƏLDİ:\n\n{data}")
-                
-                # Əgər istifadəçi bota adi söz yazarsa (məs: /start)
                 elif "text" in message:
                     text = message["text"]
                     if text == "/start":
