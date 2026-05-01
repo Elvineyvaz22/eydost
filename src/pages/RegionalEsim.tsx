@@ -23,11 +23,7 @@ export default function RegionalEsim() {
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
   const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string) => {
-    if (isTelegramWebApp) {
-      e.preventDefault();
-      const tMeLink = `https://t.me/esimdat_bot?text=${encodeURIComponent(rawMsg)}`;
-      (window as any).Telegram.WebApp.openTelegramLink(tMeLink);
-    }
+    // Relying entirely on href
   };
 
   if (!pkg) return <Navigate to="/" replace />;
@@ -128,8 +124,8 @@ export default function RegionalEsim() {
                     </div>
                   </div>
                   <a
-                    href={`${WA_LINK}?text=${encodeURIComponent(rawMsg)}`}
-                    target={isTelegramWebApp ? "_self" : "_blank"}
+                    href={isTelegramWebApp ? `https://t.me/esimdat_bot?text=${encodeURIComponent(rawMsg)}` : `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`}
+                    target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => handleBuyClick(e, rawMsg)}
                     className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg text-white ${

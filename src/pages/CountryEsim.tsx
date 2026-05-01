@@ -24,12 +24,7 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
   const handleBuyClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (isTelegramWebApp) {
-      e.preventDefault();
-      // Telegram Mini App daxilində mətni botun çatına hazır yazılmış şəkildə ötürmək üçün:
-      const tMeLink = `https://t.me/esimdat_bot?text=${encodeURIComponent(rawMsg)}`;
-      (window as any).Telegram.WebApp.openTelegramLink(tMeLink);
-    }
+    // Relying entirely on href so no need for preventDefault or Telegram APIs that might fail
   };
 
   return (
@@ -78,8 +73,8 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
 
       {/* Buy button */}
       <a
-        href={`${WA_LINK}?text=${waMsg}`}
-        target={isTelegramWebApp ? "_self" : "_blank"}
+        href={isTelegramWebApp ? `https://t.me/esimdat_bot?text=${encodeURIComponent(rawMsg)}` : `${WA_LINK}?text=${waMsg}`}
+        target="_blank"
         rel="noopener noreferrer"
         onClick={handleBuyClick}
         className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors mt-auto text-white ${

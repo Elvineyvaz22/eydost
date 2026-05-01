@@ -227,9 +227,10 @@ export default function Taxi() {
       estimated_price: priceText
     });
 
+    // Instead of programmatic redirect, we will use href on the button/link
+    // but Taxi has a button, not an a tag. We should change it to a tag or use window.location.href
     if (isTelegramWebApp) {
-      const tMeLink = `https://t.me/esimdat_bot?text=${encodeURIComponent(msg)}`;
-      (window as any).Telegram.WebApp.openTelegramLink(tMeLink);
+      window.location.href = `https://t.me/esimdat_bot?text=${encodeURIComponent(msg)}`;
     } else {
       window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
     }
