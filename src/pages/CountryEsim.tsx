@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { MessageCircle, ArrowLeft, Wifi, Clock, Globe, ChevronRight, Zap, Shield } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { usePackages } from '../contexts/PackagesContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';

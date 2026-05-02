@@ -234,16 +234,16 @@ export default function EsimPackages() {
         {tab === 'global' && (
           <div className="max-w-md mx-auto">
             <Link
-              to={`/${globalPackage.slug}`}
+              to={`/${staticGlobal.slug}`}
               className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl px-6 py-5 hover:border-blue-200 hover:shadow-md transition-all duration-200 group"
             >
               <div className="text-3xl leading-none">🌍</div>
               <div className="flex-1">
                 <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                  {globalPackage.name} eSIM
+                  {staticGlobal.name} eSIM
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {globalPackage.countryCount} {esimT.countriesLabel}
+                  {staticGlobal.countryCount} {esimT.countriesLabel}
                 </p>
               </div>
               <span className="text-sm font-bold text-gray-900">

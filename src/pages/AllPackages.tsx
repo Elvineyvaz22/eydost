@@ -249,8 +249,8 @@ export default function AllPackages() {
             {/* Tab Switcher */}
             <div className="flex items-center justify-center gap-2 mt-12">
               {[
-                { id: 'countries', label: esimT.tabCountries, count: packages.length },
-                { id: 'regional', label: esimT.tabRegional, count: regionalPackages.length },
+                { id: 'countries', label: esimT.tabCountries, count: staticPackages.length },
+                { id: 'regional', label: esimT.tabRegional, count: staticRegional.length },
                 { id: 'global', label: esimT.tabGlobal, count: 1 },
               ].map((item) => (
                 <button
