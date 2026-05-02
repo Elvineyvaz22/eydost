@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 const WA_LINK = 'https://wa.me/994558878889';
 

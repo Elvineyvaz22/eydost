@@ -8,7 +8,7 @@ import { getPackageBySlug, type PackageData, type Plan } from '../data/esimPacka
 import { getPlanCode } from '../data/planCodeMap';
 import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 const WA_LINK = 'https://wa.me/994558878889';
 
