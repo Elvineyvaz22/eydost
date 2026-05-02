@@ -5,8 +5,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
+import { getWaId, createOrder } from '../utils/whatsapp';
 
-const WA_LINK = 'https://wa.me/15551656616';
+const WA_LINK = 'https://wa.me/994558878889';
 
 const libraries: ("places" | "geocoding")[] = ["places"];
 
@@ -191,50 +192,65 @@ export default function Taxi() {
 
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
-  const handleBooking = () => {
-    if (!pickupAddress || !dropoffAddress) {
-      alert("Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin.");
-      return;
-    }
-    const car = CAR_CLASSES.find(c => c.id === selectedCar);
-    let priceText = "";
-    
-    if (directions && directions.routes[0]?.legs[0]) {
-      const leg = directions.routes[0].legs[0];
-      const distanceKm = (leg.distance?.value || 0) / 1000;
-      const durationMin = (leg.duration?.value || 0) / 60;
-      
-      let baseFare = 2.0 + (distanceKm * 0.8) + (durationMin * 0.15);
-      const isAirport = pickupAddress.toLowerCase().match(/airport|aeroport|hava liman/i) || dropoffAddress.toLowerCase().match(/airport|aeroport|hava liman/i);
-      if (isAirport) baseFare *= 1.15; // 15% airport fee
-      
-      let multiplier = 1;
-      if (selectedCar === 'comfort') multiplier = 1.4;
-      if (selectedCar === 'business') multiplier = 2.2;
-      if (selectedCar === 'minivan') multiplier = 1.8;
-      
-      const totalFare = baseFare * multiplier;
-      priceText = ` (~$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)})`;
-    }
+    const [isOrdering, setIsOrdering] = useState(false);
+    const waId = getWaId();
 
-    const msg = `[TEST_ORDER]\nHi! I want to order a taxi.\n📍 Pickup: ${pickupAddress}\n🏁 Drop-off: ${dropoffAddress}\n🚗 Car Class: ${car?.name}${priceText}`;
-    
-    // Track Analytics
-    trackEvent(EVENTS.WHATSAPP_TAXI_ORDER, {
-      car_class: car?.id,
-      pickup: pickupAddress,
-      dropoff: dropoffAddress,
-      estimated_price: priceText
-    });
+    const handleBooking = async () => {
+      if (!pickupAddress || !dropoffAddress) {
+        alert("Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin.");
+        return;
+      }
+      const car = CAR_CLASSES.find(c => c.id === selectedCar);
+      let priceText = "";
+      
+      if (directions && directions.routes[0]?.legs[0]) {
+        const leg = directions.routes[0].legs[0];
+        const distanceKm = (leg.distance?.value || 0) / 1000;
+        const durationMin = (leg.duration?.value || 0) / 60;
+        
+        let baseFare = 2.0 + (distanceKm * 0.8) + (durationMin * 0.15);
+        const isAirport = pickupAddress.toLowerCase().match(/airport|aeroport|hava liman/i) || dropoffAddress.toLowerCase().match(/airport|aeroport|hava liman/i);
+        if (isAirport) baseFare *= 1.15; // 15% airport fee
+        
+        let multiplier = 1;
+        if (selectedCar === 'comfort') multiplier = 1.4;
+        if (selectedCar === 'business') multiplier = 2.2;
+        if (selectedCar === 'minivan') multiplier = 1.8;
+        
+        const totalFare = baseFare * multiplier;
+        priceText = ` (~$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)})`;
+      }
 
-    if (isTelegramWebApp) {
-      const tg = (window as any).Telegram.WebApp;
-      tg.sendData(msg);
-      tg.close();
-    } else {
-      window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-  };
+      const msg = `[TEST_ORDER]\nHi! I want to order a taxi.\n📍 Pickup: ${pickupAddress}\n🏁 Drop-off: ${dropoffAddress}\n🚗 Car Class: ${car?.name}${priceText}`;
+      
+      // Track Analytics
+      trackEvent(EVENTS.WHATSAPP_TAXI_ORDER, {
+        car_class: car?.id,
+        pickup: pickupAddress,
+        dropoff: dropoffAddress,
+        estimated_price: priceText
+      });
+
+      if (isTelegramWebApp) {
+        const tg = (window as any).Telegram.WebApp;
+        tg.sendData(msg);
+        tg.close();
+      } else if (waId) {
+        setIsOrdering(true);
+        try {
+          await createOrder({
+            wa_id: waId,
+            type: 'taxi',
+            details: msg,
+          });
+          alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
+        } finally {
+          setIsOrdering(false);
+        }
+      } else {
+        window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+    };
 
   // Mobile Handlers
   const handleMobileNext = () => {
@@ -419,15 +435,18 @@ export default function Taxi() {
                     )}
                   </div>
 
-                  <button
-                    onClick={handleBooking}
-                    className={`w-full mt-6 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg ${
-                      isTelegramWebApp ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' : 'bg-[#25D366] hover:bg-[#20bd5a]'
-                    }`}
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    {isTelegramWebApp ? 'Telegram ilə Sifariş Et' : 'WhatsApp ilə Sifariş Et'}
-                  </button>
+                    <button
+                      onClick={handleBooking}
+                      disabled={isOrdering}
+                      className={`w-full mt-6 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg ${
+                        isOrdering ? 'opacity-70 cursor-not-allowed' : ''
+                      } ${
+                        isTelegramWebApp ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' : 'bg-[#25D366] hover:bg-[#20bd5a]'
+                      }`}
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      {isOrdering ? 'Göndərilir...' : (isTelegramWebApp ? 'Telegram ilə Sifariş Et' : 'WhatsApp ilə Sifariş Et')}
+                    </button>
                 </div>
               </div>
 
@@ -698,11 +717,13 @@ export default function Taxi() {
                   </p>
                 )}
 
-                <button onClick={handleBooking} className={`w-full text-white py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg ${
+                <button onClick={handleBooking} disabled={isOrdering} className={`w-full text-white py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg ${
+                  isOrdering ? 'opacity-70 cursor-not-allowed' : ''
+                } ${
                   isTelegramWebApp ? 'bg-[#24A1DE] shadow-[#24A1DE]/30' : 'bg-[#25D366] shadow-[#25D366]/30'
                 }`}>
                   <MessageCircle className="w-5 h-5" />
-                  {isTelegramWebApp ? 'Telegram ilə Sifariş Et' : 'Sifariş Et'}
+                  {isOrdering ? 'Göndərilir...' : (isTelegramWebApp ? 'Telegram ilə Sifariş Et' : 'Sifariş Et')}
                 </button>
               </div>
             )}

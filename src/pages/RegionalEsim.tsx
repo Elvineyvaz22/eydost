@@ -7,8 +7,10 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
+import { getWaId, createOrder } from '../utils/whatsapp';
+import { useState } from 'react';
 
-const WA_LINK = 'https://wa.me/15551656616';
+const WA_LINK = 'https://wa.me/994558878889';
 
 function getRegionalBySlug(slug: string): RegionalPackage | undefined {
   if (globalPackage.slug === slug) return globalPackage;
@@ -18,16 +20,57 @@ function getRegionalBySlug(slug: string): RegionalPackage | undefined {
 export default function RegionalEsim() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useLanguage();
-  const pkg = slug ? getRegionalBySlug(slug) : undefined;
+  const { liveRegionalPackages, liveLoading } = usePackages();
 
+  const livePkg = useMemo(() => {
+    if (!slug || !liveRegionalPackages) return undefined;
+    const p = liveRegionalPackages.find(p => `${p.name.toLowerCase().replace(/\s+/g, '-')}-esim` === slug);
+    if (!p) return undefined;
+
+    return {
+      name: p.name,
+      slug: slug!,
+      flags: p.location.split(',').slice(0, 4).map(code => code.trim().toUpperCase()),
+      countryCount: p.location.split(',').length,
+      plans: [{
+        gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
+        days: p.duration,
+        price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+        code: p.packageCode,
+        id: p.slug
+      }]
+    } as any;
+  }, [liveRegionalPackages, slug]);
+
+  const pkg = livePkg || (slug ? getRegionalBySlug(slug) : undefined);
+
+  const [isOrdering, setIsOrdering] = useState(false);
+  const waId = getWaId();
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
-  const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string) => {
+  const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string, plan: any) => {
     if (isTelegramWebApp) {
       e.preventDefault();
       const tg = (window as any).Telegram.WebApp;
       tg.sendData(rawMsg);
       tg.close();
+      return;
+    }
+
+    if (waId) {
+      e.preventDefault();
+      setIsOrdering(true);
+      try {
+        await createOrder({
+          wa_id: waId,
+          type: 'esim',
+          code: pkg.name.toUpperCase(),
+          id: plan.gb + 'GB',
+        });
+        alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
+      } finally {
+        setIsOrdering(false);
+      }
     }
   };
 
@@ -129,18 +172,20 @@ export default function RegionalEsim() {
                     </div>
                   </div>
                   <a
-                    href={isTelegramWebApp ? "#" : `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`}
-                    target={isTelegramWebApp ? "_self" : "_blank"}
+                    href={isTelegramWebApp ? "#" : (waId ? "#" : `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`)}
+                    target={isTelegramWebApp || waId ? "_self" : "_blank"}
                     rel="noopener noreferrer"
-                    onClick={(e) => handleBuyClick(e, rawMsg)}
+                    onClick={(e) => handleBuyClick(e, rawMsg, plan)}
                     className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg text-white ${
+                      isOrdering ? 'opacity-70 cursor-not-allowed' : ''
+                    } ${
                       isTelegramWebApp 
                         ? 'bg-[#24A1DE] hover:bg-[#1f8ec4] shadow-blue-200' 
                         : 'bg-[#25D366] hover:bg-[#20bd5a] shadow-green-200'
                     }`}
                   >
                     <MessageCircle className="w-5 h-5" />
-                    {isTelegramWebApp ? 'Telegram ilə Al' : t.esimPackages.buyButton}
+                    {isOrdering ? 'Göndərilir...' : (isTelegramWebApp ? 'Telegram ilə Al' : t.esimPackages.buyButton)}
                   </a>
                 </div>
               )})}

@@ -87,7 +87,14 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
 export default function AllPackages() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { packages, regionalPackages, globalPackage } = usePackages();
+  const { 
+    packages: staticPackages, 
+    regionalPackages: staticRegional, 
+    globalPackage: staticGlobal,
+    liveCountryGroups,
+    liveRegionalPackages,
+    liveLoading 
+  } = usePackages();
   
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'countries' | 'regional' | 'global'>('countries');
@@ -108,24 +115,65 @@ export default function AllPackages() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Use live data if available, otherwise fallback to static
+  const activePackages = useMemo(() => {
+    if (liveCountryGroups && liveCountryGroups.length > 0) {
+      return liveCountryGroups.map(group => ({
+        country: group.countryName,
+        countryCode: group.countryCode,
+        flag: group.flag,
+        slug: `${group.countryName.toLowerCase().replace(/\s+/g, '-')}-esim`,
+        region: 'all',
+        plans: group.packages.map(p => ({
+          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
+          days: p.duration,
+          price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+          code: p.packageCode,
+          id: p.slug
+        }))
+      })) as PackageData[];
+    }
+    return staticPackages;
+  }, [liveCountryGroups, staticPackages]);
+
+  const activeRegional = useMemo(() => {
+    if (liveRegionalPackages && liveRegionalPackages.length > 0) {
+      // Group regional packages by name if needed, but for now just show them
+      return liveRegionalPackages.map(p => ({
+        name: p.name,
+        slug: `${p.name.toLowerCase().replace(/\s+/g, '-')}-esim`,
+        flags: p.location.split(',').slice(0, 4).map(code => code.trim().toUpperCase()),
+        countryCount: p.location.split(',').length,
+        plans: [{
+          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
+          days: p.duration,
+          price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+          code: p.packageCode,
+          id: p.slug
+        }]
+      })) as unknown as RegionalPackage[]; // Simplified for the grid
+    }
+    return staticRegional;
+  }, [liveRegionalPackages, staticRegional]);
+
   const filteredCountries = useMemo(() => {
-    return packages
+    return activePackages
       .filter(p => p.country.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => a.country.localeCompare(b.country));
-  }, [packages, search]);
+  }, [activePackages, search]);
 
   const filteredRegional = useMemo(() => {
-    return regionalPackages.filter(p => 
+    return activeRegional.filter(p => 
       p.name.toLowerCase().includes(search.toLowerCase())
     );
-  }, [regionalPackages, search]);
+  }, [activeRegional, search]);
 
   const suggestions = useMemo(() => {
     if (search.length === 0) return [];
     return filteredCountries.slice(0, 5);
   }, [filteredCountries, search]);
 
-  const showGlobal = globalPackage.name.toLowerCase().includes(search.toLowerCase());
+  const showGlobal = staticGlobal.name.toLowerCase().includes(search.toLowerCase());
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">

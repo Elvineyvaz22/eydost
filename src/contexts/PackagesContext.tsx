@@ -46,7 +46,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
 
   const CACHE_KEY = 'eydost_live_packages';
   const CACHE_TIME_KEY = 'eydost_live_packages_time';
-  const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
+  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
   const loadFromCache = () => {
     const cachedData = localStorage.getItem(CACHE_KEY);
@@ -89,11 +89,10 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // const hasCache = loadFromCache();
+    const hasCache = loadFromCache();
     // Even if we have cache, refresh in background if it's been a while 
     // or if we have NO cache at all.
-    // refreshLivePackages(!hasCache); 
-    setLiveLoading(false);
+    refreshLivePackages(!hasCache); 
   }, []);
 
   return (

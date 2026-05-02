@@ -28,6 +28,22 @@ app = FastAPI(
     version="1.0.0",
 )
 
+@app.get("/api/test-whatsapp")
+async def test_whatsapp_connection():
+    """
+    Diagnostic endpoint to test WhatsApp API credentials.
+    """
+    from esim_access.whatsapp import send_whatsapp_message, get_whatsapp_config
+    config = get_whatsapp_config()
+    test_recipient = "994558878889"
+    success = send_whatsapp_message(test_recipient, "EyDost Bot Diagnostic: WhatsApp API baglantisi ugurludur! ✅")
+    return {
+        "success": success,
+        "phone_number_id_used": config["phone_number_id"],
+        "note": "If success is false, check WHATSAPP_ACCESS_TOKEN in .env"
+    }
+
+
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,

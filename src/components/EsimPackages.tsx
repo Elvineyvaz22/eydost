@@ -60,18 +60,54 @@ type Tab = 'popular' | 'countries' | 'regional' | 'global';
 
 export default function EsimPackages() {
   const { t } = useLanguage();
-  const { packages, regionalPackages, globalPackage } = usePackages();
+  const { 
+    packages: staticPackages, 
+    regionalPackages: staticRegional, 
+    globalPackage: staticGlobal,
+    liveCountryGroups,
+    liveRegionalPackages
+  } = usePackages();
   const [tab, setTab] = useState<Tab>('popular');
   const [search, setSearch] = useState('');
   const [showAll, setShowAll] = useState(false);
 
   const esimT = t.esimPackages as Record<string, string>;
 
-  const featured = packages.filter(p => p.featured).slice(0, 4);
-  const allSorted = [...packages].sort((a, b) => a.country.localeCompare(b.country));
+  // Use live data if available
+  const activePackages = useMemo(() => {
+    if (liveCountryGroups && liveCountryGroups.length > 0) {
+      return liveCountryGroups.map(group => ({
+        country: group.countryName,
+        countryCode: group.countryCode,
+        flag: group.flag,
+        slug: `${group.countryName.toLowerCase().replace(/\s+/g, '-')}-esim`,
+        featured: group.packages[0]?.favorite || false,
+        plans: group.packages.map(p => ({
+          price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+        }))
+      })) as any[];
+    }
+    return staticPackages;
+  }, [liveCountryGroups, staticPackages]);
+
+  const activeRegional = useMemo(() => {
+    if (liveRegionalPackages && liveRegionalPackages.length > 0) {
+      return liveRegionalPackages.map(p => ({
+        name: p.name,
+        slug: `${p.name.toLowerCase().replace(/\s+/g, '-')}-esim`,
+        flags: p.location.split(',').slice(0, 4).map(code => code.trim().toUpperCase()),
+        countryCount: p.location.split(',').length,
+        plans: [{ price: `$${((p.price / 10000) * 1.75).toFixed(2)}` }]
+      })) as any[];
+    }
+    return staticRegional;
+  }, [liveRegionalPackages, staticRegional]);
+
+  const featured = activePackages.filter(p => p.featured || true).slice(0, 4); // Show first 4 if none marked featured
+  const allSorted = [...activePackages].sort((a, b) => a.country.localeCompare(b.country));
 
   const searchResults = search.length > 0
-    ? packages.filter(p => p.country.toLowerCase().includes(search.toLowerCase())).slice(0, 4) // Həmçinin axtarışı da çox uzatmırıq
+    ? activePackages.filter(p => p.country.toLowerCase().includes(search.toLowerCase())).slice(0, 4)
     : [];
   const isSearching = search.length > 0;
 
@@ -188,7 +224,7 @@ export default function EsimPackages() {
         {/* ── REGIONAL TAB ── */}
         {tab === 'regional' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {regionalPackages.slice(0, 4).map((pkg, i) => (
+            {activeRegional.slice(0, 4).map((pkg, i) => (
               <RegionalCard key={i} pkg={pkg} />
             ))}
           </div>
@@ -211,7 +247,7 @@ export default function EsimPackages() {
                 </p>
               </div>
               <span className="text-sm font-bold text-gray-900">
-                {globalPackage.plans[0]?.price}
+                {staticGlobal.plans[0]?.price}
               </span>
             </Link>
           </div>

@@ -326,7 +326,7 @@ class ESIMService:
         """
         now = time.time()
         with self._cache_lock:
-            if not force_refresh and self._cache_groups and (now - self._cache_time < 3600):
+            if not force_refresh and self._cache_groups and (now - self._cache_time < 86400):
                 return self._cache_groups
 
             logger.info("Refreshing country groups cache...")

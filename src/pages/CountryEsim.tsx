@@ -7,8 +7,10 @@ import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { getPackageBySlug, type PackageData, type Plan } from '../data/esimPackages';
 import { getPlanCode } from '../data/planCodeMap';
 import FlagImage from '../components/FlagImage';
+import { getWaId, createOrder } from '../utils/whatsapp';
+import { useState } from 'react';
 
-const WA_LINK = 'https://wa.me/15551656616';
+const WA_LINK = 'https://wa.me/994558878889';
 
 function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: Plan; countryName: string; flag: string; countryCode: string; planIndex: number }) {
   const { t } = useLanguage();
@@ -21,6 +23,8 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
 
   const waMsg = encodeURIComponent(rawMsg);
 
+  const [isOrdering, setIsOrdering] = useState(false);
+  const waId = getWaId();
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
   const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -29,6 +33,23 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
       const tg = (window as any).Telegram.WebApp;
       tg.sendData(rawMsg);
       tg.close();
+      return;
+    }
+
+    if (waId) {
+      e.preventDefault();
+      setIsOrdering(true);
+      try {
+        await createOrder({
+          wa_id: waId,
+          type: 'esim',
+          code: planCodeEntry?.code || countryCode.toUpperCase(),
+          id: planCodeEntry?.id || 'GENERIC',
+        });
+        alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
+      } finally {
+        setIsOrdering(false);
+      }
     }
   };
 
@@ -78,18 +99,20 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
 
       {/* Buy button */}
       <a
-        href={isTelegramWebApp ? "#" : `${WA_LINK}?text=${waMsg}`}
-        target={isTelegramWebApp ? "_self" : "_blank"}
+        href={isTelegramWebApp ? "#" : (waId ? "#" : `${WA_LINK}?text=${waMsg}`)}
+        target={isTelegramWebApp || waId ? "_self" : "_blank"}
         rel="noopener noreferrer"
         onClick={handleBuyClick}
         className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors mt-auto text-white ${
+          isOrdering ? 'opacity-70 cursor-not-allowed' : ''
+        } ${
           isTelegramWebApp 
             ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' 
             : 'bg-[#25D366] hover:bg-[#20bd5a]'
         }`}
       >
         <MessageCircle className="w-4 h-4" />
-        {isTelegramWebApp ? 'Telegram ilə Al' : t.esimPackages.buyButton}
+        {isOrdering ? 'Göndərilir...' : (isTelegramWebApp ? 'Telegram ilə Al' : t.esimPackages.buyButton)}
       </a>
     </div>
   );
@@ -98,10 +121,49 @@ function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: P
 export default function CountryEsim() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useLanguage();
+  const { liveCountryGroups, liveLoading } = usePackages();
 
-  const pkg = slug ? getPackageBySlug(slug) : undefined;
+  // Try to find in live data first
+  const livePkg = useMemo(() => {
+    if (!slug || !liveCountryGroups) return undefined;
+    return liveCountryGroups.find(group => 
+      `${group.countryName.toLowerCase().replace(/\s+/g, '-')}-esim` === slug
+    );
+  }, [liveCountryGroups, slug]);
+
+  const pkg = useMemo(() => {
+    if (livePkg) {
+      return {
+        country: livePkg.countryName,
+        countryCode: livePkg.countryCode,
+        flag: livePkg.flag,
+        slug: slug!,
+        region: 'all',
+        plans: livePkg.packages.map(p => ({
+          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
+          days: p.duration,
+          price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+          code: p.packageCode,
+          id: p.slug
+        }))
+      } as PackageData;
+    }
+    return slug ? getPackageBySlug(slug) : undefined;
+  }, [livePkg, slug]);
 
   // If country code is invalid/unknown, show not found
+  if (liveLoading && !pkg) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!pkg) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">

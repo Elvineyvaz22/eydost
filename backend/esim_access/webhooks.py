@@ -82,8 +82,37 @@ def _handle_order_status(payload: WebhookPayload):
         f"[ORDER_STATUS] Profiles ready for orderNo={payload.orderNo} "
         f"iccid={payload.iccid} esimTranNo={payload.esimTranNo}"
     )
-    # TODO: Query ESIMService.get_esim_by_order(payload.orderNo)
-    # TODO: Notify the customer (email/WhatsApp) with QR code
+    
+    # Implementation Step:
+    # 1. Fetch profiles using ESIMService
+    from .api import get_service
+    from .whatsapp import send_whatsapp_message
+    
+    svc = get_service()
+    try:
+        esim_list = svc.get_esim_by_order(payload.orderNo)
+        if esim_list:
+            # For simplicity, we assume we have a way to find the original recipient_id
+            # (In a real app, you'd look this up in a database using orderNo)
+            
+            # TODO: Fetch recipient_id from database
+            recipient_id = "USER_WA_ID" # Placeholder
+            
+            for esim in esim_list:
+                qr_url = esim.get("qrCodeUrl")
+                iccid = esim.get("iccid")
+                msg = (
+                    f"🎉 Sifarişiniz hazırdır!\n\n"
+                    f"🆔 ICCID: {iccid}\n"
+                    f"🔗 QR Kod: {qr_url}\n\n"
+                    "QR kodu skan edərək eSIM-i aktivləşdirə bilərsiniz. "
+                    "Hər hansı sualınız olarsa, bizə yazın!"
+                )
+                send_whatsapp_message(recipient_id, msg)
+                logger.info(f"Sent eSIM QR to {recipient_id}: {iccid}")
+                
+    except Exception as e:
+        logger.error(f"Failed to process order status for {payload.orderNo}: {e}")
 
 
 def _handle_low_balance(payload: WebhookPayload):
