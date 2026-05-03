@@ -222,7 +222,7 @@ export default function Taxi() {
         priceText = ` (~$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)})`;
       }
 
-      const msg = `[TAXI_ORDER]\nHi! I want to order a taxi.\n📍 ${t.taxi.pickupLabel}: ${pickupAddress}\n🏁 ${t.taxi.dropoffLabel}: ${dropoffAddress}\n🚗 ${t.taxi.carClass}: ${car?.name}${priceText}`;
+      const msg = `[TAXI_ORDER]\nHi! I want to order a taxi.\n\n📍 ${t.taxi.pickupLabel}: ${pickupAddress}\n🔗 https://www.google.com/maps?q=${pickupCoords?.lat},${pickupCoords?.lng}\n\n🏁 ${t.taxi.dropoffLabel}: ${dropoffAddress}\n🔗 https://www.google.com/maps?q=${dropoffCoords?.lat},${dropoffCoords?.lng}\n\n🚗 ${t.taxi.carClass}: ${car?.name}${priceText}`;
       
       // Track Analytics
       trackEvent(EVENTS.WHATSAPP_TAXI_ORDER, {
