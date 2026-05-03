@@ -174,7 +174,7 @@ export default function CountryEsim() {
             <p className="text-6xl mb-4">😕</p>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Country not found</h2>
             <p className="text-gray-500 mb-6">No eSIM packages available for "{slug}"</p>
-            <Link to="/packages" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+            <Link to="/esim" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
               Browse All Countries
             </Link>
           </div>
@@ -195,7 +195,7 @@ export default function CountryEsim() {
           <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
             <Link to="/" className="hover:text-white transition-colors">{t.countryEsim.home}</Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <Link to="/packages" className="hover:text-white transition-colors">eSIM</Link>
+            <Link to="/esim" className="hover:text-white transition-colors">eSIM</Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-white font-medium">{pkg.country}</span>
           </div>
@@ -224,7 +224,7 @@ export default function CountryEsim() {
 
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Link to="/packages"
+          <Link to="/esim"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
             {t.countryEsim.backToAll}

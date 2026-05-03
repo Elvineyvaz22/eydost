@@ -15,10 +15,10 @@ export default function Header() {
   const langMap = { EN: 'en', AZ: 'az', RU: 'ru' } as const;
 
   const isTaxiPage = location.pathname === '/taxi';
-  const isPackagesPage = location.pathname === '/packages';
+  const isPackagesPage = location.pathname === '/esim';
 
   const navLinks = [
-    { href: '/packages', label: t.nav.esim },
+    { href: '/esim', label: t.nav.esim },
     { href: '/taxi', label: t.nav.taxi },
     { href: '/#how-esim', label: t.nav.howItWorks },
     { href: '/#faq', label: t.nav.faq },
@@ -71,7 +71,7 @@ export default function Header() {
             {/* Conditional Mobile Buttons */}
             {isTaxiPage && (
               <a
-                href="/packages"
+                href="/esim"
                 className="lg:hidden flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95"
               >
                 <Smartphone className="w-3 h-3" />

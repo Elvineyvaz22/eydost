@@ -48,7 +48,7 @@ export default function Hero() {
           </Link>
 
           {/* eSIM Card (Blue/Cyan Style) */}
-          <Link to="/packages" className="group relative bg-[#1E293B] hover:bg-[#2A3B52] border border-gray-700 hover:border-blue-500/50 p-8 rounded-3xl transition-all duration-300 shadow-2xl hover:shadow-blue-900/20 flex flex-col justify-between min-h-[220px] overflow-hidden">
+          <Link to="/esim" className="group relative bg-[#1E293B] hover:bg-[#2A3B52] border border-gray-700 hover:border-blue-500/50 p-8 rounded-3xl transition-all duration-300 shadow-2xl hover:shadow-blue-900/20 flex flex-col justify-between min-h-[220px] overflow-hidden">
             <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
               <Wifi className="w-32 h-32 text-blue-400" />
             </div>

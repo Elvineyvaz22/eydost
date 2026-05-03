@@ -62,7 +62,7 @@ function App() {
             <Routes>
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/" element={<HomePage />} />
-              <Route path="/packages" element={<AllPackages />} />
+              <Route path="/esim" element={<AllPackages />} />
               <Route path="/taxi" element={<Taxi />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
