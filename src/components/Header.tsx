@@ -27,23 +27,7 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
-      {/* Top Banner for Telegram Verification */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-2 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium">
-            <Send className="w-3.5 h-3.5" />
-            <span>{language === 'az' ? 'Bizim Telegram Botumuz:' : (language === 'ru' ? 'Наш Telegram бот:' : 'Our Telegram Bot:')}</span>
-            <a 
-              href={TG_LINK} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-blue-100 transition-colors font-bold"
-            >
-              t.me/eydost_esim_bot
-            </a>
-          </div>
-        </div>
-      </div>
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20 transition-all">
