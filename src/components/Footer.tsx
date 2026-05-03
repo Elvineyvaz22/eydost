@@ -39,12 +39,7 @@ export default function Footer() {
                 <Phone className="w-4 h-4 text-orange-400 shrink-0" />
                 {t.contact.support24}
               </li>
-              <li className="flex items-center gap-2">
-                <Send className="w-4 h-4 text-blue-400 shrink-0" />
-                <a href="https://t.me/eydost_esim_bot" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-cyan-400 transition-colors">
-                  Telegram Bot: t.me/eydost_esim_bot
-                </a>
-              </li>
+
             </ul>
           </div>
 
