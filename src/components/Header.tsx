@@ -32,7 +32,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium">
             <Send className="w-3.5 h-3.5" />
-            <span>Bizim Telegram Botumuz:</span>
+            <span>{language === 'az' ? 'Bizim Telegram Botumuz:' : (language === 'ru' ? 'Наш Telegram бот:' : 'Our Telegram Bot:')}</span>
             <a 
               href={TG_LINK} 
               target="_blank" 
@@ -75,7 +75,7 @@ export default function Header() {
                 className="lg:hidden flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95"
               >
                 <Smartphone className="w-3 h-3" />
-                eSIM Al
+                {t.hero.ctaEsim}
               </a>
             )}
 
@@ -85,7 +85,7 @@ export default function Header() {
                 className="lg:hidden flex items-center gap-1.5 bg-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-all shadow-md active:scale-95"
               >
                 <Car className="w-3 h-3" />
-                Taksi Çağır
+                {t.hero.ctaTaxi}
               </a>
             )}
 

@@ -25,6 +25,7 @@ export default function Taxi() {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries,
+    language: 'en',
   });
 
   // Responsive state
@@ -197,7 +198,7 @@ export default function Taxi() {
 
     const handleBooking = async () => {
       if (!pickupAddress || !dropoffAddress) {
-        alert("Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin.");
+        alert(language === 'az' ? "Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin." : (language === 'ru' ? "Пожалуйста, выберите пункты отправления и назначения." : "Please select both pickup and drop-off locations."));
         return;
       }
       const car = CAR_CLASSES.find(c => c.id === selectedCar);
@@ -221,7 +222,7 @@ export default function Taxi() {
         priceText = ` (~$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)})`;
       }
 
-      const msg = `[TEST_ORDER]\nHi! I want to order a taxi.\n📍 Pickup: ${pickupAddress}\n🏁 Drop-off: ${dropoffAddress}\n🚗 Car Class: ${car?.name}${priceText}`;
+      const msg = `[TAXI_ORDER]\nHi! I want to order a taxi.\n📍 ${t.taxi.pickupLabel}: ${pickupAddress}\n🏁 ${t.taxi.dropoffLabel}: ${dropoffAddress}\n🚗 ${t.taxi.carClass}: ${car?.name}${priceText}`;
       
       // Track Analytics
       trackEvent(EVENTS.WHATSAPP_TAXI_ORDER, {
@@ -243,7 +244,7 @@ export default function Taxi() {
             type: 'taxi',
             details: msg,
           });
-          alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
+          alert(language === 'az' ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.' : (language === 'ru' ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.' : 'Your order has been sent to WhatsApp! Please return to the chat.'));
         } finally {
           setIsOrdering(false);
         }
@@ -292,7 +293,7 @@ export default function Taxi() {
             <div className="mb-10 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-semibold mb-6">
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                Available Everywhere
+                {t.taxi.availableEverywhere}
               </div>
               <h1 className="text-4xl lg:text-6xl font-extrabold text-white leading-tight mb-4 tracking-tight">
                 Fast Rides <br className="hidden lg:block" />
@@ -301,7 +302,7 @@ export default function Taxi() {
                 </span>
               </h1>
               <p className="text-gray-400 max-w-2xl text-lg mx-auto lg:mx-0">
-                Xəritədə yeri seçin, maşını təyin edin və bir kliklə WhatsApp-dan sifariş verin.
+                {t.taxi.rideDescription}
               </p>
             </div>
 
@@ -325,14 +326,14 @@ export default function Taxi() {
                       <div className="flex items-center gap-3">
                         <Navigation className="w-5 h-5 text-blue-400 shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-semibold mb-1 uppercase">Haradan (Pickup)</p>
+                          <p className="text-xs text-gray-500 font-semibold mb-1 uppercase">{t.taxi.pickupLabel}</p>
                           {isLoaded && (
                             <Autocomplete onLoad={(auto) => setPickupAutocomplete(auto)} onPlaceChanged={handlePickupPlaceChanged}>
                               <input
                                 type="text"
                                 value={pickupAddress}
                                 onChange={(e) => setPickupAddress(e.target.value)}
-                                placeholder="Xəritədə seçin və ya yazın..."
+                                placeholder={t.taxi.pickupPlaceholder}
                                 className="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
                               />
                             </Autocomplete>
@@ -354,14 +355,14 @@ export default function Taxi() {
                       <div className="flex items-center gap-3">
                         <MapPin className="w-5 h-5 text-red-500 shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-semibold mb-1 uppercase">Haraya (Drop-off)</p>
+                          <p className="text-xs text-gray-500 font-semibold mb-1 uppercase">{t.taxi.dropoffLabel}</p>
                           {isLoaded && (
                             <Autocomplete onLoad={(auto) => setDropoffAutocomplete(auto)} onPlaceChanged={handleDropoffPlaceChanged}>
                               <input
                                 type="text"
                                 value={dropoffAddress}
                                 onChange={(e) => setDropoffAddress(e.target.value)}
-                                placeholder="Axtarın və ya xəritədə seçin..."
+                                placeholder={t.taxi.dropoffPlaceholder}
                                 className="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
                               />
                             </Autocomplete>
@@ -373,7 +374,7 @@ export default function Taxi() {
 
                   <div className="mt-8 flex-1">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Maşın Sinfi</h3>
+                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{t.taxi.carClass}</h3>
                       {routeDetails && (
                         <span className="text-sm font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full">
                           {routeDetails.distance?.text} • {routeDetails.duration?.text}
@@ -430,7 +431,7 @@ export default function Taxi() {
                     </div>
                     {routeDetails && (
                       <p className="text-xs text-gray-500 mt-4 text-center">
-                        * Qiymətlər təxminidir (USD) və tıxaca və ya aeroport rüsumuna görə dəyişə bilər.
+                        {t.taxi.airportNote}
                       </p>
                     )}
                   </div>
@@ -445,7 +446,7 @@ export default function Taxi() {
                       }`}
                     >
                       <MessageCircle className="w-5 h-5" />
-                      {isOrdering ? 'Göndərilir...' : (isTelegramWebApp ? 'Telegram ilə Sifariş Et' : 'WhatsApp ilə Sifariş Et')}
+                      {isOrdering ? '...' : (isTelegramWebApp ? t.taxi.orderTelegram : t.taxi.orderWhatsApp)}
                     </button>
                 </div>
               </div>
@@ -498,7 +499,7 @@ export default function Taxi() {
                     {!directions && (
                       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10 pointer-events-none pb-2 flex flex-col items-center">
                         <div className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg mb-1 animate-bounce">
-                          {activeInput === 'pickup' ? 'Haradan?' : 'Haraya?'}
+                          {activeInput === 'pickup' ? t.taxi.pickupLabel : t.taxi.dropoffLabel}?
                         </div>
                         <div className="w-8 h-10 flex flex-col items-center justify-end relative">
                            <div className={`w-5 h-5 rounded-full border-[3px] border-white shadow-md z-10 ${activeInput === 'pickup' ? 'bg-blue-600' : 'bg-red-600'}`}></div>
@@ -581,7 +582,7 @@ export default function Taxi() {
         {isLoaded && mobileStep !== 'confirm_ride' && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10 pointer-events-none pb-6 flex flex-col items-center">
             <div className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg mb-2 whitespace-nowrap animate-bounce">
-              {mobileStep === 'select_pickup' ? 'Haradan?' : 'Haraya?'}
+              {mobileStep === 'select_pickup' ? t.taxi.pickupLabel : t.taxi.dropoffLabel}?
             </div>
             <div className="w-8 h-12 flex items-center justify-center relative">
                <div className={`w-6 h-6 rounded-full border-4 border-white ${mobileStep === 'select_pickup' ? 'bg-blue-600' : 'bg-red-600'} absolute bottom-0 shadow-md z-10`}></div>
@@ -607,7 +608,7 @@ export default function Taxi() {
 
             {mobileStep === 'select_pickup' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Haradan?</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">{t.taxi.pickupLabel}?</h2>
                 <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100 mb-5 relative">
                   <div className="w-3 h-3 rounded-full bg-blue-600 shrink-0"></div>
                   {isLoaded && (
@@ -616,37 +617,37 @@ export default function Taxi() {
                         type="text"
                         value={pickupAddress}
                         onChange={(e) => setPickupAddress(e.target.value)}
-                        placeholder="Axtar..."
+                        placeholder={t.taxi.pickupPlaceholder}
                         className="w-full bg-transparent text-gray-900 font-medium focus:outline-none truncate text-base"
                       />
                     </Autocomplete>
                   )}
                 </div>
                 <button onClick={handleMobileNext} className="w-full bg-black text-white py-3.5 rounded-xl font-bold text-base shadow-md">
-                  Təsdiqlə
+                  {t.taxi.confirmLocation}
                 </button>
               </div>
             )}
 
             {mobileStep === 'select_dropoff' && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Haraya?</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">{t.taxi.dropoffLabel}?</h2>
                 <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100 mb-5 relative">
-                  <div className="w-3 h-3 rounded-sm bg-red-600 shrink-0"></div>
+                   <div className="w-3 h-3 rounded-sm bg-red-600 shrink-0"></div>
                   {isLoaded && (
                     <Autocomplete onLoad={(auto) => setDropoffAutocomplete(auto)} onPlaceChanged={handleDropoffPlaceChanged} className="w-full">
                       <input
                         type="text"
                         value={dropoffAddress}
                         onChange={(e) => setDropoffAddress(e.target.value)}
-                        placeholder="Axtar..."
+                        placeholder={t.taxi.dropoffPlaceholder}
                         className="w-full bg-transparent text-gray-900 font-medium focus:outline-none truncate text-base"
                       />
                     </Autocomplete>
                   )}
                 </div>
                 <button onClick={handleMobileNext} className="w-full bg-black text-white py-3.5 rounded-xl font-bold text-base shadow-md">
-                  Hədəfi Təsdiqlə
+                  {t.taxi.confirmDestination}
                 </button>
               </div>
             )}
@@ -666,7 +667,7 @@ export default function Taxi() {
                 </div>
 
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-gray-900 text-sm">Maşın Sinfi</h3>
+                  <h3 className="font-bold text-gray-900 text-sm">{t.taxi.carClass}</h3>
                   {routeDetails && (
                     <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">
                       {routeDetails.distance?.text} • {routeDetails.duration?.text}
@@ -713,7 +714,7 @@ export default function Taxi() {
                 
                 {routeDetails && (
                   <p className="text-[10px] text-gray-500 mb-3 text-center leading-tight">
-                    * Qiymətlər təxminidir (USD) və reallıqda dəyişə bilər.
+                    {t.taxi.airportNote}
                   </p>
                 )}
 
@@ -723,7 +724,7 @@ export default function Taxi() {
                   isTelegramWebApp ? 'bg-[#24A1DE] shadow-[#24A1DE]/30' : 'bg-[#25D366] shadow-[#25D366]/30'
                 }`}>
                   <MessageCircle className="w-5 h-5" />
-                  {isOrdering ? 'Göndərilir...' : (isTelegramWebApp ? 'Telegram ilə Sifariş Et' : 'Sifariş Et')}
+                  {isOrdering ? '...' : (isTelegramWebApp ? t.taxi.orderTelegram : t.taxi.orderWhatsApp)}
                 </button>
               </div>
             )}
