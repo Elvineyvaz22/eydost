@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { packages as initialPackages, regionalPackages as initialRegional, globalPackage as initialGlobal } from '../data/esimPackages';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import { fetchCountryGroups, type ESIMCountryGroup, type ESIMPackageRaw } from '../services/esimApi';
@@ -29,7 +29,11 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem('eydost_esim_data');
     if (saved) {
-      try { setPackages(JSON.parse(saved)); } catch {}
+      try {
+        setPackages(JSON.parse(saved));
+      } catch {
+        localStorage.removeItem('eydost_esim_data');
+      }
     }
   }, []);
 

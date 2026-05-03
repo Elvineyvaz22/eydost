@@ -22,7 +22,7 @@ const CAR_CLASSES = [
 
 export default function Taxi() {
   const { t } = useLanguage();
-  const { isLoaded, loadError } = useLoadScript({
+  const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries,
   });

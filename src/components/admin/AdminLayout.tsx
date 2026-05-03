@@ -6,11 +6,11 @@ import {
   Sparkles,
   Layout,
   Rocket,
-  Palette,
   FileText,
   Languages,
   LogOut,
   MessageSquare,
+  DollarSign,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -30,6 +30,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'İdarə Paneli' },
     { path: '/admin/messages', icon: MessageSquare, label: 'Mesajlar' },
     { path: '/admin/esim', icon: Layout, label: 'eSIM Paketləri' },
+    { path: '/admin/pricing', icon: DollarSign, label: 'Qiymətləndirmə' },
     { path: '/admin/taxi', icon: Sparkles, label: 'Taksi Tənzimləmələri' },
     { path: '/admin/faq', icon: FileText, label: 'Sual-Cavablar (FAQ)' },
     { path: '/admin/analytics', icon: Rocket, label: 'Marketinq / Analitika' },

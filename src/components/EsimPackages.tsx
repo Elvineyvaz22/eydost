@@ -9,7 +9,6 @@ import { trackEvent, EVENTS } from '../utils/analytics';
 
 /* ─── Country row card (Airalo style) ─── */
 function CountryCard({ pkg }: { pkg: PackageData }) {
-  const { t } = useLanguage();
   return (
     <Link
       to={`/${pkg.slug}`}
@@ -81,11 +80,16 @@ export default function EsimPackages() {
         countryCode: group.countryCode,
         flag: group.flag,
         slug: `${group.countryName.toLowerCase().replace(/\s+/g, '-')}-esim`,
+        region: 'all',
         featured: group.packages[0]?.favorite || false,
         plans: group.packages.map(p => ({
-          price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
+          days: p.duration,
+          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
+          code: p.packageCode,
+          id: p.slug,
         }))
-      })) as any[];
+      })) satisfies PackageData[];
     }
     return staticPackages;
   }, [liveCountryGroups, staticPackages]);
@@ -97,8 +101,14 @@ export default function EsimPackages() {
         slug: `${p.name.toLowerCase().replace(/\s+/g, '-')}-esim`,
         flags: p.location.split(',').slice(0, 4).map(code => code.trim().toUpperCase()),
         countryCount: p.location.split(',').length,
-        plans: [{ price: `$${((p.price / 10000) * 1.75).toFixed(2)}` }]
-      })) as any[];
+        plans: [{
+          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
+          days: p.duration,
+          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
+          code: p.packageCode,
+          id: p.slug,
+        }]
+      })) satisfies RegionalPackage[];
     }
     return staticRegional;
   }, [liveRegionalPackages, staticRegional]);

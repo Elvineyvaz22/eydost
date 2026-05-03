@@ -7,10 +7,11 @@ Mount this router in your main FastAPI app:
     from esim_access.api import router as esim_router
     app.include_router(esim_router, prefix="/api/esim", tags=["eSIM"])
 
-All endpoints require the application-level API key (X-API-Key header)
-which is separate from the eSIM Access provider key in .env.
+Sensitive endpoints require the application-level API key (X-API-Key header)
+when APP_API_KEY is configured. This is separate from the eSIM Access provider key.
 """
 
+import os
 import time
 import logging
 from typing import Optional
@@ -29,6 +30,15 @@ from .client import (
 
 logger = logging.getLogger("esim_access.api")
 router = APIRouter()
+
+
+def require_api_key(x_api_key: Optional[str] = Header(None)) -> None:
+    expected_key = os.environ.get("APP_API_KEY", "").strip()
+    if not expected_key:
+        logger.error("APP_API_KEY is not set; refusing sensitive eSIM request.")
+        raise HTTPException(status_code=503, detail="API key protection is not configured.")
+    if x_api_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key.")
 
 # ── Dependency: shared service instance ──────────────────────────────────────
 _service_instance: Optional[ESIMService] = None
@@ -137,6 +147,7 @@ async def list_topup_packages(
 @router.post("/order", summary="Place a new eSIM order")
 async def order_esim(
     body: OrderRequest,
+    _: None = Depends(require_api_key),
     svc: ESIMService = Depends(get_service),
 ):
     """
@@ -164,6 +175,7 @@ async def order_esim(
 @router.get("/esim/{order_no}", summary="Get eSIM profiles by order number")
 async def get_esim(
     order_no: str,
+    _: None = Depends(require_api_key),
     svc: ESIMService = Depends(get_service),
 ):
     """
@@ -192,6 +204,7 @@ async def get_esim_status(
     end_time: Optional[str] = Query(None),
     page_size: int = Query(10, ge=1, le=100),
     page_num: int = Query(1, ge=1),
+    _: None = Depends(require_api_key),
     svc: ESIMService = Depends(get_service),
 ):
     """
@@ -214,7 +227,10 @@ async def get_esim_status(
 
 
 @router.get("/balance", summary="Query account balance")
-async def get_balance(svc: ESIMService = Depends(get_service)):
+async def get_balance(
+    _: None = Depends(require_api_key),
+    svc: ESIMService = Depends(get_service),
+):
     """Returns your current eSIM Access reseller account balance."""
     try:
         result = svc.get_balance()
@@ -226,6 +242,7 @@ async def get_balance(svc: ESIMService = Depends(get_service)):
 @router.post("/esim/topup", summary="Top up an existing eSIM")
 async def topup_esim(
     body: TopUpRequest,
+    _: None = Depends(require_api_key),
     svc: ESIMService = Depends(get_service),
 ):
     """Add more data to an existing active eSIM profile."""
@@ -244,7 +261,11 @@ async def topup_esim(
 
 
 @router.post("/esim/cancel", summary="Cancel an eSIM profile")
-async def cancel_esim(body: ESIMActionRequest, svc: ESIMService = Depends(get_service)):
+async def cancel_esim(
+    body: ESIMActionRequest,
+    _: None = Depends(require_api_key),
+    svc: ESIMService = Depends(get_service),
+):
     """Cancel an eSIM and request a refund to your balance."""
     try:
         result = svc.cancel_esim(esim_tran_no=body.esim_tran_no)
@@ -254,7 +275,11 @@ async def cancel_esim(body: ESIMActionRequest, svc: ESIMService = Depends(get_se
 
 
 @router.post("/esim/suspend", summary="Suspend an eSIM profile")
-async def suspend_esim(body: ESIMActionRequest, svc: ESIMService = Depends(get_service)):
+async def suspend_esim(
+    body: ESIMActionRequest,
+    _: None = Depends(require_api_key),
+    svc: ESIMService = Depends(get_service),
+):
     """Suspend an active eSIM profile."""
     try:
         result = svc.suspend_esim(esim_tran_no=body.esim_tran_no)
@@ -264,7 +289,11 @@ async def suspend_esim(body: ESIMActionRequest, svc: ESIMService = Depends(get_s
 
 
 @router.post("/esim/unsuspend", summary="Unsuspend an eSIM profile")
-async def unsuspend_esim(body: ESIMActionRequest, svc: ESIMService = Depends(get_service)):
+async def unsuspend_esim(
+    body: ESIMActionRequest,
+    _: None = Depends(require_api_key),
+    svc: ESIMService = Depends(get_service),
+):
     """Reactivate a suspended eSIM profile."""
     try:
         result = svc.unsuspend_esim(esim_tran_no=body.esim_tran_no)

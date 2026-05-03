@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, Globe2, Globe, ChevronRight, X } from 'lucide-react';
+import { Search, ChevronRight, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePackages } from '../contexts/PackagesContext';
@@ -93,7 +93,6 @@ export default function AllPackages() {
     globalPackage: staticGlobal,
     liveCountryGroups,
     liveRegionalPackages,
-    liveLoading 
   } = usePackages();
   
   const [search, setSearch] = useState('');
@@ -127,7 +126,7 @@ export default function AllPackages() {
         plans: group.packages.map(p => ({
           gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
           days: p.duration,
-          price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
           code: p.packageCode,
           id: p.slug
         }))
@@ -147,7 +146,7 @@ export default function AllPackages() {
         plans: [{
           gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
           days: p.duration,
-          price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
           code: p.packageCode,
           id: p.slug
         }]
@@ -173,7 +172,13 @@ export default function AllPackages() {
     return filteredCountries.slice(0, 5);
   }, [filteredCountries, search]);
 
-  const showGlobal = staticGlobal.name.toLowerCase().includes(search.toLowerCase());
+  const globalPackage = staticGlobal;
+  const showGlobal = globalPackage.name.toLowerCase().includes(search.toLowerCase());
+  const tabs: { id: 'countries' | 'regional' | 'global'; label: string; count: number }[] = [
+    { id: 'countries', label: esimT.tabCountries, count: activePackages.length },
+    { id: 'regional', label: esimT.tabRegional, count: activeRegional.length },
+    { id: 'global', label: esimT.tabGlobal, count: 1 },
+  ];
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
@@ -248,14 +253,10 @@ export default function AllPackages() {
 
             {/* Tab Switcher */}
             <div className="flex items-center justify-center gap-2 mt-12">
-              {[
-                { id: 'countries', label: esimT.tabCountries, count: staticPackages.length },
-                { id: 'regional', label: esimT.tabRegional, count: staticRegional.length },
-                { id: 'global', label: esimT.tabGlobal, count: 1 },
-              ].map((item) => (
+              {tabs.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setTab(item.id as any)}
+                  onClick={() => setTab(item.id)}
                   className={`px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 ${
                     tab === item.id
                       ? 'bg-gray-900 text-white shadow-lg'

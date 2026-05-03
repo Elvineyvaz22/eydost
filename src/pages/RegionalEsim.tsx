@@ -21,7 +21,7 @@ function getRegionalBySlug(slug: string): RegionalPackage | undefined {
 export default function RegionalEsim() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useLanguage();
-  const { liveRegionalPackages, liveLoading } = usePackages();
+  const { liveRegionalPackages } = usePackages();
 
   const livePkg = useMemo(() => {
     if (!slug || !liveRegionalPackages) return undefined;
@@ -31,28 +31,31 @@ export default function RegionalEsim() {
     return {
       name: p.name,
       slug: slug!,
-      flags: p.location.split(',').slice(0, 4).map(code => code.trim().toUpperCase()),
+      flags: p.location.split(',').slice(0, 4).map((code: string) => code.trim().toUpperCase()),
       countryCount: p.location.split(',').length,
       plans: [{
         gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
         days: p.duration,
-        price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+        price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
         code: p.packageCode,
         id: p.slug
       }]
-    } as any;
+    } satisfies RegionalPackage;
   }, [liveRegionalPackages, slug]);
 
   const pkg = livePkg || (slug ? getRegionalBySlug(slug) : undefined);
 
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
-  const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
+  const isTelegramWebApp = typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.initData);
 
-  const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string, plan: any) => {
+  if (!pkg) return <Navigate to="/" replace />;
+
+  const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string, plan: RegionalPackage['plans'][number]) => {
     if (isTelegramWebApp) {
       e.preventDefault();
-      const tg = (window as any).Telegram.WebApp;
+      const tg = window.Telegram?.WebApp;
+      if (!tg) return;
       tg.sendData(rawMsg);
       tg.close();
       return;
@@ -74,8 +77,6 @@ export default function RegionalEsim() {
       }
     }
   };
-
-  if (!pkg) return <Navigate to="/" replace />;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

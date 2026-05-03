@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Car, Wifi, MessageCircle, Plus } from 'lucide-react';
+import { ChevronDown, Car, Wifi, MessageCircle } from 'lucide-react';
 import { trackEvent, EVENTS } from '../utils/analytics';
 
 type Tab = 'taxi' | 'esim' | 'general';

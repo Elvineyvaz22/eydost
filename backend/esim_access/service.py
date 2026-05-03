@@ -25,6 +25,7 @@ from .client import (
     ESIMOrderPendingError,
     ESIMAccessError,
 )
+from .pricing import pricing_manager
 
 import time
 import threading
@@ -77,6 +78,18 @@ class ESIMService:
             "/api/v1/open/package/list", payload
         )
         packages = (response.obj or {}).get("packageList", [])
+        
+        # Apply pricing rules
+        for p in packages:
+            # Extract basic info for pricing
+            pkg_code = p.get("packageCode", "")
+            locs = [l.strip().upper() for l in (p.get("location") or "").split(",") if l.strip()]
+            country_code = locs[0] if len(locs) == 1 else ""
+            region = "Global" if len(locs) > 10 else (p.get("location") if len(locs) > 1 else "")
+            
+            api_price = p.get("price", 0)
+            p["sellingPrice"] = pricing_manager.get_selling_price(pkg_code, country_code, region, api_price)
+
         logger.info(f"Fetched {len(packages)} packages")
         return packages
 
@@ -363,7 +376,8 @@ class ESIMService:
                         "volume": p.get("volume"),
                         "duration": p.get("duration"),
                         "durationUnit": p.get("durationUnit"),
-                        "speed": p.get("speed")
+                        "speed": p.get("speed"),
+                        "sellingPrice": p.get("sellingPrice")
                     })
 
             result = {

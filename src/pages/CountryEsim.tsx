@@ -13,7 +13,7 @@ import { useState, useMemo } from 'react';
 
 const WA_LINK = 'https://wa.me/994558878889';
 
-function PlanCard({ plan, countryName, flag, countryCode, planIndex }: { plan: Plan; countryName: string; flag: string; countryCode: string; planIndex: number }) {
+function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; countryName: string; countryCode: string; planIndex: number }) {
   const { t } = useLanguage();
 
   const planCodeEntry = getPlanCode(countryCode, planIndex);
@@ -143,7 +143,7 @@ export default function CountryEsim() {
         plans: livePkg.packages.map(p => ({
           gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
           days: p.duration,
-          price: `$${((p.price / 10000) * 1.75).toFixed(2)}`,
+          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
           code: p.packageCode,
           id: p.slug
         }))
@@ -234,7 +234,7 @@ export default function CountryEsim() {
             <h2 className="text-xl font-bold text-gray-900 mb-6">{t.countryEsim.availablePlans}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {pkg.plans.map((plan, i) => (
-                <PlanCard key={i} plan={plan} countryName={pkg.country} flag={pkg.flag} countryCode={pkg.countryCode} planIndex={i} />
+                <PlanCard key={i} plan={plan} countryName={pkg.country} countryCode={pkg.countryCode} planIndex={i} />
               ))}
             </div>
           </div>

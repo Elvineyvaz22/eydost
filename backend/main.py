@@ -6,7 +6,7 @@ Run with:  uvicorn main:app --reload --port 8000
 
 import os
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -29,13 +29,20 @@ app = FastAPI(
 )
 
 @app.get("/api/test-whatsapp")
-async def test_whatsapp_connection():
+async def test_whatsapp_connection(x_api_key: str | None = Header(None)):
     """
     Diagnostic endpoint to test WhatsApp API credentials.
     """
     from esim_access.whatsapp import send_whatsapp_message, get_whatsapp_config
+    expected_key = os.environ.get("APP_API_KEY", "").strip()
+    if not expected_key or x_api_key != expected_key:
+        raise HTTPException(status_code=404, detail="Not found")
+
     config = get_whatsapp_config()
-    test_recipient = "994558878889"
+    test_recipient = os.environ.get("WHATSAPP_TEST_RECIPIENT", "").strip()
+    if not test_recipient:
+        raise HTTPException(status_code=400, detail="WHATSAPP_TEST_RECIPIENT is not configured")
+
     success = send_whatsapp_message(test_recipient, "EyDost Bot Diagnostic: WhatsApp API baglantisi ugurludur! ✅")
     return {
         "success": success,

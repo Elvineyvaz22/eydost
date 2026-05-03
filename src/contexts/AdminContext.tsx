@@ -5,8 +5,8 @@ interface AdminContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  siteContent?: Record<string, any>;
+  logout: () => Promise<void>;
+  siteContent?: Record<string, unknown>;
   refreshContent: () => Promise<void>;
 }
 
@@ -15,7 +15,7 @@ const AdminContext = createContext<AdminContextType | undefined>(undefined);
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [siteContent, setSiteContent] = useState<Record<string, any>>({});
+  const [siteContent, setSiteContent] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
     checkAuth();
@@ -24,14 +24,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      // Check for local hardcoded session first
-      const localSession = localStorage.getItem('eydost_admin_session');
-      if (localSession === 'active') {
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return;
-      }
-
       const { data } = await supabase.auth.getSession();
       setIsAuthenticated(!!data.session);
     } catch (error) {
@@ -43,20 +35,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (usernameOrEmail: string, password: string): Promise<boolean> => {
-    const cleanUsername = usernameOrEmail.trim().toLowerCase();
-    const cleanPassword = password.trim();
-
-    // Hardcoded credentials
-    if (cleanUsername === 'elvineyvaz' && cleanPassword === 'Elvin7636.') {
-      setIsAuthenticated(true);
-      localStorage.setItem('eydost_admin_session', 'active');
-      return true;
-    }
-
     try {
-      // Fallback to Supabase if configured
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: usernameOrEmail,
+        email: usernameOrEmail.trim(),
         password,
       });
 
@@ -89,7 +70,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         .select('key, value');
 
       if (data) {
-        const contentMap: Record<string, any> = {};
+        const contentMap: Record<string, unknown> = {};
         data.forEach(item => {
           contentMap[item.key] = item.value;
         });

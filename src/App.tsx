@@ -31,6 +31,7 @@ import TaxiEditor from './pages/admin/TaxiEditor';
 import Analytics from './pages/admin/Analytics';
 import TranslationsEditor from './pages/admin/TranslationsEditor';
 import Messages from './pages/admin/Messages';
+import PricingEditor from './pages/admin/PricingEditor';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
 function HomePage() {
@@ -118,6 +119,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <TranslationsEditor />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/pricing"
+                element={
+                  <ProtectedRoute>
+                    <PricingEditor />
                   </ProtectedRoute>
                 }
               />

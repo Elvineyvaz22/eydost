@@ -18,7 +18,7 @@ function emojiToCode(flag: string): string {
       .join('')
       .toLowerCase();
     return code;
-  } catch (e) {
+  } catch {
     return '';
   }
 }

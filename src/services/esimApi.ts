@@ -12,6 +12,7 @@ export interface ESIMPackageRaw {
   slug: string;
   name: string;
   price: number;          // in units (divide by 10000 for USD)
+  sellingPrice?: number;   // calculated price from backend
   currencyCode: string;
   retailPrice: number;
   volume: number;         // in bytes
@@ -39,8 +40,8 @@ export interface ESIMCountryGroup {
 // ── Price helper ──────────────────────────────────────────────────────────────
 // eSIM Access prices are in units where 10000 = $1.00
 // We apply a 1.75x retail markup
-export function formatPrice(units: number, markup = 1.75): string {
-  const usd = (units / 10000) * markup;
+export function formatPrice(units: number, markup = 1.75, sellingPrice?: number): string {
+  const usd = sellingPrice ? (sellingPrice / 10000) : (units / 10000) * markup;
   return `$${usd.toFixed(2)}`;
 }
 

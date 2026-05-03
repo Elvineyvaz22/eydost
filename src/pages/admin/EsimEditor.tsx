@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { usePackages } from '../../contexts/PackagesContext';
-import { Search, Save, Star, Edit2, TrendingUp, DollarSign, Percent, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react';
+import { Search, Save, Star, Edit2, TrendingUp, DollarSign, Percent, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function EsimEditor() {
   const [search, setSearch] = useState('');
