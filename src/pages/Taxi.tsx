@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLeft, LocateFixed } from 'lucide-react';
+import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLeft, LocateFixed, CheckCircle } from 'lucide-react';
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -39,6 +39,7 @@ export default function Taxi() {
 
   const [activeInput, setActiveInput] = useState<'pickup' | 'dropoff'>('pickup');
   const [mobileStep, setMobileStep] = useState<'select_pickup' | 'select_dropoff' | 'confirm_ride'>('select_pickup');
+  const [isSuccess, setIsSuccess] = useState(false);
   
   // Coordinates
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -64,23 +65,20 @@ export default function Taxi() {
         (position) => {
           const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
           setMapCenter(userPos);
-          setPickupCoords(userPos); // FIX: Ensure coords are set!
+          setPickupCoords(userPos);
           if (map) map.panTo(userPos);
           else mapRef.current?.panTo(userPos);
           geocodeLatLng(userPos, 'pickup');
         },
         (error) => {
           console.warn("Location error:", error);
-          if (error.code === error.PERMISSION_DENIED) {
-            // alert("Siz məkan (location) icazəsi vermədiniz və ya brauzer HTTP bağlantısı olduğu üçün bunu blokladı.");
-          }
-          setPickupCoords(defaultCenter); // FIX: Ensure fallback coords are set
+          setPickupCoords(defaultCenter);
           if (map) geocodeLatLng(defaultCenter, 'pickup');
         },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
       );
     } else {
-      setPickupCoords(defaultCenter); // FIX
+      setPickupCoords(defaultCenter);
       if (map) geocodeLatLng(defaultCenter, 'pickup');
     }
   }, []);
@@ -96,7 +94,6 @@ export default function Taxi() {
     
     geocoderRef.current.geocode({ location: latlng }, (results, status) => {
       if (status === 'OK' && results && results[0]) {
-        // Shorter address for mobile, longer for desktop
         const addressParts = results[0].formatted_address.split(',');
         const address = addressParts.slice(0, isMobile ? 2 : 3).join(',');
         
@@ -108,7 +105,7 @@ export default function Taxi() {
 
   const onMapDragEnd = () => {
     if (!mapRef.current) return;
-    if (isMobile && mobileStep === 'confirm_ride') return; // Don't drag to set location if confirming
+    if (isMobile && mobileStep === 'confirm_ride') return;
     
     const center = mapRef.current.getCenter();
     if (!center) return;
@@ -169,12 +166,6 @@ export default function Taxi() {
         if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
         } else {
-          console.error("Route calculation failed:", status);
-          if (status === 'REQUEST_DENIED') {
-            alert("Xəta (REQUEST_DENIED): Google Cloud Console-da 'Directions API' aktiv deyil. Zəhmət olmasa onu aktivləşdirin.");
-          } else {
-            alert(`Xəritə xətası: ${status}. Yol tapılmadı.`);
-          }
           setDirections(null);
         }
       }
@@ -211,7 +202,7 @@ export default function Taxi() {
         
         let baseFare = 2.0 + (distanceKm * 0.8) + (durationMin * 0.15);
         const isAirport = pickupAddress.toLowerCase().match(/airport|aeroport|hava liman/i) || dropoffAddress.toLowerCase().match(/airport|aeroport|hava liman/i);
-        if (isAirport) baseFare *= 1.15; // 15% airport fee
+        if (isAirport) baseFare *= 1.15;
         
         let multiplier = 1;
         if (selectedCar === 'comfort') multiplier = 1.4;
@@ -224,7 +215,6 @@ export default function Taxi() {
 
       const msg = `[TAXI_ORDER]\nHi! I want to order a taxi.\n\n📍 ${t.taxi.pickupLabel}: ${pickupCoords?.lat}, ${pickupCoords?.lng}\n🏁 ${t.taxi.dropoffLabel}: ${dropoffCoords?.lat}, ${dropoffCoords?.lng}\n🚗 ${t.taxi.carClass}: ${car?.name}${priceText}`;
       
-      // Track Analytics
       trackEvent(EVENTS.WHATSAPP_TAXI_ORDER, {
         car_class: car?.id,
         pickup: pickupAddress,
@@ -232,25 +222,24 @@ export default function Taxi() {
         estimated_price: priceText
       });
 
-      if (isTelegramWebApp) {
-        const tg = (window as any).Telegram.WebApp;
-        tg.sendData(msg);
-        tg.close();
-      } else if (waId) {
-        setIsOrdering(true);
-        try {
-          await createOrder({
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        if (isTelegramWebApp) {
+          const tg = (window as any).Telegram.WebApp;
+          tg.sendData(msg);
+          tg.close();
+        } else if (waId) {
+          createOrder({
             wa_id: waId,
             type: 'taxi',
             details: msg,
-          });
-          alert(language === 'az' ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.' : (language === 'ru' ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.' : 'Your order has been sent to WhatsApp! Please return to the chat.'));
-        } finally {
-          setIsOrdering(false);
+          }).catch(console.error);
+          window.location.replace(`${WA_LINK}?text=${encodeURIComponent(msg)}`);
+        } else {
+          window.location.replace(`${WA_LINK}?text=${encodeURIComponent(msg)}`);
         }
-      } else {
-        window.open(`${WA_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
-      }
+      }, 800);
     };
 
   // Mobile Handlers
@@ -276,9 +265,27 @@ export default function Taxi() {
     }
   };
 
-  // -----------------------------------------------------
-  // RENDER DESKTOP UI
-  // -----------------------------------------------------
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-8 animate-bounce">
+           <CheckCircle className="w-12 h-12 text-green-600" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+           {language === 'az' ? 'Sifariş Ötürüldü!' : (language === 'ru' ? 'Заказ отправлен!' : 'Order Sent!')}
+        </h2>
+        <p className="text-gray-600 text-lg mb-10 max-w-sm mx-auto">
+           {language === 'az' ? 'Məlumatlar WhatsApp-a uğurla ötürüldü. Zəhmət olmasa çat bölməsinə keçin.' : (language === 'ru' ? 'Информация успешно отправлена в WhatsApp. Пожалуйста, перейдите в чат.' : 'Information successfully sent to WhatsApp. Please return to your chat.')}
+        </p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="bg-black text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg active:scale-95"
+        >
+           {language === 'az' ? 'Yeni Sifariş' : (language === 'ru' ? 'Новый заказ' : 'New Order')}
+        </button>
+      </div>
+    );
+  }
 
   const routeDetails = directions?.routes[0]?.legs[0];
 
@@ -288,8 +295,6 @@ export default function Taxi() {
         <Header />
         <main className="flex-1 pt-24 pb-16 lg:pt-32 lg:pb-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            {/* Header section moved above the grid for symmetry */}
             <div className="mb-10 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-semibold mb-6">
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -307,13 +312,9 @@ export default function Taxi() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-              
-              {/* Desktop Left Column: Form */}
               <div className="lg:col-span-5 flex flex-col">
                 <div className="bg-gray-900/60 backdrop-blur-xl border border-gray-800 rounded-3xl p-6 shadow-2xl flex-1 flex flex-col">
-                  
                   <div className="space-y-4">
-                    {/* Pickup */}
                     <div 
                       onClick={() => {
                         setActiveInput('pickup');
@@ -342,7 +343,6 @@ export default function Taxi() {
                       </div>
                     </div>
 
-                    {/* Dropoff */}
                     <div 
                       onClick={() => {
                         setActiveInput('dropoff');
@@ -386,22 +386,18 @@ export default function Taxi() {
                       {CAR_CLASSES.map((car) => {
                         const Icon = car.icon;
                         const isSelected = selectedCar === car.id;
-                        
                         let priceDisplay = car.priceStr;
                         if (routeDetails) {
                           const distanceKm = (routeDetails.distance?.value || 0) / 1000;
                           const durationMin = (routeDetails.duration?.value || 0) / 60;
                           let totalFare = 2.0 + (distanceKm * 0.8) + (durationMin * 0.15);
-                          
                           const isAirport = pickupAddress.toLowerCase().match(/airport|aeroport|hava liman/i) || dropoffAddress.toLowerCase().match(/airport|aeroport|hava liman/i);
                           if (isAirport) totalFare *= 1.15;
-
                           let multiplier = 1;
                           if (car.id === 'comfort') multiplier = 1.4;
                           if (car.id === 'business') multiplier = 2.2;
                           if (car.id === 'minivan') multiplier = 1.8;
                           totalFare *= multiplier;
-                          
                           priceDisplay = `$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)}`;
                         }
 
@@ -429,11 +425,7 @@ export default function Taxi() {
                         );
                       })}
                     </div>
-                    {routeDetails && (
-                      <p className="text-xs text-gray-500 mt-4 text-center">
-                        {t.taxi.airportNote}
-                      </p>
-                    )}
+                    {routeDetails && <p className="text-xs text-gray-500 mt-4 text-center">{t.taxi.airportNote}</p>}
                   </div>
 
                     <button
@@ -451,7 +443,6 @@ export default function Taxi() {
                 </div>
               </div>
 
-              {/* Desktop Right Column: Map perfectly aligned */}
               <div className="lg:col-span-7 relative min-h-[600px] lg:min-h-0 rounded-3xl overflow-hidden border border-gray-700 shadow-2xl">
                 <div className="absolute inset-0">
                   {!isLoaded ? (
@@ -487,7 +478,6 @@ export default function Taxi() {
                       )}
                     </GoogleMap>
                   
-                  {/* Locate Me Button Desktop */}
                   <button 
                     onClick={() => locateUser()}
                     className="absolute bottom-6 right-6 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 transition-colors z-10"
@@ -511,7 +501,6 @@ export default function Taxi() {
                   )}
                 </div>
               </div>
-
             </div>
           </div>
         </main>
@@ -520,9 +509,6 @@ export default function Taxi() {
     );
   }
 
-  // -----------------------------------------------------
-  // RENDER MOBILE UI (UBER STYLE)
-  // -----------------------------------------------------
   return (
     <div className="min-h-screen w-full flex flex-col bg-gray-100 relative overflow-y-auto">
       <div className="absolute top-0 left-0 w-full z-50">
@@ -530,7 +516,6 @@ export default function Taxi() {
       </div>
 
       <main className="relative h-[100dvh] w-full flex-shrink-0">
-        {/* Full Screen Map */}
         <div className="absolute inset-0 z-0 pt-16">
           {!isLoaded ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-900">
@@ -568,7 +553,6 @@ export default function Taxi() {
           )}
         </div>
 
-        {/* Locate Me Button Mobile */}
         {isLoaded && mobileStep !== 'confirm_ride' && (
           <button 
             onClick={() => locateUser()}
@@ -578,7 +562,6 @@ export default function Taxi() {
           </button>
         )}
 
-        {/* Mobile Center Pin */}
         {isLoaded && mobileStep !== 'confirm_ride' && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10 pointer-events-none pb-6 flex flex-col items-center">
             <div className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg mb-2 whitespace-nowrap animate-bounce">
@@ -591,17 +574,15 @@ export default function Taxi() {
           </div>
         )}
 
-        {/* Mobile Back Button */}
         {mobileStep !== 'select_pickup' && (
           <button 
             onClick={handleMobileBack}
-            className="absolute top-20 left-4 z-20 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 transition-colors"
+            className="absolute top-28 left-4 z-20 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 transition-colors border border-gray-100"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
         )}
 
-        {/* Mobile Bottom Sheet */}
         <div className="absolute bottom-0 left-0 w-full z-20 pointer-events-none pb-4 px-4">
           <div className="bg-white rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] p-5 pointer-events-auto w-full">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
@@ -609,7 +590,7 @@ export default function Taxi() {
             {mobileStep === 'select_pickup' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">{t.taxi.pickupLabel}?</h2>
-                <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100 mb-5 relative">
+                <div className="flex items-center gap-4 bg-blue-50 p-4 rounded-2xl border border-blue-100 mb-5 relative">
                   <div className="w-3 h-3 rounded-full bg-blue-600 shrink-0"></div>
                   {isLoaded && (
                     <Autocomplete onLoad={(auto) => setPickupAutocomplete(auto)} onPlaceChanged={handlePickupPlaceChanged} className="w-full">
@@ -618,12 +599,12 @@ export default function Taxi() {
                         value={pickupAddress}
                         onChange={(e) => setPickupAddress(e.target.value)}
                         placeholder={t.taxi.pickupPlaceholder}
-                        className="w-full bg-transparent text-gray-900 font-medium focus:outline-none truncate text-base"
+                        className="w-full bg-transparent text-gray-900 font-bold focus:outline-none truncate text-base placeholder-gray-400"
                       />
                     </Autocomplete>
                   )}
                 </div>
-                <button onClick={handleMobileNext} className="w-full bg-black text-white py-3.5 rounded-xl font-bold text-base shadow-md">
+                <button onClick={handleMobileNext} className="w-full bg-black text-white py-4 rounded-xl font-bold text-base shadow-md active:scale-95 transition-all">
                   {t.taxi.confirmLocation}
                 </button>
               </div>
@@ -632,7 +613,7 @@ export default function Taxi() {
             {mobileStep === 'select_dropoff' && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">{t.taxi.dropoffLabel}?</h2>
-                <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100 mb-5 relative">
+                <div className="flex items-center gap-4 bg-red-50 p-4 rounded-2xl border border-red-100 mb-5 relative">
                    <div className="w-3 h-3 rounded-sm bg-red-600 shrink-0"></div>
                   {isLoaded && (
                     <Autocomplete onLoad={(auto) => setDropoffAutocomplete(auto)} onPlaceChanged={handleDropoffPlaceChanged} className="w-full">
@@ -641,12 +622,12 @@ export default function Taxi() {
                         value={dropoffAddress}
                         onChange={(e) => setDropoffAddress(e.target.value)}
                         placeholder={t.taxi.dropoffPlaceholder}
-                        className="w-full bg-transparent text-gray-900 font-medium focus:outline-none truncate text-base"
+                        className="w-full bg-transparent text-gray-900 font-bold focus:outline-none truncate text-base placeholder-gray-400"
                       />
                     </Autocomplete>
                   )}
                 </div>
-                <button onClick={handleMobileNext} className="w-full bg-black text-white py-3.5 rounded-xl font-bold text-base shadow-md">
+                <button onClick={handleMobileNext} className="w-full bg-black text-white py-4 rounded-xl font-bold text-base shadow-md active:scale-95 transition-all">
                   {t.taxi.confirmDestination}
                 </button>
               </div>
@@ -679,22 +660,18 @@ export default function Taxi() {
                   {CAR_CLASSES.map((car) => {
                     const Icon = car.icon;
                     const isSelected = selectedCar === car.id;
-                    
                     let priceDisplay = car.priceStr;
                     if (routeDetails) {
                       const distanceKm = (routeDetails.distance?.value || 0) / 1000;
                       const durationMin = (routeDetails.duration?.value || 0) / 60;
                       let totalFare = 2.0 + (distanceKm * 0.8) + (durationMin * 0.15);
-                      
                       const isAirport = pickupAddress.toLowerCase().match(/airport|aeroport|hava liman/i) || dropoffAddress.toLowerCase().match(/airport|aeroport|hava liman/i);
                       if (isAirport) totalFare *= 1.15;
-
                       let multiplier = 1;
                       if (car.id === 'comfort') multiplier = 1.4;
                       if (car.id === 'business') multiplier = 2.2;
                       if (car.id === 'minivan') multiplier = 1.8;
                       totalFare *= multiplier;
-                      
                       priceDisplay = `$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)}`;
                     }
 
@@ -711,14 +688,9 @@ export default function Taxi() {
                     );
                   })}
                 </div>
-                
-                {routeDetails && (
-                  <p className="text-[10px] text-gray-500 mb-3 text-center leading-tight">
-                    {t.taxi.airportNote}
-                  </p>
-                )}
+                {routeDetails && <p className="text-[10px] text-gray-500 mb-3 text-center leading-tight">{t.taxi.airportNote}</p>}
 
-                <button onClick={handleBooking} disabled={isOrdering} className={`w-full text-white py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg ${
+                <button onClick={handleBooking} disabled={isOrdering} className={`w-full text-white py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all ${
                   isOrdering ? 'opacity-70 cursor-not-allowed' : ''
                 } ${
                   isTelegramWebApp ? 'bg-[#24A1DE] shadow-[#24A1DE]/30' : 'bg-[#25D366] shadow-[#25D366]/30'
@@ -728,74 +700,38 @@ export default function Taxi() {
                 </button>
               </div>
             )}
-
           </div>
         </div>
       </main>
 
-      {/* Uber-style How it Works Section */}
       <section className="bg-white py-20 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center lg:text-left max-w-2xl">
-            {t.taxiSteps.title}
-          </h2>
-
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center lg:text-left max-w-2xl">{t.taxiSteps.title}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 sm:gap-16">
-            {/* Step 1 */}
             <div className="group">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
-                <img 
-                  src="/assets/taxi/step1.png" 
-                  alt="Trip Details" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                <img src="/assets/taxi/step1.png" alt="Trip Details" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step1Title}</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                {t.taxiSteps.step1Desc}
-              </p>
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{t.taxiSteps.step1Desc}</p>
             </div>
-
-            {/* Step 2 */}
             <div className="group">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
-                <img 
-                  src="/assets/taxi/step2.png" 
-                  alt="Easy Payment" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                <img src="/assets/taxi/step2.png" alt="Easy Payment" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step2Title}</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                {t.taxiSteps.step2Desc}
-              </p>
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{t.taxiSteps.step2Desc}</p>
             </div>
-
-            {/* Step 3 */}
             <div className="group">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
-                <img 
-                  src="/assets/taxi/step3.png" 
-                  alt="Meet Driver" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                <img src="/assets/taxi/step3.png" alt="Meet Driver" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step3Title}</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                {t.taxiSteps.step3Desc}
-              </p>
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{t.taxiSteps.step3Desc}</p>
             </div>
           </div>
-
           <div className="mt-16 text-center lg:text-left">
-            <a
-              href={WA_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-black text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors shadow-xl"
-            >
-              {t.taxiSteps.cta}
-            </a>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="inline-block bg-black text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors shadow-xl">{t.taxiSteps.cta}</a>
           </div>
         </div>
       </section>
