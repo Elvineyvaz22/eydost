@@ -83,12 +83,12 @@ class ESIMService:
         for p in packages:
             # Extract basic info for pricing
             pkg_code = p.get("packageCode", "")
-            locs = [l.strip().upper() for l in (p.get("location") or "").split(",") if l.strip()]
+            package_location = p.get("location") or ""
+            locs = [l.strip().upper() for l in package_location.split(",") if l.strip()]
             country_code = locs[0] if len(locs) == 1 else ""
-            region = "Global" if len(locs) > 10 else (p.get("location") if len(locs) > 1 else "")
             
             api_price = p.get("price", 0)
-            p["sellingPrice"] = pricing_manager.get_selling_price(pkg_code, country_code, region, api_price)
+            p["sellingPrice"] = pricing_manager.get_selling_price(pkg_code, country_code, package_location, api_price)
 
         logger.info(f"Fetched {len(packages)} packages")
         return packages

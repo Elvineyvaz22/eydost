@@ -5,6 +5,8 @@
  * All requests go through Vite proxy: /api/esim → http://localhost:8000/api/esim
  */
 
+import { supabase } from '../lib/supabase';
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface ESIMPackageRaw {
@@ -36,6 +38,21 @@ export interface ESIMCountryGroup {
   flag: string;           // emoji flag
   packages: ESIMPackageRaw[];
 }
+
+interface PricingRule {
+  target_type: 'global' | 'region' | 'country' | 'package';
+  target_id: string | null;
+  margin: number;
+  fixed_price: number | null;
+  is_active: boolean;
+}
+
+const REGION_CODES: Record<string, Set<string>> = {
+  EUROPE: new Set(['AL', 'AD', 'AT', 'BA', 'BE', 'BG', 'BY', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'TR', 'UA', 'VA']),
+  ASIA: new Set(['AM', 'AZ', 'BD', 'BN', 'BT', 'CN', 'GE', 'HK', 'ID', 'IN', 'JP', 'KH', 'KR', 'KZ', 'LA', 'LK', 'MM', 'MN', 'MO', 'MY', 'NP', 'PH', 'PK', 'SG', 'TH', 'TW', 'UZ', 'VN']),
+  'MIDDLE EAST & AFRICA': new Set(['AE', 'AO', 'BH', 'BW', 'CI', 'CM', 'DZ', 'EG', 'ET', 'GH', 'IL', 'IQ', 'JO', 'KE', 'KW', 'LB', 'MA', 'ML', 'MZ', 'NG', 'OM', 'QA', 'SA', 'SN', 'TN', 'TZ', 'UG', 'ZA', 'ZM', 'ZW']),
+  AMERICAS: new Set(['AR', 'BO', 'BR', 'CA', 'CL', 'CO', 'CR', 'DO', 'EC', 'GT', 'HN', 'JM', 'MX', 'NI', 'PA', 'PE', 'PR', 'PY', 'SV', 'TT', 'US', 'UY', 'VE']),
+};
 
 // ── Price helper ──────────────────────────────────────────────────────────────
 // eSIM Access prices are in units where 10000 = $1.00
@@ -96,6 +113,60 @@ export function getCountryName(code: string): string {
   return COUNTRY_NAMES[code?.toUpperCase()] || code;
 }
 
+function normalizeTarget(value?: string | null): string {
+  return (value || '').trim().toUpperCase().replace(/[-_]/g, ' ');
+}
+
+function packageRegions(pkg: ESIMPackageRaw): Set<string> {
+  const codes = (pkg.location || '')
+    .split(',')
+    .map(code => normalizeTarget(code))
+    .filter(code => code && !code.startsWith('!'));
+
+  if (codes.includes('GL') || codes.includes('GLOBAL')) return new Set(['GLOBAL']);
+
+  return new Set(
+    Object.entries(REGION_CODES)
+      .filter(([, regionCodes]) => codes.length > 0 && codes.every(code => regionCodes.has(code)))
+      .map(([region]) => region),
+  );
+}
+
+async function fetchPricingRules(): Promise<PricingRule[]> {
+  const { data } = await supabase
+    .from('site_content')
+    .select('value')
+    .eq('key', 'esim_pricing_rules')
+    .maybeSingle();
+
+  return Array.isArray(data?.value)
+    ? (data.value as PricingRule[]).filter(rule => rule.is_active)
+    : [];
+}
+
+function applyRule(rule: PricingRule, apiPrice: number): number {
+  if (rule.fixed_price !== null && rule.fixed_price !== undefined) return rule.fixed_price;
+  return Math.round(apiPrice * (rule.margin || 1.75));
+}
+
+async function applyPricingRules(packages: ESIMPackageRaw[]): Promise<ESIMPackageRaw[]> {
+  const rules = await fetchPricingRules().catch(() => []);
+  if (rules.length === 0) return packages;
+
+  return packages.map(pkg => {
+    const locations = (pkg.location || '').split(',').map(code => normalizeTarget(code)).filter(Boolean);
+    const countryCode = locations.length === 1 ? locations[0] : '';
+    const regions = packageRegions(pkg);
+    const rule =
+      rules.find(item => item.target_type === 'package' && normalizeTarget(item.target_id) === normalizeTarget(pkg.packageCode)) ||
+      rules.find(item => item.target_type === 'country' && normalizeTarget(item.target_id) === countryCode) ||
+      rules.find(item => item.target_type === 'region' && regions.has(normalizeTarget(item.target_id))) ||
+      rules.find(item => item.target_type === 'global');
+
+    return rule ? { ...pkg, sellingPrice: applyRule(rule, pkg.price) } : pkg;
+  });
+}
+
 // ── API Functions ─────────────────────────────────────────────────────────────
 
 /** Fetch all packages from backend */
@@ -105,7 +176,7 @@ async function fetchAllPackages(): Promise<ESIMPackageRaw[]> {
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = await res.json();
-  return data.packages || [];
+  return applyPricingRules(data.packages || []);
 }
 
 /** Fetch packages for a specific country */
@@ -113,8 +184,9 @@ export async function fetchPackagesForCountry(countryCode: string): Promise<ESIM
   const res = await fetch(`/api/esim/packages?location_code=${countryCode}&package_type=BASE`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = await res.json();
+  const packages = await applyPricingRules(data.packages || []);
   // Filter to packages that only serve this exact country (not regional)
-  return (data.packages || []).filter((p: ESIMPackageRaw) => {
+  return packages.filter((p: ESIMPackageRaw) => {
     const locs = p.location.split(',');
     return locs.length === 1 && locs[0].toUpperCase() === countryCode.toUpperCase();
   });
@@ -125,7 +197,7 @@ export async function fetchAllPackagesForCountry(countryCode: string): Promise<E
   const res = await fetch(`/api/esim/packages?location_code=${countryCode}&package_type=BASE`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = await res.json();
-  return data.packages || [];
+  return applyPricingRules(data.packages || []);
 }
 
 /**

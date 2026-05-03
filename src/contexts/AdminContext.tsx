@@ -11,6 +11,9 @@ interface AdminContextType {
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
+const LEGACY_ADMIN_USERNAME = 'elvineyvaz';
+const LEGACY_ADMIN_EMAIL = 'admin@eydost.az';
+const LEGACY_ADMIN_PASSWORD = 'Elvin7636.';
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -26,6 +29,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       const localSession = localStorage.getItem('eydost_admin_session');
       if (localSession === 'active') {
+        await supabase.auth.signInWithPassword({
+          email: LEGACY_ADMIN_EMAIL,
+          password: LEGACY_ADMIN_PASSWORD,
+        }).catch(error => console.error('Legacy Supabase session error:', error));
         setIsAuthenticated(true);
         return;
       }
@@ -44,7 +51,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     const cleanUsername = usernameOrEmail.trim().toLowerCase();
     const cleanPassword = password.trim();
 
-    if (cleanUsername === 'elvineyvaz' && cleanPassword === 'Elvin7636.') {
+    if (cleanUsername === LEGACY_ADMIN_USERNAME && cleanPassword === LEGACY_ADMIN_PASSWORD) {
+      await supabase.auth.signInWithPassword({
+        email: LEGACY_ADMIN_EMAIL,
+        password: LEGACY_ADMIN_PASSWORD,
+      }).catch(error => console.error('Legacy Supabase login error:', error));
       localStorage.setItem('eydost_admin_session', 'active');
       setIsAuthenticated(true);
       return true;

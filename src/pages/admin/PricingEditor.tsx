@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { supabase } from '../../lib/supabase';
-import { packages as staticPackages, regionalPackages, globalPackage } from '../../data/esimPackages';
+import { packages as staticPackages } from '../../data/esimPackages';
 import { usePackages } from '../../contexts/PackagesContext';
 import {
   AlertCircle,
@@ -30,6 +30,8 @@ interface PricingRule {
   is_active: boolean;
 }
 
+const PRICING_CONTENT_KEY = 'esim_pricing_rules';
+
 interface RuleForm {
   target_type: TargetType;
   target_id: string;
@@ -55,6 +57,13 @@ const targetLabels: Record<TargetType, string> = {
   package: 'Paket',
 };
 
+const REGION_OPTIONS = [
+  { id: 'EUROPE', label: 'Avropa - butun Avropa paketleri' },
+  { id: 'ASIA', label: 'Asiya - butun Asiya paketleri' },
+  { id: 'MIDDLE EAST & AFRICA', label: 'Middle East & Africa - butun region paketleri' },
+  { id: 'AMERICAS', label: 'Americas - butun Amerika paketleri' },
+];
+
 function marginToPercent(margin: number) {
   return ((margin - 1) * 100).toFixed(0);
 }
@@ -78,8 +87,14 @@ function normalizeTarget(type: TargetType, value: string) {
   return value.trim().toUpperCase();
 }
 
+function createRuleId() {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 export default function PricingEditor() {
-  const { liveCountryGroups, liveRegionalPackages } = usePackages();
+  const { liveCountryGroups, liveRegionalPackages, refreshLivePackages } = usePackages();
   const [rules, setRules] = useState<PricingRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -107,12 +122,7 @@ export default function PricingEditor() {
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [liveCountryGroups]);
 
-  const regionOptions = useMemo(() => {
-    return [...regionalPackages, globalPackage].map(region => ({
-      id: region.name.toUpperCase(),
-      label: region.name,
-    }));
-  }, []);
+  const regionOptions = REGION_OPTIONS;
 
   const packageOptions = useMemo(() => {
     const livePackageOptions = [
@@ -147,13 +157,13 @@ export default function PricingEditor() {
     setError(null);
     try {
       const { data, error } = await supabase
-        .from('esim_pricing')
-        .select('*')
-        .order('target_type', { ascending: true })
-        .order('target_id', { ascending: true });
+        .from('site_content')
+        .select('value')
+        .eq('key', PRICING_CONTENT_KEY)
+        .maybeSingle();
 
       if (error) throw error;
-      setRules(data || []);
+      setRules(Array.isArray(data?.value) ? data.value as PricingRule[] : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Qiymet qaydalari yuklenmedi.');
     } finally {
@@ -186,6 +196,22 @@ export default function PricingEditor() {
     setForm(defaultForm);
   }
 
+  async function persistRules(nextRules: PricingRule[]) {
+    const { error } = await supabase
+      .from('site_content')
+      .upsert({
+        key: PRICING_CONTENT_KEY,
+        value: nextRules,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'key' });
+
+    if (error) throw error;
+    localStorage.removeItem('eydost_live_packages');
+    localStorage.removeItem('eydost_live_packages_time');
+    setRules(nextRules);
+    refreshLivePackages().catch(() => undefined);
+  }
+
   async function saveRule(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -207,38 +233,16 @@ export default function PricingEditor() {
     };
 
     try {
-      let result;
-      if (editingId) {
-        result = await supabase
-          .from('esim_pricing')
-          .update(payload)
-          .eq('id', editingId)
-          .select()
-          .single();
-      } else {
-        const existing = rules.find(rule =>
-          rule.target_type === payload.target_type &&
-          (rule.target_id || null) === payload.target_id,
-        );
+      const existing = rules.find(rule =>
+        rule.target_type === payload.target_type &&
+        (rule.target_id || null) === payload.target_id,
+      );
+      const targetIdToUpdate = editingId || existing?.id;
+      const nextRules = targetIdToUpdate
+        ? rules.map(rule => rule.id === targetIdToUpdate ? { ...rule, ...payload } : rule)
+        : [...rules, { id: createRuleId(), ...payload }];
 
-        if (existing) {
-          result = await supabase
-            .from('esim_pricing')
-            .update(payload)
-            .eq('id', existing.id)
-            .select()
-            .single();
-        } else {
-          result = await supabase
-            .from('esim_pricing')
-            .insert([payload])
-            .select()
-            .single();
-        }
-      }
-
-      if (result.error) throw result.error;
-      await fetchRules();
+      await persistRules(nextRules);
       closeForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Qayda saxlanilmadi.');
@@ -251,9 +255,7 @@ export default function PricingEditor() {
     if (!confirm(`${rule.target_id || 'Qlobal'} qaydasini silmek isteyirsiniz?`)) return;
 
     try {
-      const { error } = await supabase.from('esim_pricing').delete().eq('id', rule.id);
-      if (error) throw error;
-      setRules(current => current.filter(item => item.id !== rule.id));
+      await persistRules(rules.filter(item => item.id !== rule.id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Qayda silinmedi.');
     }
@@ -261,12 +263,7 @@ export default function PricingEditor() {
 
   async function toggleRule(rule: PricingRule) {
     try {
-      const { error } = await supabase
-        .from('esim_pricing')
-        .update({ is_active: !rule.is_active })
-        .eq('id', rule.id);
-      if (error) throw error;
-      setRules(current => current.map(item => (
+      await persistRules(rules.map(item => (
         item.id === rule.id ? { ...item, is_active: !item.is_active } : item
       )));
     } catch (err) {

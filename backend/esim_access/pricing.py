@@ -43,7 +43,7 @@ def _regions_for_locations(region_or_locations: str, country_code: str) -> Set[s
     if country_code:
         values.add(country_code.upper())
 
-    if "GLOBAL" in values or len(values) > 10:
+    if "GLOBAL" in values or "GL" in values:
         return {"GLOBAL"}
 
     matched = {
