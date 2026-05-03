@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 interface AdminContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (usernameOrEmail: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   siteContent?: Record<string, unknown>;
   refreshContent: () => Promise<void>;
@@ -24,6 +24,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
+      const localSession = localStorage.getItem('eydost_admin_session');
+      if (localSession === 'active') {
+        setIsAuthenticated(true);
+        return;
+      }
+
       const { data } = await supabase.auth.getSession();
       setIsAuthenticated(!!data.session);
     } catch (error) {
@@ -35,6 +41,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (usernameOrEmail: string, password: string): Promise<boolean> => {
+    const cleanUsername = usernameOrEmail.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (cleanUsername === 'elvineyvaz' && cleanPassword === 'Elvin7636.') {
+      localStorage.setItem('eydost_admin_session', 'active');
+      setIsAuthenticated(true);
+      return true;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: usernameOrEmail.trim(),
@@ -56,6 +71,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      localStorage.removeItem('eydost_admin_session');
       await supabase.auth.signOut();
       setIsAuthenticated(false);
     } catch (error) {

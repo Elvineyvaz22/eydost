@@ -4,7 +4,7 @@ import { useAdmin } from '../../contexts/AdminContext';
 import { LogIn } from 'lucide-react';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,12 +16,12 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
 
-    const success = await login(email, password);
+    const success = await login(usernameOrEmail, password);
 
     if (success) {
       navigate('/admin/dashboard');
     } else {
-      setError('Email ve ya parol yanlisdir. Supabase Auth-da yaradilan admin hesabini daxil edin.');
+      setError('Istifadeci adi/email ve ya parol yanlisdir.');
     }
 
     setLoading(false);
@@ -36,21 +36,21 @@ export default function AdminLogin() {
               <LogIn className="w-8 h-8 text-cyan-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Admin panele giris</h1>
-            <p className="text-sm text-gray-500 mt-2">Supabase admin email ve parolundan istifade edin.</p>
+            <p className="text-sm text-gray-500 mt-2">Kohne admin kod/parol ve ya Supabase email ile daxil olun.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                Istifadeci adi ve ya email
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                value={usernameOrEmail}
+                onChange={(e) => setUsernameOrEmail(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none"
-                placeholder="admin@eydost.az"
+                placeholder="elvineyvaz"
                 required
               />
             </div>
