@@ -21,7 +21,7 @@ const CAR_CLASSES = [
 ];
 
 export default function Taxi() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries,
@@ -222,7 +222,7 @@ export default function Taxi() {
         priceText = ` (~$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)})`;
       }
 
-      const msg = `[TAXI_ORDER]\nHi! I want to order a taxi.\n\n📍 ${t.taxi.pickupLabel}: ${pickupAddress}\n🔗 https://www.google.com/maps?q=${pickupCoords?.lat},${pickupCoords?.lng}\n\n🏁 ${t.taxi.dropoffLabel}: ${dropoffAddress}\n🔗 https://www.google.com/maps?q=${dropoffCoords?.lat},${dropoffCoords?.lng}\n\n🚗 ${t.taxi.carClass}: ${car?.name}${priceText}`;
+      const msg = `[TAXI_ORDER]\nHi! I want to order a taxi.\n\n📍 ${t.taxi.pickupLabel}: ${pickupCoords?.lat}, ${pickupCoords?.lng}\n🏁 ${t.taxi.dropoffLabel}: ${dropoffCoords?.lat}, ${dropoffCoords?.lng}\n🚗 ${t.taxi.carClass}: ${car?.name}${priceText}`;
       
       // Track Analytics
       trackEvent(EVENTS.WHATSAPP_TAXI_ORDER, {
@@ -799,7 +799,6 @@ export default function Taxi() {
           </div>
         </div>
       </section>
-
       <Footer />
     </div>
   );
