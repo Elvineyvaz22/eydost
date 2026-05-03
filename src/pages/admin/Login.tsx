@@ -21,7 +21,7 @@ export default function AdminLogin() {
     if (success) {
       navigate('/admin/dashboard');
     } else {
-      setError('Email və ya şifrə yanlışdır');
+      setError('Email ve ya parol yanlisdir. Supabase Auth-da yaradilan admin hesabini daxil edin.');
     }
 
     setLoading(false);
@@ -35,28 +35,29 @@ export default function AdminLogin() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-100 rounded-full mb-4">
               <LogIn className="w-8 h-8 text-cyan-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panelinə Giriş</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Admin panele giris</h1>
+            <p className="text-sm text-gray-500 mt-2">Supabase admin email ve parolundan istifade edin.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                İstifadəçi adı və ya Email
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email
               </label>
               <input
-                id="username"
-                type="text"
+                id="email"
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none"
-                placeholder="Elvineyvaz"
+                placeholder="admin@eydost.az"
                 required
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Şifrə
+                Parol
               </label>
               <input
                 id="password"
@@ -64,7 +65,7 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none"
-                placeholder="••••••••"
+                placeholder="********"
                 required
               />
             </div>
@@ -80,7 +81,7 @@ export default function AdminLogin() {
               disabled={loading}
               className="w-full bg-cyan-600 text-white py-3 rounded-lg font-medium hover:bg-cyan-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {loading ? 'Giriş edilir...' : 'Daxil ol'}
+              {loading ? 'Giris edilir...' : 'Daxil ol'}
             </button>
           </form>
         </div>
