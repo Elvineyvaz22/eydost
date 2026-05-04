@@ -131,7 +131,7 @@ function packageRegions(pkg: ESIMPackageRaw): Set<string> {
 
   return new Set(
     Object.entries(REGION_CODES)
-      .filter(([, regionCodes]) => codes.length > 0 && codes.every(code => regionCodes.has(code)))
+      .filter(([, regionCodes]) => codes.length > 0 && codes.some(code => regionCodes.has(code)))
       .map(([region]) => region),
   );
 }

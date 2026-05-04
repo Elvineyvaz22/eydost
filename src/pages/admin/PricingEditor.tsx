@@ -257,9 +257,16 @@ export default function PricingEditor() {
         (rule.target_id || null) === payload.target_id,
       );
       const targetIdToUpdate = editingId || existing?.id;
+      
+      // Build the final rule object - use form.target_id directly for new rules
+      // since it was already normalized via normalizeTarget() above
+      const finalRule = targetIdToUpdate
+        ? { ...payload }
+        : { ...payload, target_id: normalizeTarget(form.target_type, form.target_id) };
+      
       const nextRules = targetIdToUpdate
         ? rules.map(rule => rule.id === targetIdToUpdate ? { ...rule, ...payload } : rule)
-        : [...rules, { id: createRuleId(), ...payload }];
+        : [...rules, { id: createRuleId(), ...finalRule }];
 
       await persistRules(nextRules);
       closeForm();
