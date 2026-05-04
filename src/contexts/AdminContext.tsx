@@ -12,7 +12,7 @@ interface AdminContextType {
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 const LEGACY_ADMIN_USERNAME = 'elvineyvaz';
-const LEGACY_ADMIN_EMAIL = 'admin@eydost.az';
+const LEGACY_ADMIN_EMAIL = 'elvineyvaz97@gmail.com';
 const LEGACY_ADMIN_PASSWORD = 'Elvin7636.';
 
 export function AdminProvider({ children }: { children: ReactNode }) {
