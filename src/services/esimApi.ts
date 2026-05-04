@@ -48,14 +48,14 @@ interface PricingRule {
 }
 
 const REGION_CODES: Record<string, Set<string>> = {
-  EUROPE: new Set(['AL', 'AD', 'AT', 'BA', 'BE', 'BG', 'BY', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'TR', 'UA', 'VA']),
+  EUROPE: new Set(['AL', 'AD', 'AT', 'BA', 'BE', 'BG', 'BY', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'TR', 'UA', 'VA', 'JE', 'IM', 'GI', 'GG', 'XK', 'FO', 'AX', 'SJ']),
   ASIA: new Set(['AM', 'AZ', 'BD', 'BN', 'BT', 'CN', 'GE', 'HK', 'ID', 'IN', 'JP', 'KH', 'KR', 'KZ', 'LA', 'LK', 'MM', 'MN', 'MO', 'MY', 'NP', 'PH', 'PK', 'SG', 'TH', 'TW', 'UZ', 'VN']),
   'MIDDLE EAST': new Set(['AE', 'BH', 'IL', 'IQ', 'JO', 'KW', 'LB', 'OM', 'QA', 'SA']),
-  AFRICA: new Set(['AO', 'BW', 'CI', 'CM', 'DZ', 'EG', 'ET', 'GH', 'KE', 'MA', 'ML', 'MZ', 'NG', 'SN', 'TN', 'TZ', 'UG', 'ZA', 'ZM', 'ZW']),
-  'NORTH AMERICA': new Set(['CA', 'MX', 'US', 'PR']),
-  'SOUTH AMERICA': new Set(['AR', 'BO', 'BR', 'CL', 'CO', 'EC', 'GY', 'PY', 'PE', 'SR', 'UY', 'VE']),
-  CARIBBEAN: new Set(['BS', 'BB', 'CU', 'DM', 'DO', 'GD', 'HT', 'JM', 'KN', 'LC', 'VC', 'TT']),
-  OCEANIA: new Set(['AU', 'FJ', 'NZ', 'PG', 'WS']),
+  AFRICA: new Set(['AO', 'BW', 'CI', 'CM', 'DZ', 'EG', 'ET', 'GH', 'KE', 'MA', 'ML', 'MZ', 'NG', 'SN', 'TN', 'TZ', 'UG', 'ZA', 'ZM', 'ZW', 'RE', 'SC', 'TD', 'CG', 'CF', 'LR', 'RW', 'MG', 'MW', 'NE', 'BF', 'BI', 'BJ', 'GA', 'GM', 'GN', 'GW', 'MR', 'MU', 'YT', 'NA', 'SL', 'SO', 'SD', 'SZ', 'TG', 'EH']),
+  'NORTH AMERICA': new Set(['CA', 'MX', 'US', 'PR', 'GL', 'PM']),
+  'SOUTH AMERICA': new Set(['AR', 'BO', 'BR', 'CL', 'CO', 'EC', 'GY', 'PY', 'PE', 'SR', 'UY', 'VE', 'FK']),
+  CARIBBEAN: new Set(['BS', 'BB', 'CU', 'DM', 'DO', 'GD', 'HT', 'JM', 'KN', 'LC', 'VC', 'TT', 'AG', 'AI', 'BM', 'VG', 'KY', 'MS', 'TC', 'CV', 'GP', 'MQ', 'BQ', 'CW', 'SX', 'MF', 'BL', 'AW']),
+  OCEANIA: new Set(['AU', 'FJ', 'NZ', 'PG', 'WS', 'SB', 'PW', 'KI', 'NR', 'TO', 'TV', 'VU', 'NC', 'PF', 'GU', 'AS']),
 };
 
 // ── Price helper ──────────────────────────────────────────────────────────────
