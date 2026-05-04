@@ -258,8 +258,6 @@ export default function PricingEditor() {
       );
       const targetIdToUpdate = editingId || existing?.id;
       
-      // Build the final rule object - use form.target_id directly for new rules
-      // since it was already normalized via normalizeTarget() above
       const finalRule = targetIdToUpdate
         ? { ...payload }
         : { ...payload, target_id: normalizeTarget(form.target_type, form.target_id) };
@@ -268,9 +266,14 @@ export default function PricingEditor() {
         ? rules.map(rule => rule.id === targetIdToUpdate ? { ...rule, ...payload } : rule)
         : [...rules, { id: createRuleId(), ...finalRule }];
 
+      // Debug log
+      console.log('[PricingEditor] Saving rule:', JSON.stringify(finalRule, null, 2));
+      console.log('[PricingEditor] All rules after save:', JSON.stringify(nextRules, null, 2));
+
       await persistRules(nextRules);
       closeForm();
     } catch (err) {
+      console.error('[PricingEditor] Save error:', err);
       setError(err instanceof Error ? err.message : 'Qayda saxlanilmadi.');
     } finally {
       setSaving(false);

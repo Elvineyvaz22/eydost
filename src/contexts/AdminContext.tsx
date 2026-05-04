@@ -27,18 +27,31 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const localSession = localStorage.getItem('eydost_admin_session');
-      if (localSession === 'active') {
-        await supabase.auth.signInWithPassword({
-          email: LEGACY_ADMIN_EMAIL,
-          password: LEGACY_ADMIN_PASSWORD,
-        }).catch(error => console.error('Legacy Supabase session error:', error));
+      // Try to restore Supabase session first
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
         setIsAuthenticated(true);
         return;
       }
 
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
+      // Legacy local session check
+      const localSession = localStorage.getItem('eydost_admin_session');
+      if (localSession === 'active') {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: LEGACY_ADMIN_EMAIL,
+          password: LEGACY_ADMIN_PASSWORD,
+        });
+        if (!error) {
+          setIsAuthenticated(true);
+          localStorage.setItem('eydost_admin_session', 'active');
+        } else {
+          console.error('Legacy Supabase session error:', error);
+          localStorage.removeItem('eydost_admin_session');
+        }
+        return;
+      }
+
+      setIsAuthenticated(false);
     } catch (error) {
       console.error('Auth check error:', error);
       setIsAuthenticated(false);
@@ -70,6 +83,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       if (data.session) {
+        localStorage.setItem('eydost_admin_session', 'active');
         setIsAuthenticated(true);
         return true;
       }
