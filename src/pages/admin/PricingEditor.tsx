@@ -103,6 +103,7 @@ export default function PricingEditor() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState<RuleForm>(defaultForm);
+  const [activeTab, setActiveTab] = useState<'rules' | 'quick'>('quick');
 
   const countryOptions = useMemo(() => {
     if (liveCountryGroups.length > 0) {
@@ -197,7 +198,8 @@ export default function PricingEditor() {
   }
 
   async function persistRules(nextRules: PricingRule[]) {
-    const { error } = await supabase
+    // 1. Save rules
+    const { error: rulesError } = await supabase
       .from('site_content')
       .upsert({
         key: PRICING_CONTENT_KEY,
@@ -205,9 +207,22 @@ export default function PricingEditor() {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'key' });
 
-    if (error) throw error;
+    if (rulesError) throw rulesError;
+
+    // 2. Increment version to trigger site-wide cache refresh
+    const nextVersion = Date.now().toString();
+    await supabase
+      .from('site_content')
+      .upsert({
+        key: 'pricing_version',
+        value: nextVersion,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'key' });
+
     localStorage.removeItem('eydost_live_packages');
     localStorage.removeItem('eydost_live_packages_time');
+    localStorage.setItem('eydost_pricing_version', nextVersion);
+    
     setRules(nextRules);
     refreshLivePackages().catch(() => undefined);
   }
@@ -270,6 +285,30 @@ export default function PricingEditor() {
       setError(err instanceof Error ? err.message : 'Status deyismedi.');
     }
   }
+  
+  async function adjustMargin(type: TargetType, id: string | null, delta: number) {
+    try {
+      const existing = rules.find(r => r.target_type === type && r.target_id === id);
+      const currentMargin = existing?.margin || rules.find(r => r.target_type === 'global')?.margin || 1.75;
+      const nextMargin = Math.max(0.1, Number((currentMargin + delta).toFixed(2)));
+      
+      const payload = {
+        target_type: type,
+        target_id: id,
+        margin: nextMargin,
+        fixed_price: null,
+        is_active: true
+      };
+      
+      const nextRules = existing 
+        ? rules.map(r => r.id === existing.id ? { ...r, ...payload } : r)
+        : [...rules, { id: createRuleId(), ...payload }];
+        
+      await persistRules(nextRules);
+    } catch (err) {
+      setError('Qiymet deyismedi.');
+    }
+  }
 
   const filteredRules = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -325,42 +364,162 @@ export default function PricingEditor() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white border border-gray-100 rounded-lg p-5">
-            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Aktiv qlobal qayda</p>
-            <p className="text-2xl font-black text-gray-900">
-              {globalRule ? `+${marginToPercent(globalRule.margin)}%` : '+75%'}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">Diger qayda tapilmasa bu marja istifade olunur.</p>
-          </div>
-          <div className="bg-white border border-gray-100 rounded-lg p-5">
-            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Prioritet sirasi</p>
-            <p className="text-sm font-bold text-gray-900">Paket → Olke → Region → Qlobal</p>
-            <p className="text-xs text-gray-500 mt-2">Daha konkret qayda umumi qaydani evez edir.</p>
-          </div>
-          <div className="bg-white border border-gray-100 rounded-lg p-5">
-            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Endirim</p>
-            <p className="text-sm font-bold text-gray-900">Menfi faiz yazin</p>
-            <p className="text-xs text-gray-500 mt-2">Meselen: -10% API qiymetinden 10% asagi, +40% ise artimdir.</p>
-          </div>
+        <div className="flex border-b border-gray-100 mb-6">
+          <button
+            onClick={() => setActiveTab('quick')}
+            className={`px-8 py-4 text-sm font-bold border-b-2 transition-all ${activeTab === 'quick' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+          >
+            Tez idarəetmə (Dashboard)
+          </button>
+          <button
+            onClick={() => setActiveTab('rules')}
+            className={`px-8 py-4 text-sm font-bold border-b-2 transition-all ${activeTab === 'rules' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+          >
+            Bütün qaydalar
+          </button>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-gray-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative max-w-md w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                value={search}
-                onChange={event => setSearch(event.target.value)}
-                placeholder="Qayda axtar..."
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-transparent rounded-lg text-sm outline-none focus:bg-white focus:border-cyan-400"
-              />
+        {activeTab === 'quick' ? (
+          <div className="space-y-8 animate-fade-in">
+            {/* Global & Priority Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Globe className="w-20 h-20" />
+                </div>
+                <p className="text-xs font-bold text-cyan-400 uppercase mb-1">Əsas Qlobal Marja</p>
+                <div className="flex items-center gap-4">
+                  <p className="text-4xl font-black">{globalRule ? `+${marginToPercent(globalRule.margin)}%` : '+75%'}</p>
+                  <div className="flex gap-1">
+                    <button onClick={() => adjustMargin('global', null, 0.05)} className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center font-bold">+</button>
+                    <button onClick={() => adjustMargin('global', null, -0.05)} className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center font-bold">-</button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-4 italic">Xüsusi qayda olmayan bütün paketlərə bu marja tətbiq olunur.</p>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col justify-center">
+                <h3 className="font-bold text-gray-900 mb-2">Necə işləyir?</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Qiyməti qaldırmaq üçün <b>+</b>, endirmək üçün <b>-</b> düyməsini sıxın. 
+                  Hər klik marjanı <b>5%</b> dəyişir. Dəyişiklik dərhal saytda aktiv olur.
+                </p>
+              </div>
             </div>
-            <button onClick={() => openCreateForm()} className="inline-flex items-center justify-center gap-2 bg-cyan-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-cyan-700">
-              <Plus className="w-4 h-4" />
-              Yeni qayda
-            </button>
+
+            {/* Regions */}
+            <div>
+              <h2 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-cyan-600" />
+                Regionlar üzrə idarəetmə
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {regionOptions.map(region => {
+                  const rule = rules.find(r => r.target_type === 'region' && r.target_id === region.id && r.is_active);
+                  return (
+                    <div key={region.id} className="bg-white border border-gray-100 rounded-xl p-5 hover:border-cyan-200 transition-all shadow-sm">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase mb-2 truncate">{region.label}</p>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xl font-black ${rule ? 'text-cyan-600' : 'text-gray-300'}`}>
+                          {rule ? `+${marginToPercent(rule.margin)}%` : 'Default'}
+                        </span>
+                        <div className="flex gap-1">
+                          <button onClick={() => adjustMargin('region', region.id, 0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-100 hover:text-cyan-600 flex items-center justify-center font-bold">+</button>
+                          <button onClick={() => adjustMargin('region', region.id, -0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-100 hover:text-cyan-600 flex items-center justify-center font-bold">-</button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Countries Table */}
+            <div>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-cyan-600" />
+                  Ölkələr üzrə sürətli tənzimləmə
+                </h2>
+                <div className="relative max-w-xs w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Ölkə axtar..."
+                    className="w-full pl-9 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm outline-none focus:ring-2 focus:ring-cyan-400"
+                  />
+                </div>
+              </div>
+              
+              <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase">
+                      <tr>
+                        <th className="px-6 py-4">Ölkə</th>
+                        <th className="px-6 py-4 text-center">Cari Marja</th>
+                        <th className="px-6 py-4 text-right">Tez Ayar</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {countryOptions
+                        .filter(c => !search || c.label.toLowerCase().includes(search.toLowerCase()))
+                        .slice(0, 15) // Limit for performance in quick view, user can use search
+                        .map(country => {
+                          const rule = rules.find(r => r.target_type === 'country' && r.target_id === country.id && r.is_active);
+                          return (
+                            <tr key={country.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-6 py-4">
+                                <span className="font-bold text-gray-800">{country.label}</span>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${rule ? 'bg-cyan-100 text-cyan-700' : 'bg-gray-100 text-gray-400'}`}>
+                                  {rule ? `+${marginToPercent(rule.margin)}%` : 'Qlobal/Region'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex justify-end gap-2">
+                                  <button onClick={() => adjustMargin('country', country.id, 0.05)} className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-cyan-600 hover:text-white font-bold text-sm transition-all">+ 5%</button>
+                                  <button onClick={() => adjustMargin('country', country.id, -0.05)} className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-cyan-600 hover:text-white font-bold text-sm transition-all">- 5%</button>
+                                  {rule && (
+                                    <button onClick={() => deleteRule(rule)} className="p-1 text-gray-300 hover:text-red-500">
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+                {search.length === 0 && (
+                  <div className="p-4 bg-gray-50 text-center text-xs text-gray-400">
+                    Axtarış verərək digər ölkələri tapa bilərsiniz.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+        ) : (
+          <div className="bg-white border border-gray-100 rounded-lg overflow-hidden animate-fade-in">
+            <div className="p-4 border-b border-gray-100 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="relative max-w-md w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  value={search}
+                  onChange={event => setSearch(event.target.value)}
+                  placeholder="Qayda axtar..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-transparent rounded-lg text-sm outline-none focus:bg-white focus:border-cyan-400"
+                />
+              </div>
+              <button onClick={() => openCreateForm()} className="inline-flex items-center justify-center gap-2 bg-cyan-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-cyan-700">
+                <Plus className="w-4 h-4" />
+                Yeni qayda
+              </button>
+            </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[820px]">

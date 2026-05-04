@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { packages as initialPackages, regionalPackages as initialRegional, globalPackage as initialGlobal } from '../data/esimPackages';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import { fetchCountryGroups, type ESIMCountryGroup, type ESIMPackageRaw } from '../services/esimApi';
+import { supabase } from '../lib/supabase';
 
 interface PackagesContextType {
   // Legacy static packages (for admin editor compatibility)
@@ -93,10 +94,35 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const hasCache = loadFromCache();
-    // Even if we have cache, refresh in background if it's been a while 
-    // or if we have NO cache at all.
-    refreshLivePackages(!hasCache); 
+    const init = async () => {
+      // Check for pricing updates first
+      let versionChanged = false;
+      try {
+        const { data } = await supabase
+          .from('site_content')
+          .select('value')
+          .eq('key', 'pricing_version')
+          .maybeSingle();
+        
+        const remoteVersion = data?.value || '0';
+        const localVersion = localStorage.getItem('eydost_pricing_version');
+        
+        if (remoteVersion !== localVersion) {
+          localStorage.removeItem(CACHE_KEY);
+          localStorage.removeItem(CACHE_TIME_KEY);
+          localStorage.setItem('eydost_pricing_version', remoteVersion);
+          versionChanged = true;
+        }
+      } catch (e) {
+        console.warn('Pricing version check failed', e);
+      }
+
+      const hasCache = loadFromCache();
+      // Refresh if no cache, or if version changed, or background refresh if cache exists
+      refreshLivePackages(!hasCache || versionChanged);
+    };
+
+    init();
   }, []);
 
   return (
