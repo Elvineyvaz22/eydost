@@ -1,0 +1,1445 @@
+{
+  "updated_at": "2026-05-04T21:25:36.086Z",
+  "source": "esim-prices-2026-05-04.csv",
+  "total_countries": 183,
+  "changed_countries": 179,
+  "summary": {
+    "increased": 28,
+    "decreased": 151,
+    "unchanged": 4
+  },
+  "pricing_rules": [
+    {
+      "target_type": "country",
+      "target_id": "GL",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Greenland 5GB 30Days: old=$4.73 new=$26.77 change=+466.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MC",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Monaco 5GB 30Days: old=$15.4 new=$74.71 change=+385.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Gambia 5GB 30Days: old=$8.75 new=$41.29 change=+371.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PF",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "French Polynesia 5GB 30Days: old=$23.8 new=$65.74 change=+176.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SL",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Sierra Leone 5GB 30Days: old=$8.75 new=$23.72 change=+171.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CI",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Cote d'Ivoire 5GB 30Days: old=$8.75 new=$22.65 change=+158.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "JM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Jamaica 5GB 30Days: old=$8.75 new=$22 change=+151.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SD",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Sudan 5GB 30Days: old=$8.75 new=$21.33 change=+143.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BF",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Burkina Faso 5GB 30Days: old=$8.75 new=$20.23 change=+131.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Guinea 5GB 30Days: old=$8.75 new=$19.32 change=+120.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CF",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Central African Republic 5GB 30Days: old=$8.75 new=$19.12 change=+118.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GW",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Guinea-Bissau 5GB 30Days: old=$8.75 new=$19.12 change=+118.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "LR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Liberia 5GB 30Days: old=$8.75 new=$19.12 change=+118.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "KE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Kenya 5GB 30Days: old=$8.75 new=$19 change=+117.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "WS",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Samoa 5GB 30Days: old=$36.75 new=$69.88 change=+90.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "NE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Niger 5GB 30Days: old=$8.75 new=$16 change=+82.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Belize 5GB 30Days: old=$23.8 new=$37.94 change=+59.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BS",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Bahamas 5GB 30Days: old=$23.8 new=$33 change=+38.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MV",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Maldives 5GB 30Days: old=$23.8 new=$31.75 change=+33.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CV",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Cape Verde 5GB 30Days: old=$29.93 new=$39 change=+30.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Panama 5GB 30Days: old=$15.4 new=$18.5 change=+20.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "HT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Haiti 5GB 30Days: old=$29.93 new=$35.1 change=+17.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Antigua and Barbuda 5GB 30Days: old=$23.8 new=$27.2 change=+14.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GD",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Grenada 5GB 30Days: old=$23.8 new=$27.2 change=+14.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Bolivia 5GB 30Days: old=$19.25 new=$21.97 change=+14.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Angola 5GB 30Days: old=$36.75 new=$41.47 change=+12.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "VC",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Saint Vincent and the Grenadines 5GB 30Days: old=$29.93 new=$33 change=+10.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "KY",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Cayman Islands 5GB 30Days: old=$23.8 new=$25.12 change=+5.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "DM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Dominica 5GB 30Days: old=$23.8 new=$23.14 change=-2.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Suriname 5GB 30Days: old=$23.8 new=$23.11 change=-2.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GY",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Guyana 5GB 30Days: old=$23.8 new=$22.93 change=-3.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BB",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Barbados 5GB 30Days: old=$23.8 new=$22.41 change=-5.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "KN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Saint Kitts and Nevis 5GB 30Days: old=$29.93 new=$27.2 change=-9.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "LC",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Saint Lucia 5GB 30Days: old=$29.93 new=$27.2 change=-9.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "VG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Virgin Islands- British 5GB 30Days: old=$29.93 new=$27.2 change=-9.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AX",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Aland Islands 5GB 30Days: old=$5.95 new=$5 change=-16%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MU",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Mauritius 5GB 30Days: old=$23.8 new=$19.9 change=-16.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Mongolia 5GB 30Days: old=$19.25 new=$15.25 change=-20.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Costa Rica 5GB 30Days: old=$15.4 new=$12 change=-22.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "RW",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Rwanda 5GB 30Days: old=$29.93 new=$23.09 change=-22.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AI",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Anguilla 5GB 30Days: old=$29.93 new=$22.83 change=-23.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Guernsey 5GB 30Days: old=$15.4 new=$11.5 change=-25.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "IL",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Israel 5GB 30Days: old=$7.7 new=$5.7 change=-26%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MS",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Montserrat 5GB 30Days: old=$36.75 new=$27.2 change=-26%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Colombia 5GB 30Days: old=$15.4 new=$11.2 change=-27.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Senegal 5GB 30Days: old=$29.93 new=$21.39 change=-28.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "UY",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Uruguay 5GB 30Days: old=$15.4 new=$11 change=-28.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BW",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Botswana 5GB 30Days: old=$29.93 new=$21.33 change=-28.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "NZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "New Zealand 5GB 30Days: old=$5.95 new=$4.18 change=-29.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "TC",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Turks and Caicos Islands 5GB 30Days: old=$29.93 new=$20.75 change=-30.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "UG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Uganda 5GB 30Days: old=$29.93 new=$20.7 change=-30.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GI",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Gibraltar 5GB 30Days: old=$19.25 new=$13.31 change=-30.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SC",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Seychelles 5GB 30Days: old=$23.8 new=$16 change=-32.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Madagascar 5GB 30Days: old=$36.75 new=$24.55 change=-33.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Cameroon 5GB 30Days: old=$29.93 new=$19.82 change=-33.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BH",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Bahrain 5GB 30Days: old=$12.25 new=$8 change=-34.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "United Arab Emirates 5GB 30Days: old=$12.25 new=$8 change=-34.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Morocco 5GB 30Days: old=$7.7 new=$5.02 change=-34.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SV",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "El Salvador 5GB 30Days: old=$19.25 new=$12.13 change=-37%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "China 5GB 30Days: old=$4.73 new=$2.96 change=-37.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AD",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Andorra 5GB 30Days: old=$15.4 new=$9.35 change=-39.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "EG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Egypt 5GB 30Days: old=$12.25 new=$7.35 change=-40%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "NG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Nigeria 5GB 30Days: old=$23.8 new=$14.26 change=-40.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "QA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Qatar 5GB 30Days: old=$12.25 new=$7.26 change=-40.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "FO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Faroe Islands 5GB 30Days: old=$15.4 new=$9.11 change=-40.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Saudi Arabia 5GB 30Days: old=$12.25 new=$7.22 change=-41.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "EC",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Ecuador 5GB 30Days: old=$15.4 new=$9 change=-41.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BY",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Belarus 5GB 30Days: old=$15.4 new=$8.9 change=-42.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Peru 5GB 30Days: old=$15.4 new=$8.89 change=-42.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GU",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Guam 5GB 30Days: old=$19.25 new=$11.08 change=-42.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "DZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Algeria 5GB 30Days: old=$7.7 new=$4.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AU",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Australia 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Austria 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Belgium 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Canada 5GB 30Days: old=$9.97 new=$5.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "HR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Croatia 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CY",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Cyprus 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Czech Republic 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "DK",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Denmark 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "EE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Estonia 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "FI",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Finland 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "FR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "France 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "DE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Germany 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Greece 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "HK",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Hong Kong 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "HU",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Hungary 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "ID",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Indonesia 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "IM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Isle of Man 5GB 30Days: old=$7.7 new=$4.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "JP",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Japan 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "JE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Jersey 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "LV",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Latvia 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "LT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Lithuania 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "LU",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Luxembourg 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Macao 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MY",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Malaysia 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "NO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Norway 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PL",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Poland 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Portugal 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "RO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Romania 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SI",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Slovenia 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "KR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "South Korea 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "ES",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Spain 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Sweden 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CH",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Switzerland 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "TH",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Thailand 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "TR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Turkey 5GB 30Days: old=$4.02 new=$2.3 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GB",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "United Kingdom 5GB 30Days: old=$4.73 new=$2.7 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "US",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "United States 5GB 30Days: old=$5.95 new=$3.4 change=-42.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Azerbaijan 5GB 30Days: old=$15.4 new=$8.65 change=-43.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CW",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Curaçao 5GB 30Days: old=$36.75 new=$20.59 change=-44%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SK",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Slovakia 5GB 30Days: old=$5.95 new=$3.31 change=-44.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "IT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Italy 5GB 30Days: old=$4.73 new=$2.58 change=-45.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Brazil 5GB 30Days: old=$15.4 new=$8.32 change=-46%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CL",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Chile 5GB 30Days: old=$15.4 new=$8.32 change=-46%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Bulgaria 5GB 30Days: old=$5.95 new=$3.2 change=-46.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "IE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Ireland 5GB 30Days: old=$5.95 new=$3.2 change=-46.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "ZM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Zambia 5GB 30Days: old=$29.93 new=$16 change=-46.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "IS",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Iceland 5GB 30Days: old=$7.7 new=$4.11 change=-46.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AF",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Afghanistan 5GB 30Days: old=$36.75 new=$19.6 change=-46.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BL",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Saint Barthelemy 5GB 30Days: old=$4.73 new=$2.52 change=-46.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MF",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Saint Martin 5GB 30Days: old=$4.73 new=$2.52 change=-46.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Argentina 5GB 30Days: old=$15.4 new=$8.15 change=-47.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Republic of the Congo 5GB 30Days: old=$36.75 new=$19.4 change=-47.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "IQ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Iraq 5GB 30Days: old=$19.25 new=$10 change=-48.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Singapore 5GB 30Days: old=$4.73 new=$2.41 change=-49%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "UA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Ukraine 5GB 30Days: old=$4.73 new=$2.4 change=-49.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "JO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Jordan 5GB 30Days: old=$15.4 new=$7.73 change=-49.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BJ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Benin 5GB 30Days: old=$36.75 new=$17.77 change=-51.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Guatemala 5GB 30Days: old=$19.25 new=$9.3 change=-51.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PR",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Puerto Rico 5GB 30Days: old=$19.25 new=$9.3 change=-51.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PH",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Philippines 5GB 30Days: old=$12.25 new=$5.86 change=-52.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GP",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Guadeloupe 5GB 30Days: old=$19.25 new=$9.11 change=-52.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "TJ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Tajikistan 5GB 30Days: old=$19.25 new=$8.99 change=-53.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "NL",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Netherlands 5GB 30Days: old=$5.95 new=$2.74 change=-53.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MK",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "North Macedonia 5GB 30Days: old=$19.25 new=$8.8 change=-54.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "OM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Oman 5GB 30Days: old=$15.4 new=$7 change=-54.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Bosnia and Herzegovina 5GB 30Days: old=$15.4 new=$6.82 change=-55.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PY",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Paraguay 5GB 30Days: old=$19.25 new=$8.4 change=-56.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "TD",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Chad 5GB 30Days: old=$36.75 new=$16 change=-56.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "DO",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Dominican Republic 5GB 30Days: old=$19.25 new=$8.37 change=-56.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Gabon 5GB 30Days: old=$36.75 new=$16 change=-56.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MW",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Malawi 5GB 30Days: old=$36.75 new=$16 change=-56.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "HN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Honduras 5GB 30Days: old=$19.25 new=$7.89 change=-59%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "NI",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Nicaragua 5GB 30Days: old=$19.25 new=$7.89 change=-59%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "IN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "India 5GB 30Days: old=$15.4 new=$6.29 change=-59.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MX",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Mexico 5GB 30Days: old=$19.25 new=$7.54 change=-60.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Georgia 5GB 30Days: old=$9.97 new=$3.82 change=-61.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "TN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Tunisia 5GB 30Days: old=$15.4 new=$5.76 change=-62.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "KH",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Cambodia 5GB 30Days: old=$15.4 new=$5.72 change=-62.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "NP",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Nepal 5GB 30Days: old=$23.8 new=$8.62 change=-63.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "ZA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "South Africa 5GB 30Days: old=$19.25 new=$6.76 change=-64.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "CD",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Democratic Republic of the Congo 5GB 30Days: old=$36.75 new=$12.73 change=-65.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Malta 5GB 30Days: old=$7.7 new=$2.65 change=-65.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "RU",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Russia 5GB 30Days: old=$15.4 new=$5.28 change=-65.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GH",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Ghana 5GB 30Days: old=$23.8 new=$7.78 change=-67.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Armenia 5GB 30Days: old=$15.4 new=$4.88 change=-68.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "VN",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Vietnam 5GB 30Days: old=$12.25 new=$3.77 change=-69.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "LA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Laos 5GB 30Days: old=$19.25 new=$5.88 change=-69.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Bhutan 5GB 30Days: old=$36.75 new=$11.08 change=-69.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "GF",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "French Guiana 5GB 30Days: old=$19.25 new=$5.65 change=-70.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "TZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Tanzania 5GB 30Days: old=$29.93 new=$8.77 change=-70.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "AL",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Albania 5GB 30Days: old=$15.4 new=$3.94 change=-74.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "FJ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Fiji 5GB 30Days: old=$29.93 new=$7.66 change=-74.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "LI",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Liechtenstein 5GB 30Days: old=$15.4 new=$3.9 change=-74.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "RS",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Serbia 5GB 30Days: old=$15.4 new=$3.82 change=-75.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "LK",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Sri Lanka 5GB 30Days: old=$19.25 new=$4.6 change=-76.1%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Mozambique 5GB 30Days: old=$36.75 new=$8.68 change=-76.4%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "ME",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Montenegro 5GB 30Days: old=$15.4 new=$3.6 change=-76.6%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "KZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Kazakhstan 5GB 30Days: old=$15.4 new=$3.43 change=-77.7%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "KG",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Kyrgyzstan 5GB 30Days: old=$15.4 new=$3.31 change=-78.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "BD",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Bangladesh 5GB 30Days: old=$19.25 new=$3.94 change=-79.5%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "PK",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Pakistan 5GB 30Days: old=$19.25 new=$3.8 change=-80.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MD",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Moldova 5GB 30Days: old=$15.4 new=$2.74 change=-82.2%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "SM",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "San Marino 5GB 30Days: old=$15.4 new=$2.73 change=-82.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "VA",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Vatican City 5GB 30Days: old=$15.4 new=$2.73 change=-82.3%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "UZ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Uzbekistan 5GB 30Days: old=$19.25 new=$2.9 change=-84.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "RE",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Reunion 5GB 30Days: old=$19.25 new=$2.73 change=-85.8%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "MQ",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Martinique 5GB 30Days: old=$19.25 new=$2.52 change=-86.9%"
+    },
+    {
+      "target_type": "country",
+      "target_id": "YT",
+      "margin": 1.75,
+      "fixed_price": null,
+      "is_active": true,
+      "note": "Mayotte 5GB 30Days: old=$23.8 new=$2.52 change=-89.4%"
+    }
+  ]
+}
