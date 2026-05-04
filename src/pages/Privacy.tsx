@@ -3,6 +3,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { Shield, Lock, Eye, Server } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import Seo from '../components/Seo';
 
 export default function Privacy() {
   const { language } = useLanguage();
@@ -98,6 +99,7 @@ export default function Privacy() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Seo title={t.title} canonicalPath="/privacy" />
       <Header />
       
       <main className="pt-32 pb-20 px-4">

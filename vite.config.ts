@@ -6,6 +6,18 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          maps: ['@react-google-maps/api'],
+        },
+      },
+    },
+  },
   server: {
     host: true,
     allowedHosts: true,

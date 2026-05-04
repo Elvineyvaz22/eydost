@@ -10,6 +10,7 @@ import { getPlanCode } from '../data/planCodeMap';
 import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
+import Seo from '../components/Seo';
 
 const WA_LINK = 'https://wa.me/994558878889';
 
@@ -168,6 +169,7 @@ export default function CountryEsim() {
   if (!pkg) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Seo title="eSIM not found" canonicalPath={`/${slug || ''}`} />
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center px-4">
@@ -186,6 +188,11 @@ export default function CountryEsim() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Seo
+        title={`${pkg.country} eSIM`}
+        description={`Buy ${pkg.country} eSIM plans. Instant delivery via WhatsApp. Choose data and validity that fits your trip.`}
+        canonicalPath={`/${pkg.slug}`}
+      />
       <Header />
 
       {/* Hero */}

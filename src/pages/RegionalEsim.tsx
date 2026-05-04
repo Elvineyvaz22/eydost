@@ -10,6 +10,7 @@ import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
+import Seo from '../components/Seo';
 
 const WA_LINK = 'https://wa.me/994558878889';
 
@@ -80,6 +81,11 @@ export default function RegionalEsim() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Seo
+        title={`${pkg.name} eSIM`}
+        description={`Buy ${pkg.name} regional eSIM plans. Instant delivery via WhatsApp.`}
+        canonicalPath={`/${pkg.slug}`}
+      />
       <Header />
 
       <div className="bg-white border-b border-gray-100 pt-28">

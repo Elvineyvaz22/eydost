@@ -8,6 +8,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
+import Seo from '../components/Seo';
 
 function CountryCard({ pkg }: { pkg: PackageData }) {
   const { t } = useLanguage();
@@ -182,6 +183,11 @@ export default function AllPackages() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
+      <Seo
+        title="eSIM Packages"
+        description="Browse eSIM packages by country, region, or global coverage. Instant delivery via WhatsApp."
+        canonicalPath="/esim"
+      />
       <Header />
 
       <main className="flex-1">
