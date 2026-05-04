@@ -406,7 +406,10 @@ export default function PricingEditor() {
                 <h3 className="font-bold text-gray-900 mb-2">Necə işləyir?</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">
                   Qiyməti qaldırmaq üçün <b>+</b>, endirmək üçün <b>-</b> düyməsini sıxın. 
-                  Hər klik marjanı <b>5%</b> dəyişir. Dəyişiklik dərhal saytda aktiv olur.
+                  <br />
+                  <span className="text-cyan-600 font-bold">• Region qaydaları:</span> Yalnız çox-ölkəli (məs: Europe Regional) paketlərə təsir edir.
+                  <br />
+                  <span className="text-cyan-600 font-bold">• Ölkə qaydaları:</span> Yalnız həmin ölkənin fərdi paketlərinə təsir edir.
                 </p>
               </div>
             </div>

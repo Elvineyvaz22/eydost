@@ -159,12 +159,14 @@ async function applyPricingRules(packages: ESIMPackageRaw[]): Promise<ESIMPackag
 
   return packages.map(pkg => {
     const locations = (pkg.location || '').split(',').map(code => normalizeTarget(code)).filter(Boolean);
-    const countryCode = locations.length === 1 ? locations[0] : '';
+    const isSingleCountry = locations.length === 1;
+    const countryCode = isSingleCountry ? locations[0] : '';
     const regions = packageRegions(pkg);
+
     const rule =
       rules.find(item => item.target_type === 'package' && normalizeTarget(item.target_id) === normalizeTarget(pkg.packageCode)) ||
-      rules.find(item => item.target_type === 'country' && normalizeTarget(item.target_id) === countryCode) ||
-      rules.find(item => item.target_type === 'region' && regions.has(normalizeTarget(item.target_id))) ||
+      (isSingleCountry ? rules.find(item => item.target_type === 'country' && normalizeTarget(item.target_id) === countryCode) : null) ||
+      (!isSingleCountry ? rules.find(item => item.target_type === 'region' && regions.has(normalizeTarget(item.target_id))) : null) ||
       rules.find(item => item.target_type === 'global');
 
     return rule ? { ...pkg, sellingPrice: applyRule(rule, pkg.price) } : pkg;
