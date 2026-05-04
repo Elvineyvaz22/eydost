@@ -51,15 +51,20 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
 
   const CACHE_KEY = 'eydost_live_packages';
   const CACHE_TIME_KEY = 'eydost_live_packages_time';
+  const CACHE_PRICING_VERSION_KEY = 'eydost_live_packages_pricing_version';
   const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-  const loadFromCache = () => {
+  const loadFromCache = (expectedPricingVersion: string) => {
     const cachedData = localStorage.getItem(CACHE_KEY);
     const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+    const cachedPricingVersion = localStorage.getItem(CACHE_PRICING_VERSION_KEY);
     
     if (cachedData && cachedTime) {
       const now = Date.now();
-      if (now - parseInt(cachedTime) < CACHE_DURATION) {
+      if (
+        now - parseInt(cachedTime) < CACHE_DURATION &&
+        cachedPricingVersion === expectedPricingVersion
+      ) {
         try {
           const parsed = JSON.parse(cachedData);
           setLiveCountryGroups(parsed.countryGroups || []);
@@ -83,8 +88,10 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
       setLiveRegionalPackages(regional);
       
       // Save to cache
+      const pricingVersion = localStorage.getItem('eydost_pricing_version') || '0';
       localStorage.setItem(CACHE_KEY, JSON.stringify({ countryGroups, regional }));
       localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+      localStorage.setItem(CACHE_PRICING_VERSION_KEY, pricingVersion);
     } catch (err: any) {
       console.warn('Live packages unavailable:', err.message);
       setLiveError(err.message);
@@ -97,6 +104,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
     const init = async () => {
       // Check for pricing updates first
       let versionChanged = false;
+      let remoteVersion = '0';
       try {
         const { data } = await supabase
           .from('site_content')
@@ -104,12 +112,13 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
           .eq('key', 'pricing_version')
           .maybeSingle();
         
-        const remoteVersion = data?.value || '0';
+        remoteVersion = data?.value || '0';
         const localVersion = localStorage.getItem('eydost_pricing_version');
         
         if (remoteVersion !== localVersion) {
           localStorage.removeItem(CACHE_KEY);
           localStorage.removeItem(CACHE_TIME_KEY);
+          localStorage.removeItem(CACHE_PRICING_VERSION_KEY);
           localStorage.setItem('eydost_pricing_version', remoteVersion);
           versionChanged = true;
         }
@@ -117,7 +126,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
         console.warn('Pricing version check failed', e);
       }
 
-      const hasCache = loadFromCache();
+      const hasCache = loadFromCache(remoteVersion);
       // Refresh if no cache, or if version changed, or background refresh if cache exists
       refreshLivePackages(!hasCache || versionChanged);
     };

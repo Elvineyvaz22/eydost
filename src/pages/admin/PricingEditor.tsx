@@ -291,6 +291,9 @@ export default function PricingEditor() {
   }
   
   async function adjustMargin(type: TargetType, id: string | null, delta: number) {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
     try {
       const existing = rules.find(r => r.target_type === type && r.target_id === id);
       const currentMargin = existing?.margin || rules.find(r => r.target_type === 'global')?.margin || 1.75;
@@ -310,7 +313,9 @@ export default function PricingEditor() {
         
       await persistRules(nextRules);
     } catch (err) {
-      setError('Qiymet deyismedi.');
+      setError(err instanceof Error ? err.message : 'Qiymet deyismedi.');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -342,19 +347,19 @@ export default function PricingEditor() {
             <p className="text-gray-500">Qlobal, region, olke ve paket uzre artim, endirim ve sabit qiymet teyin edin.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => openCreateForm('global')} className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-gray-800">
+            <button type="button" onClick={() => openCreateForm('global')} className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-gray-800">
               <Globe className="w-4 h-4" />
               Qlobal
             </button>
-            <button onClick={() => openCreateForm('region')} className="inline-flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-bold text-gray-700 hover:border-cyan-300">
+            <button type="button" onClick={() => openCreateForm('region')} className="inline-flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-bold text-gray-700 hover:border-cyan-300">
               <MapPin className="w-4 h-4" />
               Region
             </button>
-            <button onClick={() => openCreateForm('country')} className="inline-flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-bold text-gray-700 hover:border-cyan-300">
+            <button type="button" onClick={() => openCreateForm('country')} className="inline-flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-lg text-sm font-bold text-gray-700 hover:border-cyan-300">
               <MapPin className="w-4 h-4" />
               Olke
             </button>
-            <button onClick={() => openCreateForm('package')} className="inline-flex items-center gap-2 bg-cyan-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-cyan-700">
+            <button type="button" onClick={() => openCreateForm('package')} className="inline-flex items-center gap-2 bg-cyan-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-cyan-700">
               <Package className="w-4 h-4" />
               Paket
             </button>
@@ -370,12 +375,14 @@ export default function PricingEditor() {
 
         <div className="flex border-b border-gray-100 mb-6">
           <button
+            type="button"
             onClick={() => setActiveTab('quick')}
             className={`px-8 py-4 text-sm font-bold border-b-2 transition-all ${activeTab === 'quick' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
           >
             Tez idarəetmə (Dashboard)
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('rules')}
             className={`px-8 py-4 text-sm font-bold border-b-2 transition-all ${activeTab === 'rules' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
           >
@@ -395,8 +402,8 @@ export default function PricingEditor() {
                 <div className="flex items-center gap-4">
                   <p className="text-4xl font-black">{globalRule ? `+${marginToPercent(globalRule.margin)}%` : '+75%'}</p>
                   <div className="flex gap-1">
-                    <button onClick={() => adjustMargin('global', null, 0.05)} className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center font-bold">+</button>
-                    <button onClick={() => adjustMargin('global', null, -0.05)} className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center font-bold">-</button>
+                    <button type="button" disabled={saving} onClick={() => adjustMargin('global', null, 0.05)} className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center font-bold disabled:opacity-50">+</button>
+                    <button type="button" disabled={saving} onClick={() => adjustMargin('global', null, -0.05)} className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center font-bold disabled:opacity-50">-</button>
                   </div>
                 </div>
                 <p className="text-xs text-gray-400 mt-4 italic">Xüsusi qayda olmayan bütün paketlərə bu marja tətbiq olunur.</p>
@@ -435,8 +442,8 @@ export default function PricingEditor() {
                           {rule ? `+${marginToPercent(rule.margin)}%` : '75%'}
                         </span>
                         <div className="flex gap-1">
-                          <button onClick={() => adjustMargin('region', region.id, 0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">+</button>
-                          <button onClick={() => adjustMargin('region', region.id, -0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">-</button>
+                          <button type="button" disabled={saving} onClick={() => adjustMargin('region', region.id, 0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm disabled:opacity-50">+</button>
+                          <button type="button" disabled={saving} onClick={() => adjustMargin('region', region.id, -0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm disabled:opacity-50">-</button>
                         </div>
                       </div>
                     </div>
@@ -491,10 +498,10 @@ export default function PricingEditor() {
                               </td>
                               <td className="px-6 py-4">
                                 <div className="flex justify-end gap-2">
-                                  <button onClick={() => adjustMargin('country', country.id, 0.05)} className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-cyan-600 hover:text-white font-bold text-sm transition-all">+ 5%</button>
-                                  <button onClick={() => adjustMargin('country', country.id, -0.05)} className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-cyan-600 hover:text-white font-bold text-sm transition-all">- 5%</button>
+                                  <button type="button" disabled={saving} onClick={() => adjustMargin('country', country.id, 0.05)} className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-cyan-600 hover:text-white font-bold text-sm transition-all disabled:opacity-50">+ 5%</button>
+                                  <button type="button" disabled={saving} onClick={() => adjustMargin('country', country.id, -0.05)} className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-cyan-600 hover:text-white font-bold text-sm transition-all disabled:opacity-50">- 5%</button>
                                   {rule && (
-                                    <button onClick={() => deleteRule(rule)} className="p-1 text-gray-300 hover:text-red-500">
+                                    <button type="button" onClick={() => deleteRule(rule)} className="p-1 text-gray-300 hover:text-red-500">
                                       <Trash2 className="w-4 h-4" />
                                     </button>
                                   )}
@@ -526,7 +533,7 @@ export default function PricingEditor() {
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-transparent rounded-lg text-sm outline-none focus:bg-white focus:border-cyan-400"
                 />
               </div>
-              <button onClick={() => openCreateForm()} className="inline-flex items-center justify-center gap-2 bg-cyan-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-cyan-700">
+              <button type="button" onClick={() => openCreateForm()} className="inline-flex items-center justify-center gap-2 bg-cyan-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-cyan-700">
                 <Plus className="w-4 h-4" />
                 Yeni qayda
               </button>
@@ -580,6 +587,7 @@ export default function PricingEditor() {
                     </td>
                     <td className="px-5 py-4">
                       <button
+                        type="button"
                         onClick={() => toggleRule(rule)}
                         className={`px-3 py-1 rounded-full text-xs font-bold ${rule.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
                       >
@@ -588,10 +596,10 @@ export default function PricingEditor() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => openEditForm(rule)} className="px-3 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        <button type="button" onClick={() => openEditForm(rule)} className="px-3 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
                           Edit
                         </button>
-                        <button onClick={() => deleteRule(rule)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                        <button type="button" onClick={() => deleteRule(rule)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -609,7 +617,7 @@ export default function PricingEditor() {
             <div className="bg-white rounded-lg w-full max-w-xl shadow-2xl">
               <div className="p-5 border-b border-gray-100 flex items-center justify-between">
                 <h2 className="text-lg font-black text-gray-900">{editingId ? 'Qaydani deyis' : 'Yeni qiymet qaydasi'}</h2>
-                <button onClick={closeForm} className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                  <button type="button" onClick={closeForm} className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
                   <X className="w-5 h-5" />
                 </button>
               </div>

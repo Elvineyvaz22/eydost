@@ -143,9 +143,10 @@ async function fetchPricingRules(): Promise<PricingRule[]> {
     .eq('key', 'esim_pricing_rules')
     .maybeSingle();
 
-  return Array.isArray(data?.value)
-    ? (data.value as PricingRule[]).filter(rule => rule.is_active)
-    : [];
+  if (!Array.isArray(data?.value)) return [];
+
+  // Treat missing `is_active` as active for backwards compatibility with older rows.
+  return (data.value as PricingRule[]).filter(rule => rule.is_active !== false);
 }
 
 function applyRule(rule: PricingRule, apiPrice: number): number {
