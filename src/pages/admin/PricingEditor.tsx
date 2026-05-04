@@ -58,10 +58,14 @@ const targetLabels: Record<TargetType, string> = {
 };
 
 const REGION_OPTIONS = [
-  { id: 'EUROPE', label: 'Avropa - butun Avropa paketleri' },
-  { id: 'ASIA', label: 'Asiya - butun Asiya paketleri' },
-  { id: 'MIDDLE EAST & AFRICA', label: 'Middle East & Africa - butun region paketleri' },
-  { id: 'AMERICAS', label: 'Americas - butun Amerika paketleri' },
+  { id: 'EUROPE', label: 'Europe (Avropa)' },
+  { id: 'ASIA', label: 'Asia (Asiya)' },
+  { id: 'MIDDLE EAST', label: 'Middle East (Yaxın Şərq)' },
+  { id: 'NORTH AMERICA', label: 'North America (Şimali Amerika)' },
+  { id: 'SOUTH AMERICA', label: 'South America (Cənubi Amerika)' },
+  { id: 'AFRICA', label: 'Africa (Afrika)' },
+  { id: 'CARIBBEAN', label: 'Caribbean (Karib hövzəsi)' },
+  { id: 'OCEANIA', label: 'Oceania (Okeaniya)' },
 ];
 
 function marginToPercent(margin: number) {
@@ -415,17 +419,21 @@ export default function PricingEditor() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {regionOptions.map(region => {
-                  const rule = rules.find(r => r.target_type === 'region' && r.target_id === region.id && r.is_active);
+                  const rule = rules.find(r => 
+                    r.target_type === 'region' && 
+                    r.target_id?.toUpperCase() === region.id && 
+                    r.is_active
+                  );
                   return (
-                    <div key={region.id} className="bg-white border border-gray-100 rounded-xl p-5 hover:border-cyan-200 transition-all shadow-sm">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase mb-2 truncate">{region.label}</p>
+                    <div key={region.id} className="bg-white border border-gray-100 rounded-xl p-5 hover:border-cyan-200 transition-all shadow-sm group">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase mb-2 truncate group-hover:text-cyan-600 transition-colors">{region.label}</p>
                       <div className="flex items-center justify-between">
                         <span className={`text-xl font-black ${rule ? 'text-cyan-600' : 'text-gray-300'}`}>
-                          {rule ? `+${marginToPercent(rule.margin)}%` : 'Default'}
+                          {rule ? `+${marginToPercent(rule.margin)}%` : '75%'}
                         </span>
                         <div className="flex gap-1">
-                          <button onClick={() => adjustMargin('region', region.id, 0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-100 hover:text-cyan-600 flex items-center justify-center font-bold">+</button>
-                          <button onClick={() => adjustMargin('region', region.id, -0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-100 hover:text-cyan-600 flex items-center justify-center font-bold">-</button>
+                          <button onClick={() => adjustMargin('region', region.id, 0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">+</button>
+                          <button onClick={() => adjustMargin('region', region.id, -0.05)} className="w-8 h-8 rounded bg-gray-100 hover:bg-cyan-600 hover:text-white flex items-center justify-center font-bold transition-all shadow-sm">-</button>
                         </div>
                       </div>
                     </div>

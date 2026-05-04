@@ -50,8 +50,12 @@ interface PricingRule {
 const REGION_CODES: Record<string, Set<string>> = {
   EUROPE: new Set(['AL', 'AD', 'AT', 'BA', 'BE', 'BG', 'BY', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'TR', 'UA', 'VA']),
   ASIA: new Set(['AM', 'AZ', 'BD', 'BN', 'BT', 'CN', 'GE', 'HK', 'ID', 'IN', 'JP', 'KH', 'KR', 'KZ', 'LA', 'LK', 'MM', 'MN', 'MO', 'MY', 'NP', 'PH', 'PK', 'SG', 'TH', 'TW', 'UZ', 'VN']),
-  'MIDDLE EAST & AFRICA': new Set(['AE', 'AO', 'BH', 'BW', 'CI', 'CM', 'DZ', 'EG', 'ET', 'GH', 'IL', 'IQ', 'JO', 'KE', 'KW', 'LB', 'MA', 'ML', 'MZ', 'NG', 'OM', 'QA', 'SA', 'SN', 'TN', 'TZ', 'UG', 'ZA', 'ZM', 'ZW']),
-  AMERICAS: new Set(['AR', 'BO', 'BR', 'CA', 'CL', 'CO', 'CR', 'DO', 'EC', 'GT', 'HN', 'JM', 'MX', 'NI', 'PA', 'PE', 'PR', 'PY', 'SV', 'TT', 'US', 'UY', 'VE']),
+  'MIDDLE EAST': new Set(['AE', 'BH', 'IL', 'IQ', 'JO', 'KW', 'LB', 'OM', 'QA', 'SA']),
+  AFRICA: new Set(['AO', 'BW', 'CI', 'CM', 'DZ', 'EG', 'ET', 'GH', 'KE', 'MA', 'ML', 'MZ', 'NG', 'SN', 'TN', 'TZ', 'UG', 'ZA', 'ZM', 'ZW']),
+  'NORTH AMERICA': new Set(['CA', 'MX', 'US', 'PR']),
+  'SOUTH AMERICA': new Set(['AR', 'BO', 'BR', 'CL', 'CO', 'EC', 'GY', 'PY', 'PE', 'SR', 'UY', 'VE']),
+  CARIBBEAN: new Set(['BS', 'BB', 'CU', 'DM', 'DO', 'GD', 'HT', 'JM', 'KN', 'LC', 'VC', 'TT']),
+  OCEANIA: new Set(['AU', 'FJ', 'NZ', 'PG', 'WS']),
 };
 
 // ── Price helper ──────────────────────────────────────────────────────────────
