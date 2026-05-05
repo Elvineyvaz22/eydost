@@ -5,7 +5,7 @@
       "destination": "https://bot.eydost.az/api/:path*"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|telegram-mini-app/).*)",
       "destination": "/index.html"
     }
   ]
