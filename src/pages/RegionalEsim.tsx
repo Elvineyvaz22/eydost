@@ -206,20 +206,10 @@ export default function RegionalEsim() {
                         const handleMainButtonClick = () => {
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                           const textMsgAZ = `Sifaris: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
-                          const jsonData = JSON.stringify({ message: textMsgAZ, action: 'esim_order' });
-                          try {
-                            tg.sendData(jsonData);
-                            tg.MainButton.hide();
-                            setTimeout(() => tg.close(), 1000);
-                          } catch (err) {
-                            tg.showConfirm("Sifarisi tamamlamaq ucun cat bolmesine kecid edilsin?", (ok) => {
-                              if (ok) {
-                                const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
-                                tg.openTelegramLink(url);
-                                tg.close();
-                              }
-                            });
-                          }
+                          
+                          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
+                          tg.openTelegramLink(url);
+                          tg.close();
                         };
 
                         tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);

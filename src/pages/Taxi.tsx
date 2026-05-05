@@ -227,13 +227,19 @@ export default function Taxi() {
       setTimeout(() => {
         if (isTelegramWebApp) {
           const tg = (window as any).Telegram.WebApp;
-          try {
-            tg.sendData(msg);
-            setTimeout(() => tg.close(), 1000);
-          } catch (err) {
+          
+          tg.MainButton.setText("TAKSi SIFARISINI TESTDIQLE");
+          tg.MainButton.show();
+          tg.MainButton.offClick(() => {}); 
+          
+          const handleTaxiClick = () => {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(msg)}`;
             tg.openTelegramLink(url);
-          }
+            tg.close();
+          };
+
+          tg.MainButton.onClick(handleTaxiClick);
         } else if (waId) {
           createOrder({
             wa_id: waId,
