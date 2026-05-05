@@ -205,10 +205,11 @@ export default function RegionalEsim() {
 
                         const handleMainButtonClick = () => {
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                          const jsonData = JSON.stringify({ message: textMsg });
                           try {
-                            tg.sendData(textMsg);
+                            tg.sendData(jsonData);
                             tg.MainButton.hide();
-                            setTimeout(() => tg.close(), 1000);
+                            setTimeout(() => tg.close(), 2000);
                           } catch (err) {
                             const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
                             tg.openTelegramLink(url);

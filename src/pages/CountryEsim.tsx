@@ -44,20 +44,22 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       : `Sifariş: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
-      const textMsg = planCodeEntry
+      const orderInfo = planCodeEntry
         ? `ORDER: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
         : `ORDER: ${countryName} - ${plan.gb}GB - ${plan.days} days - ${plan.price}`;
 
       const handleMainButtonClick = () => {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         
+        // Match the bot's expected JSON format
+        const jsonData = JSON.stringify({ message: orderInfo });
+
         try {
-          tg.sendData(textMsg);
+          tg.sendData(jsonData);
           tg.MainButton.hide();
-          setTimeout(() => tg.close(), 1000);
+          setTimeout(() => tg.close(), 2000);
         } catch (err) {
-          // Guaranteed fallback
-          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
+          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
           tg.openTelegramLink(url);
         }
       };
