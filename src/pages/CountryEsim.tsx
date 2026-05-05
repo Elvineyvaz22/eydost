@@ -144,7 +144,6 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
     </div>
   );
 }
-}
 
 export default function CountryEsim() {
   const { slug } = useParams<{ slug: string }>();
