@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eydost eSIM — Telegram Mini App</title>
+    <meta name="description" content="Ey Dost Telegram Mini App — Instant eSIM in 150+ countries. Stay connected wherever you go.">
+    <meta name="keywords" content="eSIM, Telegram Mini App, travel data, Ey Dost, Azerbaijan eSIM, Turkey eSIM">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-link-color: #248bcf;
+            --tg-theme-button-color: #248bcf;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f4f4f7;
+            
+            --primary: var(--tg-theme-button-color);
+            --bg: var(--tg-theme-bg-color);
+            --text: var(--tg-theme-text-color);
+            --hint: var(--tg-theme-hint-color);
+            --secondary-bg: var(--tg-theme-secondary-bg-color);
+            --card-bg: var(--tg-theme-bg-color);
+            --border: rgba(0,0,0,0.05);
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+            --radius: 16px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--secondary-bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .header {
+            background: var(--bg);
+            padding: 24px 20px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), #60a5fa);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .welcome-text h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .welcome-text p {
+            font-size: 14px;
+            color: var(--hint);
+            margin: 4px 0 0 0;
+        }
+
+        .search-container {
+            padding: 0 20px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            width: 100%;
+            font-size: 16px;
+            color: var(--text);
+        }
+
+        .search-bar i {
+            color: var(--hint);
+            width: 20px;
+            height: 20px;
+        }
+
+        .section-title {
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--hint);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .countries-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            padding: 0 20px 100px;
+        }
+
+        .country-card {
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .country-card:active {
+            transform: scale(0.98);
+        }
+
+        .country-card.selected {
+            border: 2px solid var(--primary);
+            background: rgba(36, 139, 207, 0.05);
+        }
+
+        .flag {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--secondary-bg);
+        }
+
+        .country-info {
+            flex: 1;
+        }
+
+        .country-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .country-plans {
+            font-size: 13px;
+            color: var(--hint);
+        }
+
+        .price-tag {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 15px;
+        }
+
+        /* Modal / Bottom Sheet */
+        .bottom-sheet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg);
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px 20px;
+            z-index: 1001;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .bottom-sheet.open {
+            transform: translateY(0);
+        }
+
+        .bottom-sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .plan-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .plan-option {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .plan-option.selected {
+            border-color: var(--primary);
+            background: rgba(36, 139, 207, 0.05);
+        }
+
+        .plan-name {
+            font-weight: 500;
+        }
+
+        .plan-price {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        /* Skeleton Loading Placeholder */
+        .skeleton {
+            background: linear-gradient(90deg, var(--secondary-bg) 25%, var(--border) 50%, var(--secondary-bg) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <div class="logo">
+                <img src="/logo.png" alt="Eydost" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">
+            </div>
+            <div class="welcome-text">
+                <h1 id="user-greeting">Salam!</h1>
+                <p>Harada olursan ol, online qal.</p>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <section class="search-container">
+            <div class="search-bar">
+                <i data-lucide="search" aria-hidden="true"></i>
+                <input type="text" id="search-input" placeholder="Ölkə axtar..." aria-label="Ölkə axtar">
+            </div>
+        </section>
+
+        <h2 class="section-title">Populyar Ölkələr</h2>
+        <div class="countries-grid" id="countries-list" role="list">
+            <!-- Countries will be loaded here -->
+        </div>
+    </main>
+
+    <div class="bottom-sheet-overlay" id="overlay"></div>
+    <div class="bottom-sheet" id="bottom-sheet">
+        <div class="bottom-sheet-header">
+            <h2 id="sheet-title" style="margin:0; font-size: 20px;">Plan Seçin</h2>
+            <i data-lucide="x" id="close-sheet" style="cursor:pointer; color: var(--hint);"></i>
+        </div>
+        <div class="plan-options" id="plan-list">
+            <!-- Plans will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // Theme integration
+        document.documentElement.style.setProperty('--primary', tg.themeParams.button_color || '#248bcf');
+        document.documentElement.style.setProperty('--bg', tg.themeParams.bg_color || '#ffffff');
+        document.documentElement.style.setProperty('--text', tg.themeParams.text_color || '#000000');
+        document.documentElement.style.setProperty('--hint', tg.themeParams.hint_color || '#999999');
+        document.documentElement.style.setProperty('--secondary-bg', tg.themeParams.secondary_bg_color || '#f4f4f7');
+
+        // Set user greeting
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('user-greeting').innerText = `Salam, ${tg.initDataUnsafe.user.first_name}!`;
+        }
+
+        const countries = [
+            { id: 'tr', name: 'Türkiyə', flag: 'https://flagcdn.com/w80/tr.png', minPrice: '0.81 USD', plans: [
+                { id: 'tr1', name: '1GB - 7 Gün', price: '0.81 USD' },
+                { id: 'tr3', name: '3GB - 30 Gün', price: '2.43 USD' },
+                { id: 'tr5', name: '5GB - 30 Gün', price: '3.90 USD' }
+            ]},
+            { id: 'az', name: 'Azərbaycan', flag: 'https://flagcdn.com/w80/az.png', minPrice: '4.03 USD', plans: [
+                { id: 'az1', name: '1GB - 7 Gün', price: '4.03 USD' },
+                { id: 'az3', name: '3GB - 30 Gün', price: '9.50 USD' }
+            ]},
+            { id: 'ae', name: 'BƏƏ (UAE)', flag: 'https://flagcdn.com/w80/ae.png', minPrice: '3.15 USD', plans: [
+                { id: 'ae1', name: '1GB - 7 Gün', price: '3.15 USD' },
+                { id: 'ae3', name: '3GB - 30 Gün', price: '8.20 USD' }
+            ]},
+            { id: 'us', name: 'ABŞ', flag: 'https://flagcdn.com/w80/us.png', minPrice: '2.50 USD', plans: [
+                { id: 'us1', name: '1GB - 7 Gün', price: '2.50 USD' },
+                { id: 'us5', name: '5GB - 30 Gün', price: '10.00 USD' }
+            ]},
+            { id: 'gb', name: 'Böyük Britaniya', flag: 'https://flagcdn.com/w80/gb.png', minPrice: '1.20 USD', plans: [
+                { id: 'gb1', name: '1GB - 7 Gün', price: '1.20 USD' },
+                { id: 'gb3', name: '3GB - 30 Gün', price: '3.50 USD' }
+            ]}
+        ];
+
+        let selectedPlan = null;
+
+        function renderCountries(filter = '') {
+            const list = document.getElementById('countries-list');
+            list.innerHTML = '';
+            
+            countries
+                .filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
+                .forEach((country, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'country-card animate-fade-in';
+                    card.style.animationDelay = `${index * 0.05}s`;
+                    card.onclick = () => openPlans(country);
+                    
+                    card.innerHTML = `
+                        <img src="${country.flag}" class="flag" alt="${country.name}">
+                        <div class="country-info">
+                            <div class="country-name">${country.name}</div>
+                            <div class="country-plans">${country.plans.length} plan mövcuddur</div>
+                        </div>
+                        <div class="price-tag">-${country.minPrice}</div>
+                    `;
+                    list.appendChild(card);
+                });
+        }
+
+        function openPlans(country) {
+            tg.HapticFeedback.impactOccurred('light');
+            document.getElementById('sheet-title').innerText = `${country.name} - Plan Seçin`;
+            const planList = document.getElementById('plan-list');
+            planList.innerHTML = '';
+
+            country.plans.forEach(plan => {
+                const opt = document.createElement('div');
+                opt.className = 'plan-option';
+                opt.onclick = () => selectPlan(country, plan, opt);
+                opt.innerHTML = `
+                    <div class="plan-name">${plan.name}</div>
+                    <div class="plan-price">${plan.price}</div>
+                `;
+                planList.appendChild(opt);
+            });
+
+            document.getElementById('overlay').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('overlay').style.opacity = '1';
+                document.getElementById('bottom-sheet').classList.add('open');
+            }, 10);
+        }
+
+        function selectPlan(country, plan, element) {
+            tg.HapticFeedback.selectionChanged();
+            
+            // UI update
+            document.querySelectorAll('.plan-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            selectedPlan = { country: country.name, plan: plan.name, price: plan.price };
+            
+            tg.MainButton.setText(`SİFARİŞ ET: ${plan.price}`);
+            tg.MainButton.show();
+        }
+
+        function closeSheet() {
+            document.getElementById('bottom-sheet').classList.remove('open');
+            document.getElementById('overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+            }, 300);
+            tg.MainButton.hide();
+        }
+
+        document.getElementById('close-sheet').onclick = closeSheet;
+        document.getElementById('overlay').onclick = closeSheet;
+
+        document.getElementById('search-input').oninput = (e) => {
+            renderCountries(e.target.value);
+        };
+
+        tg.MainButton.onClick(() => {
+            if (selectedPlan) {
+                tg.HapticFeedback.notificationOccurred('success');
+                const data = `${selectedPlan.country} ${selectedPlan.plan} - ${selectedPlan.price}`;
+                tg.sendData(data);
+                setTimeout(() => tg.close(), 100);
+            }
+        });
+
+        // Initialize
+        renderCountries();
+        lucide.createIcons();
+    </script>
+</body>
+</html>

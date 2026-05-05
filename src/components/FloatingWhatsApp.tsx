@@ -9,6 +9,10 @@ export default function FloatingWhatsApp() {
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
 
+  const isMiniApp = typeof window !== 'undefined' && 
+    ((window as any).Telegram?.WebApp?.initData !== "" || (window as any).Telegram?.WebApp?.platform !== 'unknown');
+  if (isMiniApp) return null;
+
   const handleSupportClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     trackEvent(EVENTS.WHATSAPP_CHAT_GENERAL, { source: 'floating_button' });
 

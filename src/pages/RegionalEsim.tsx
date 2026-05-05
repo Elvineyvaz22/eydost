@@ -181,33 +181,27 @@ export default function RegionalEsim() {
                       </div>
                     </div>
                   </div>
-                  {/* WhatsApp button */}
-                  <a
-                    href={waId ? "#" : `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`}
-                    target={waId ? "_self" : "_blank"}
-                    rel="noopener noreferrer"
-                    onClick={(e) => handleBuyClick(e, rawMsg, plan)}
-                    className={`flex items-center justify-center gap-3 w-full py-3 rounded-xl font-bold text-sm transition-all text-white bg-[#25D366] hover:bg-[#20bd5a] ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  {/* Action Button */}
+                  <button
+                    onClick={(e) => {
+                      const msg = JSON.stringify({
+                        country: pkg.name,
+                        gb: plan.gb,
+                        days: plan.days,
+                        price: plan.price,
+                        message: rawMsg
+                      });
+                      handleBuyClick(e as any, msg, plan);
+                    }}
+                    className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
+                      isTelegramWebApp 
+                        ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' 
+                        : 'bg-[#25D366] hover:bg-[#20bd5a]'
+                    } ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
                     <MessageCircle className="w-4 h-4" />
-                    {isOrdering ? 'Göndərilir...' : t.esimPackages.buyButton}
-                  </a>
-                    {/* Telegram button - Telegram chat açır mesajla */}
-                    <button
-                      onClick={() => {
-                        const tg = (window as any).Telegram?.WebApp;
-                        const url = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(rawMsg)}`;
-                        if (tg) {
-                          tg.openTelegramLink(url);
-                        } else {
-                          window.open(url, '_blank');
-                        }
-                      }}
-                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors text-white bg-[#24A1DE] hover:bg-[#1f8ec4]"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      Buy on Telegram
-                    </button>
+                    {isOrdering ? '...' : (isTelegramWebApp ? 'SİFARİŞ ET' : t.esimPackages.buyButton)}
+                  </button>
                 </div>
               )})}
             </div>
