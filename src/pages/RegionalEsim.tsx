@@ -197,14 +197,21 @@ export default function RegionalEsim() {
                   {/* Action Button */}
                   <button
                     onClick={(e) => {
-                      const msg = JSON.stringify({
-                        country: pkg.name,
-                        gb: plan.gb,
-                        days: plan.days,
-                        price: plan.price,
-                        message: rawMsg
-                      });
-                      handleBuyClick(e as any, msg, plan);
+                      if (isTelegramWebApp) {
+                        e.preventDefault();
+                        const tg = (window as any).Telegram.WebApp;
+                        tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
+                        tg.MainButton.show();
+                        tg.MainButton.onClick(() => {
+                          const textMsg = `Sifariş: ${pkg.name}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
+                          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                          tg.sendData(textMsg);
+                          setTimeout(() => tg.close(), 500);
+                        });
+                      } else {
+                        const msg = `Hi! I want to buy an eSIM for ${pkg.name}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+                        handleBuyClick(e as any, msg, plan);
+                      }
                     }}
                     className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
                       isTelegramWebApp 
@@ -213,7 +220,7 @@ export default function RegionalEsim() {
                     } ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
                     <MessageCircle className="w-4 h-4" />
-                    {isOrdering ? '...' : (isTelegramWebApp ? 'SİFARİŞ ET' : t.esimPackages.buyButton)}
+                    {isOrdering ? '...' : (isTelegramWebApp ? 'SEÇ' : t.esimPackages.buyButton)}
                   </button>
                 </div>
               )})}

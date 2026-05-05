@@ -132,7 +132,24 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       {/* Buy button */}
       <div className="mt-auto">
         <button
-          onClick={handleBuyClick}
+          onClick={(e) => {
+            if (isTelegramWebApp && tg) {
+              e.preventDefault();
+              tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
+              tg.MainButton.show();
+              tg.MainButton.onClick(() => {
+                const textMsg = planCodeEntry
+                  ? `Sifariş: ${countryName}\nKod: ${planCodeEntry.code}\nData: ${plan.gb}GB\nQiymət: ${plan.price}`
+                  : `Sifariş: ${countryName}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
+                
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.sendData(textMsg);
+                setTimeout(() => tg.close(), 500);
+              });
+            } else {
+              handleBuyClick(e);
+            }
+          }}
           className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
             isTelegramWebApp 
               ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' 
@@ -140,7 +157,7 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
           } ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
           <MessageCircle className="w-4 h-4" />
-          {isOrdering ? '...' : (isTelegramWebApp ? 'SİFARİŞ ET' : t.esimPackages.buyButton)}
+          {isOrdering ? '...' : (isTelegramWebApp ? 'SEÇ' : t.esimPackages.buyButton)}
         </button>
       </div>
     </div>
