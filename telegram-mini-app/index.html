@@ -232,98 +232,50 @@
   </div>
 
   <script>
-    // ─── Telegram WebApp Init ───────────────────────────────────────────────────
     const tg = window.Telegram?.WebApp;
+    const BOT_USERNAME = 'eydost_esim_bot';
+    let selectedCountry = null;
+    let selectedPlan = null;
+
     if (tg) {
       tg.ready();
       tg.expand();
     }
 
-    // ─── State ───────────────────────────────────────────────────────────────────
-    const BOT_USERNAME = 'eydost_esim_bot';
-    let selectedCountry = null;
-    let selectedPlan = null;
-
-    // ─── Order: Mini App-ı bağlayır və bota məlumat göndərir ─────────────────────
-    function handleOrder() {
-      if (!selectedCountry || !selectedPlan) return;
-      
-      // Telegram titrəmə effekti (Premium hiss üçün)
-      if (tg?.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('medium');
-      }
-
-      const orderData = {
-        country: selectedCountry.nameAz,
-        flag: selectedCountry.flag,
-        gb: selectedPlan.gb,
-        days: selectedPlan.days,
-        price: selectedPlan.price,
-        code: selectedPlan.code,
-        message: `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${selectedCountry.flag} ${selectedCountry.nameAz}\nPaket: ${selectedPlan.gb}GB / ${selectedPlan.days} gün\nKod: ${selectedPlan.code}\nQiymət: ${selectedPlan.price}`
-      };
-
-      if (tg && tg.sendData) {
-        // Bu funksiya Mini App-ı avtomatik bağlayacaq və məlumatı bota göndərəcək
-        tg.sendData(JSON.stringify(orderData));
-      } else {
-        // Fallback: Əgər sendData aktiv deyilsə (məsələn, brauzerdə və ya Menu düyməsində)
-        const url = `https://t.me/${BOT_USERNAME}?text=${encodeURIComponent(orderData.message)}`;
-        tg?.openTelegramLink(url);
-        setTimeout(() => tg?.close(), 500);
-      }
-    }
-
-    // ─── Countries Data ──────────────────────────────────────────────────────────
     const countries = [
       { flag: '🇹🇷', name: 'Turkey', nameAz: 'Türkiyə', code: 'TR', plans: [{gb:1,days:7,price:'$0.81',code:'TR1G7'},{gb:3,days:15,price:'$2.43',code:'TR3G15'},{gb:5,days:30,price:'$4.03',code:'TR5G30'},{gb:10,days:30,price:'$7.35',code:'TR10G30'},{gb:20,days:30,price:'$12.25',code:'TR20G30'}] },
       { flag: '🇫🇷', name: 'France', nameAz: 'Fransa', code: 'FR', plans: [{gb:1,days:7,price:'$1.23',code:'FR1G7'},{gb:3,days:15,price:'$2.98',code:'FR3G15'},{gb:5,days:30,price:'$4.73',code:'FR5G30'},{gb:10,days:30,price:'$8.23',code:'FR10G30'},{gb:20,days:30,price:'$14.35',code:'FR20G30'}] },
       { flag: '🇩🇪', name: 'Germany', nameAz: 'Almaniya', code: 'DE', plans: [{gb:1,days:7,price:'$1.23',code:'DE1G7'},{gb:3,days:15,price:'$2.98',code:'DE3G15'},{gb:5,days:30,price:'$4.73',code:'DE5G30'},{gb:10,days:30,price:'$8.23',code:'DE10G30'},{gb:20,days:30,price:'$14.35',code:'DE20G30'}] },
       { flag: '🇬🇧', name: 'United Kingdom', nameAz: 'Böyük Britaniya', code: 'UK', plans: [{gb:1,days:7,price:'$1.23',code:'UK1G7'},{gb:3,days:15,price:'$2.98',code:'UK3G15'},{gb:5,days:30,price:'$4.73',code:'UK5G30'},{gb:10,days:30,price:'$8.23',code:'UK10G30'},{gb:20,days:30,price:'$14.35',code:'UK20G30'}] },
-      { flag: '🇯🇵', name: 'Japan', nameAz: 'Yaponiya', code: 'JP', plans: [{gb:1,days:7,price:'$1.23',code:'JP1G7'},{gb:3,days:15,price:'$2.98',code:'JP3G15'},{gb:5,days:30,price:'$4.73',code:'JP5G30'},{gb:10,days:30,price:'$8.23',code:'JP10G30'},{gb:20,days:30,price:'$14.35',code:'JP20G30'}] },
-      { flag: '🇹🇭', name: 'Thailand', nameAz: 'Tailand', code: 'TH', plans: [{gb:1,days:7,price:'$1.23',code:'TH1G7'},{gb:3,days:15,price:'$2.98',code:'TH3G15'},{gb:5,days:30,price:'$4.73',code:'TH5G30'},{gb:10,days:30,price:'$8.23',code:'TH10G30'},{gb:20,days:30,price:'$14.35',code:'TH20G30'}] },
-      { flag: '🇰🇷', name: 'South Korea', nameAz: 'Cənubi Koreya', code: 'KR', plans: [{gb:1,days:7,price:'$1.23',code:'KR1G7'},{gb:3,days:15,price:'$2.98',code:'KR3G15'},{gb:5,days:30,price:'$4.73',code:'KR5G30'},{gb:10,days:30,price:'$8.23',code:'KR10G30'},{gb:20,days:30,price:'$14.35',code:'KR20G30'}] },
       { flag: '🇺🇸', name: 'United States', nameAz: 'ABŞ', code: 'US', plans: [{gb:1,days:7,price:'$1.58',code:'US1G7'},{gb:3,days:15,price:'$3.85',code:'US3G15'},{gb:5,days:30,price:'$5.95',code:'US5G30'},{gb:10,days:30,price:'$10.68',code:'US10G30'},{gb:20,days:30,price:'$18.55',code:'US20G30'}] },
-      { flag: '🇮🇳', name: 'India', nameAz: 'Hindistan', code: 'IN', plans: [{gb:1,days:7,price:'$4.03',code:'IN1G7'},{gb:3,days:15,price:'$9.98',code:'IN3G15'},{gb:5,days:30,price:'$15.40',code:'IN5G30'},{gb:10,days:30,price:'$26.60',code:'IN10G30'},{gb:20,days:30,price:'$43.75',code:'IN20G30'}] },
-      { flag: '🇪🇬', name: 'Egypt', nameAz: 'Misir', code: 'EG', plans: [{gb:1,days:7,price:'$3.15',code:'EG1G7'},{gb:3,days:15,price:'$8.05',code:'EG3G15'},{gb:5,days:30,price:'$12.25',code:'EG5G30'},{gb:10,days:30,price:'$21.35',code:'EG10G30'},{gb:20,days:30,price:'$35.00',code:'EG20G30'}] },
       { flag: '🇦🇿', name: 'Azerbaijan', nameAz: 'Azərbaycan', code: 'AZ', plans: [{gb:1,days:7,price:'$4.03',code:'AZ1G7'},{gb:3,days:15,price:'$9.98',code:'AZ3G15'},{gb:5,days:30,price:'$15.40',code:'AZ5G30'},{gb:10,days:30,price:'$26.60',code:'AZ10G30'},{gb:20,days:30,price:'$43.75',code:'AZ20G30'}] },
-      { flag: '🇬🇪', name: 'Georgia', nameAz: 'Gürcüstan', code: 'GE', plans: [{gb:1,days:7,price:'$2.63',code:'GE1G7'},{gb:3,days:15,price:'$6.48',code:'GE3G15'},{gb:5,days:30,price:'$9.98',code:'GE5G30'},{gb:10,days:30,price:'$17.33',code:'GE10G30'},{gb:20,days:30,price:'$29.40',code:'GE20G30'}] },
-      { flag: '🇦🇪', name: 'UAE', nameAz: 'BƏƏ', code: 'AE', plans: [{gb:1,days:7,price:'$3.15',code:'AE1G7'},{gb:3,days:15,price:'$8.05',code:'AE3G15'},{gb:5,days:30,price:'$12.25',code:'AE5G30'},{gb:10,days:30,price:'$21.35',code:'AE10G30'},{gb:20,days:30,price:'$35.00',code:'AE20G30'}] },
-      { flag: '🇨🇦', name: 'Canada', nameAz: 'Kanada', code: 'CA', plans: [{gb:1,days:7,price:'$2.63',code:'CA1G7'},{gb:3,days:15,price:'$6.48',code:'CA3G15'},{gb:5,days:30,price:'$9.98',code:'CA5G30'},{gb:10,days:30,price:'$17.33',code:'CA10G30'},{gb:20,days:30,price:'$29.40',code:'CA20G30'}] },
-      { flag: '🇲🇽', name: 'Mexico', nameAz: 'Meksika', code: 'MX', plans: [{gb:1,days:7,price:'$5.08',code:'MX1G7'},{gb:3,days:15,price:'$12.60',code:'MX3G15'},{gb:5,days:30,price:'$19.25',code:'MX5G30'},{gb:10,days:30,price:'$33.25',code:'MX10G30'},{gb:20,days:30,price:'$56.00',code:'MX20G30'}] },
-      { flag: '🇧🇷', name: 'Brazil', nameAz: 'Braziliya', code: 'BR', plans: [{gb:1,days:7,price:'$4.03',code:'BR1G7'},{gb:3,days:15,price:'$9.98',code:'BR3G15'},{gb:5,days:30,price:'$15.40',code:'BR5G30'},{gb:10,days:30,price:'$26.60',code:'BR10G30'},{gb:20,days:30,price:'$43.75',code:'BR20G30'}] },
-      { flag: '🇮🇱', name: 'Israel', nameAz: 'İsrail', code: 'IL', plans: [{gb:1,days:7,price:'$1.93',code:'IL1G7'},{gb:3,days:15,price:'$4.90',code:'IL3G15'},{gb:5,days:30,price:'$7.70',code:'IL5G30'},{gb:10,days:30,price:'$13.30',code:'IL10G30'},{gb:20,days:30,price:'$22.58',code:'IL20G30'}] },
-      { flag: '🇲🇦', name: 'Morocco', nameAz: 'Mərakeş', code: 'MA', plans: [{gb:1,days:7,price:'$1.93',code:'MA1G7'},{gb:3,days:15,price:'$4.90',code:'MA3G15'},{gb:5,days:30,price:'$7.70',code:'MA5G30'},{gb:10,days:30,price:'$13.30',code:'MA10G30'},{gb:20,days:30,price:'$22.58',code:'MA20G30'}] },
-      { flag: '🇿🇦', name: 'South Africa', nameAz: 'Cənubi Afrika', code: 'ZA', plans: [{gb:1,days:7,price:'$5.08',code:'ZA1G7'},{gb:3,days:15,price:'$12.60',code:'ZA3G15'},{gb:5,days:30,price:'$19.25',code:'ZA5G30'},{gb:10,days:30,price:'$33.25',code:'ZA10G30'},{gb:20,days:30,price:'$56.00',code:'ZA20G30'}] },
-      { flag: '🇳🇬', name: 'Nigeria', nameAz: 'Nigeriya', code: 'NG', plans: [{gb:1,days:7,price:'$8.05',code:'NG1G7'},{gb:3,days:15,price:'$21.35',code:'NG3G15'},{gb:5,days:30,price:'$32.20',code:'NG5G30'},{gb:10,days:30,price:'$55.00',code:'NG10G30'},{gb:20,days:30,price:'$89.00',code:'NG20G30'}] }
+      { flag: '🇦🇪', name: 'UAE', nameAz: 'BƏƏ', code: 'AE', plans: [{gb:1,days:7,price:'$3.15',code:'AE1G7'},{gb:3,days:15,price:'$8.05',code:'AE3G15'},{gb:5,days:30,price:'$12.25',code:'AE5G30'},{gb:10,days:30,price:'$21.35',code:'AE10G30'},{gb:20,days:30,price:'$35.00',code:'AE20G30'}] }
     ];
 
-    // ─── Render Functions ───────────────────────────────────────────────────────
-    const POPULAR_CODES = ['TR', 'US', 'AZ', 'AE', 'GB', 'DE'];
+    function handleOrder() {
+      if (!selectedCountry || !selectedPlan) return;
+      
+      const msg = `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${selectedCountry.flag} ${selectedCountry.nameAz}\nPaket: ${selectedPlan.gb}GB / ${selectedPlan.days} gün\nKod: ${selectedPlan.code}\nQiymət: ${selectedPlan.price}`;
+
+      if (tg && tg.sendData) {
+        tg.sendData(msg);
+      } else {
+        window.open(`https://t.me/${BOT_USERNAME}?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+    }
 
     function createCountryCard(c) {
-      const minPlan = c.plans[0];
-      return `<div class="country-card" data-code="${c.code}">
+      return `<div class="country-card" onclick="selectCountry('${c.code}')">
         <div class="country-flag">${c.flag}</div>
         <div class="country-name">${c.nameAz}</div>
-        <div class="country-price">${minPlan.gb}GB dan</div>
+        <div class="country-price">${c.plans[0].gb}GB dan</div>
       </div>`;
     }
 
     function renderCountries() {
-      const popular = countries.filter(c => POPULAR_CODES.includes(c.code));
-      const others = countries.filter(c => !POPULAR_CODES.includes(c.code));
-      document.getElementById('popularCountries').innerHTML = popular.map(createCountryCard).join('');
-      document.getElementById('allCountries').innerHTML = others.map(createCountryCard).join('');
-
-      document.querySelectorAll('.country-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const code = card.dataset.code;
-          selectCountry(code);
-          document.querySelectorAll('.country-card').forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
-        });
-      });
+      const html = countries.map(createCountryCard).join('');
+      document.getElementById('popularCountries').innerHTML = html;
+      document.getElementById('allCountries').innerHTML = html;
     }
 
     function selectCountry(code) {
@@ -332,45 +284,29 @@
       document.getElementById('selectedCountrySection').classList.remove('hidden');
       document.getElementById('selectedFlag').textContent = selectedCountry.flag;
       document.getElementById('selectedName').textContent = selectedCountry.nameAz;
-      renderPlans();
-    }
-
-    function renderPlans() {
-      const grid = document.getElementById('plansGrid');
-      grid.innerHTML = selectedCountry.plans.map((plan, i) => {
-        const best = i === 2 ? '<span class="best-value">Ən Populyar</span>' : '';
-        return `<div class="plan-card" data-idx="${i}">
+      
+      const plansHtml = selectedCountry.plans.map((p, i) => `
+        <div class="plan-card" id="plan-${i}" onclick="selectPlan(${i})">
           <div class="plan-radio"></div>
           <div class="plan-info">
-            <div class="plan-data">${plan.gb} GB</div>
-            <div class="plan-duration">${plan.days} gün</div>
+            <div class="plan-data">${p.gb} GB</div>
+            <div class="plan-duration">${p.days} gün</div>
           </div>
-          ${best}
-          <div class="plan-price">${plan.price}</div>
-        </div>`;
-      }).join('');
-
-      grid.querySelectorAll('.plan-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const idx = parseInt(card.dataset.idx);
-          selectedPlan = selectedCountry.plans[idx];
-          document.querySelectorAll('.plan-card').forEach((c, i) => c.classList.toggle('selected', i === idx));
-          document.getElementById('orderBtn').disabled = false;
-        });
-      });
+          <div class="plan-price">${p.price}</div>
+        </div>
+      `).join('');
+      document.getElementById('plansGrid').innerHTML = plansHtml;
+      document.getElementById('orderBtn').disabled = true;
     }
 
-    // ─── Event Listeners ────────────────────────────────────────────────────────
+    function selectPlan(i) {
+      selectedPlan = selectedCountry.plans[i];
+      document.querySelectorAll('.plan-card').forEach(el => el.classList.remove('selected'));
+      document.getElementById(`plan-${i}`).classList.add('selected');
+      document.getElementById('orderBtn').disabled = false;
+    }
+
     document.getElementById('orderBtn').addEventListener('click', handleOrder);
-
-    document.getElementById('searchInput').addEventListener('input', e => {
-      const q = e.target.value.toLowerCase();
-      document.querySelectorAll('.country-card').forEach(card => {
-        card.style.display = card.querySelector('.country-name').textContent.toLowerCase().includes(q) ? '' : 'none';
-      });
-    });
-
-    // ─── Init ───────────────────────────────────────────────────────────────────
     renderCountries();
   </script>
 </body>
