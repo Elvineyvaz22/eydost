@@ -3,7 +3,7 @@ import time
 import os
 import json
 
-TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU"
+TOKEN = "8614813655:AAGgk9VS0jg7p3EPcvuIKFOfcW8pppudakg"
 URL = f"https://api.telegram.org/bot{TOKEN}"
 ADMIN_CHAT_ID = "7767493706"
 

@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Request
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8614813655:AAGgk9VS0jg7p3EPcvuIKFOfcW8pppudakg")
 ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "7767493706")
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")  # initData validation üçün
 
