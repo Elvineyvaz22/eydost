@@ -10,7 +10,8 @@ export default function FloatingWhatsApp() {
   const waId = getWaId();
 
   const isMiniApp = typeof window !== 'undefined' && 
-    ((window as any).Telegram?.WebApp?.initData !== "" || (window as any).Telegram?.WebApp?.platform !== 'unknown');
+    (window as any).Telegram?.WebApp?.platform !== undefined && 
+    (window as any).Telegram?.WebApp?.platform !== 'unknown';
   if (isMiniApp) return null;
 
   const handleSupportClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {

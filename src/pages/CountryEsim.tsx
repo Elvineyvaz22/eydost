@@ -34,7 +34,9 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
 
-  const isTelegramWebApp = typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData);
+  const isTelegramWebApp = typeof window !== 'undefined' && 
+    (window as any).Telegram?.WebApp?.platform !== undefined && 
+    (window as any).Telegram?.WebApp?.platform !== 'unknown';
   const tg = (window as any).Telegram?.WebApp;
 
   const handleBuyClick = async (e: React.MouseEvent) => {

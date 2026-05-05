@@ -49,7 +49,9 @@ export default function RegionalEsim() {
 
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
-  const isTelegramWebApp = typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.initData);
+  const isTelegramWebApp = typeof window !== 'undefined' && 
+    (window as any).Telegram?.WebApp?.platform !== undefined && 
+    (window as any).Telegram?.WebApp?.platform !== 'unknown';
 
   if (!pkg) return <Navigate to="/" replace />;
 
