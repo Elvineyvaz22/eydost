@@ -51,19 +51,23 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       const handleMainButtonClick = () => {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         
-        // Match bot expectation
         const jsonData = JSON.stringify({ message: orderInfo, action: 'esim_order' });
 
+        // Diagnostic alert to see what's happening
         try {
-          // This works for Keyboard Buttons
           tg.sendData(jsonData);
           tg.MainButton.hide();
+          // If we reach here, sendData was accepted by the UI
           setTimeout(() => tg.close(), 1000);
         } catch (err) {
-          // This is the ONLY way for Menu Buttons
-          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
-          tg.openTelegramLink(url);
-          tg.close();
+          // If we reach here, it's definitely a Menu Button restriction
+          tg.showConfirm("Sifarişi tamamlamaq üçün çat bölməsinə keçid edilsin?", (ok) => {
+            if (ok) {
+              const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
+              tg.openTelegramLink(url);
+              tg.close();
+            }
+          });
         }
       };
 

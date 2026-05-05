@@ -212,9 +212,13 @@ export default function RegionalEsim() {
                             tg.MainButton.hide();
                             setTimeout(() => tg.close(), 1000);
                           } catch (err) {
-                            const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
-                            tg.openTelegramLink(url);
-                            tg.close();
+                            tg.showConfirm("Sifarisi tamamlamaq ucun cat bolmesine kecid edilsin?", (ok) => {
+                              if (ok) {
+                                const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
+                                tg.openTelegramLink(url);
+                                tg.close();
+                              }
+                            });
                           }
                         };
 
