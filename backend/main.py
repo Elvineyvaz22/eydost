@@ -16,6 +16,8 @@ load_dotenv()
 from esim_access.api import router as esim_router
 from esim_access.webhooks import router as webhook_router
 from esim_access.whatsapp import router as whatsapp_router
+from esim_access.telegram_order import router as telegram_router
+from esim_access.telegram_mini_app import router as telegram_mini_app_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -64,6 +66,8 @@ app.add_middleware(
 app.include_router(esim_router, prefix="/api/esim", tags=["eSIM"])
 app.include_router(webhook_router, prefix="", tags=["Webhooks"])
 app.include_router(whatsapp_router, prefix="", tags=["WhatsApp"])
+app.include_router(telegram_router, prefix="", tags=["Telegram"])
+app.include_router(telegram_mini_app_router, prefix="", tags=["Telegram Mini App"])
 
 
 @app.get("/health", tags=["Health"])

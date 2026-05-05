@@ -13,6 +13,7 @@ import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 
 const WA_LINK = 'https://wa.me/994558878889';
+const TG_BOT_USERNAME = 'eydost_esim_bot';
 
 function getRegionalBySlug(slug: string): RegionalPackage | undefined {
   if (globalPackage.slug === slug) return globalPackage;
@@ -138,7 +139,8 @@ export default function RegionalEsim() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {pkg.plans.map((plan, i) => {
-                const rawMsg = `[TEST_ORDER]\nHi! I would like to buy an eSIM package for ${pkg.name} region: ${plan.gb}GB (${plan.days} days). Price: ${plan.price}`;
+                const rawMsg = `Hi! I want to buy an eSIM for ${pkg.name}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`;
+                const tgLink = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(rawMsg)}`;
                 return (
                 <div
                   key={i}
@@ -179,22 +181,33 @@ export default function RegionalEsim() {
                       </div>
                     </div>
                   </div>
+                  {/* WhatsApp button */}
                   <a
-                    href={isTelegramWebApp ? "#" : (waId ? "#" : `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`)}
-                    target={isTelegramWebApp || waId ? "_self" : "_blank"}
+                    href={waId ? "#" : `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`}
+                    target={waId ? "_self" : "_blank"}
                     rel="noopener noreferrer"
                     onClick={(e) => handleBuyClick(e, rawMsg, plan)}
-                    className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg text-white ${
-                      isOrdering ? 'opacity-70 cursor-not-allowed' : ''
-                    } ${
-                      isTelegramWebApp 
-                        ? 'bg-[#24A1DE] hover:bg-[#1f8ec4] shadow-blue-200' 
-                        : 'bg-[#25D366] hover:bg-[#20bd5a] shadow-green-200'
-                    }`}
+                    className={`flex items-center justify-center gap-3 w-full py-3 rounded-xl font-bold text-sm transition-all text-white bg-[#25D366] hover:bg-[#20bd5a] ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    <MessageCircle className="w-5 h-5" />
-                    {isOrdering ? 'Göndərilir...' : (isTelegramWebApp ? 'Telegram ilə Al' : t.esimPackages.buyButton)}
+                    <MessageCircle className="w-4 h-4" />
+                    {isOrdering ? 'Göndərilir...' : t.esimPackages.buyButton}
                   </a>
+                    {/* Telegram button - Telegram chat açır mesajla */}
+                    <button
+                      onClick={() => {
+                        const tg = (window as any).Telegram?.WebApp;
+                        const url = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(rawMsg)}`;
+                        if (tg) {
+                          tg.openTelegramLink(url);
+                        } else {
+                          window.open(url, '_blank');
+                        }
+                      }}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors text-white bg-[#24A1DE] hover:bg-[#1f8ec4]"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Buy on Telegram
+                    </button>
                 </div>
               )})}
             </div>

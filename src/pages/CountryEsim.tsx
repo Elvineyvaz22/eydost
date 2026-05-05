@@ -13,31 +13,28 @@ import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 
 const WA_LINK = 'https://wa.me/994558878889';
+const TG_BOT_USERNAME = 'eydost_esim_bot';
 
 function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; countryName: string; countryCode: string; planIndex: number }) {
   const { t } = useLanguage();
 
   const planCodeEntry = getPlanCode(countryCode, planIndex);
 
-  const rawMsg = planCodeEntry
-    ? `[TEST_ORDER]\nSalam! eSIM almaq istəyirəm.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-    : `[TEST_ORDER]\nSalam! ${countryName} üçün eSIM almaq istəyirəm.\n📊 Data: ${plan.gb}GB\n⏱ Etibarlılıq: ${plan.days} gün\n💰 Qiymət: ${plan.price}`;
+  const tgRawMsg = planCodeEntry
+    ? `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
+    : `Hi! I want to buy an eSIM for ${countryName}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`;
 
-  const waMsg = encodeURIComponent(rawMsg);
+  const waRawMsg = planCodeEntry
+    ? `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
+    : `Hi! I want to buy an eSIM for ${countryName}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`;
+
+  const waMsg = encodeURIComponent(waRawMsg);
+  const tgLink = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(tgRawMsg)}`;
 
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
-  const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
   const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (isTelegramWebApp) {
-      e.preventDefault();
-      const tg = (window as any).Telegram.WebApp;
-      tg.sendData(rawMsg);
-      tg.close();
-      return;
-    }
-
     if (waId) {
       e.preventDefault();
       setIsOrdering(true);
@@ -100,22 +97,38 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       </div>
 
       {/* Buy button */}
-      <a
-        href={isTelegramWebApp ? "#" : (waId ? "#" : `${WA_LINK}?text=${waMsg}`)}
-        target={isTelegramWebApp || waId ? "_self" : "_blank"}
-        rel="noopener noreferrer"
-        onClick={handleBuyClick}
-        className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors mt-auto text-white ${
-          isOrdering ? 'opacity-70 cursor-not-allowed' : ''
-        } ${
-          isTelegramWebApp 
-            ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' 
-            : 'bg-[#25D366] hover:bg-[#20bd5a]'
-        }`}
-      >
-        <MessageCircle className="w-4 h-4" />
-        {isOrdering ? 'Göndərilir...' : (isTelegramWebApp ? 'Telegram ilə Al' : t.esimPackages.buyButton)}
-      </a>
+      <div className="flex flex-col gap-2 mt-auto">
+        {/* WhatsApp button */}
+        <a
+          href={waId ? "#" : `${WA_LINK}?text=${waMsg}`}
+          target={waId ? "_self" : "_blank"}
+          rel="noopener noreferrer"
+          onClick={handleBuyClick}
+          className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors text-white bg-[#25D366] hover:bg-[#20bd5a] ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          <MessageCircle className="w-4 h-4" />
+          {isOrdering ? 'Göndərilir...' : t.esimPackages.buyButton}
+        </a>
+        {/* Telegram button - Telegram chat açır mesajla */}
+        <button
+          onClick={() => {
+            const tg = (window as any).Telegram?.WebApp;
+            const tgMsg = planCodeEntry
+              ? `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
+              : `Hi! I want to buy an eSIM for ${countryName}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+            const url = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(tgMsg)}`;
+            if (tg) {
+              tg.openTelegramLink(url);
+            } else {
+              window.open(url, '_blank');
+            }
+          }}
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm transition-colors text-white bg-[#24A1DE] hover:bg-[#1f8ec4]"
+        >
+          <MessageCircle className="w-4 h-4" />
+          Buy on Telegram
+        </button>
+      </div>
     </div>
   );
 }

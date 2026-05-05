@@ -28,7 +28,7 @@ export default function FloatingWhatsApp() {
     }
   };
 
-  const genericMsg = encodeURIComponent("Salam! EyDost xidməti ilə bağlı sualım var.");
+      const genericMsg = encodeURIComponent("Hi! I have a question about EyDost service.");
 
   return (
     <a

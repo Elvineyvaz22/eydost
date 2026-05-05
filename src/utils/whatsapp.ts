@@ -38,3 +38,32 @@ export const createOrder = async (data: {
     return { status: 'error', message: 'Connection failed' };
   }
 };
+
+/**
+ * Telegram order - birbaşa botun API-sinə göndərir
+ * Bot mesajı emal edir və istifadəçiyə ödəniş linki göndərir
+ */
+export const sendTelegramOrder = async (data: {
+  code?: string;
+  id?: string;
+  country?: string;
+  gb?: string;
+  days?: string;
+  price?: string;
+  message?: string;
+}) => {
+  try {
+    // Backend API-yə göndərir - bot oradan istifadəçiyə mesaj göndərir
+    const response = await fetch('/api/telegram/order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to send Telegram order:', error);
+    return { status: 'error', message: 'Connection failed' };
+  }
+};
