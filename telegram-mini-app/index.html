@@ -244,30 +244,26 @@
     let selectedCountry = null;
     let selectedPlan = null;
 
-    // ─── Order: Mini App-ı bağlayır və bota məlumat göndərir ─────────────────────
+    // ─── Order: Mesajı hazırlayır və Mini App-ı bağlayır ─────────────────────────
     function handleOrder() {
       if (!selectedCountry || !selectedPlan) return;
+      
       const plan = selectedPlan;
       const country = selectedCountry;
-
-      // sendData() Mini App-ı bağlayır VƏ bota bu məlumatı göndərir
-      // Bot tərəfindən web_app_data handler ilə qəbul edilir
-      if (tg && tg.sendData) {
-        const payload = JSON.stringify({
-          country: country.nameAz,
-          countryCode: country.code,
-          flag: country.flag,
-          gb: plan.gb,
-          days: plan.days,
-          price: plan.price,
-          planCode: plan.code,
-          message: `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${country.flag} ${country.nameAz}\nPaket: ${plan.gb}GB / ${plan.days} gün\nKod: ${plan.code}\nQiymət: ${plan.price}`
-        });
-        tg.sendData(payload);
+      const msg = `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${country.flag} ${country.nameAz}\nPaket: ${plan.gb}GB / ${plan.days} gün\nKod: ${plan.code}\nQiymət: ${plan.price}`;
+      
+      if (tg) {
+        // Telegram daxilində mesaj linkini açırıq
+        const url = `https://t.me/${BOT_USERNAME}?text=${encodeURIComponent(msg)}`;
+        tg.openTelegramLink(url);
+        
+        // Mini App-ı bağlayırıq
+        setTimeout(() => {
+          tg.close();
+        }, 100);
       } else {
-        // Telegram xaricindən test üçün fallback (brauzer)
-        const msg = `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${country.flag} ${country.nameAz}\nPaket: ${plan.gb}GB / ${plan.days} gün\nKod: ${plan.code}\nQiymət: ${plan.price}`;
-        alert('Test mesajı (Telegram xaricindən):\n\n' + msg);
+        // Brauzer testi üçün
+        alert(msg);
       }
     }
 
