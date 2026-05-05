@@ -46,13 +46,17 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       : `Sifariş: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
-      tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
-      tg.MainButton.show();
-      tg.MainButton.offClick(() => {}); // Clear previous listeners
-      tg.MainButton.onClick(() => {
+      const handleMainButtonClick = () => {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         tg.sendData(textMsg);
-      });
+        tg.MainButton.hide();
+        setTimeout(() => tg.close(), 1500);
+      };
+
+      tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
+      tg.MainButton.show();
+      tg.MainButton.offClick(handleMainButtonClick); // Clear if somehow already there
+      tg.MainButton.onClick(handleMainButtonClick);
       return;
     }
 

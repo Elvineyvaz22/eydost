@@ -201,13 +201,17 @@ export default function RegionalEsim() {
                       const textMsg = `Sifariş: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
                       if (isTelegramWebApp) {
                         const tg = (window as any).Telegram.WebApp;
-                        tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
-                        tg.MainButton.show();
-                        tg.MainButton.offClick(() => {});
-                        tg.MainButton.onClick(() => {
+                        const handleMainButtonClick = () => {
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                           tg.sendData(textMsg);
-                        });
+                          tg.MainButton.hide();
+                          setTimeout(() => tg.close(), 1500);
+                        };
+
+                        tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
+                        tg.MainButton.show();
+                        tg.MainButton.offClick(handleMainButtonClick);
+                        tg.MainButton.onClick(handleMainButtonClick);
                       } else {
                         handleBuyClick(e as any, textMsg, plan);
                       }
