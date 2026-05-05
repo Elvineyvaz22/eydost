@@ -44,15 +44,15 @@ export default function Contact() {
 
         <div className="grid lg:grid-cols-5 gap-10">
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-              <div className="w-10 h-10 bg-[#25D366] rounded-lg flex items-center justify-center shrink-0">
-                <MessageSquare className="w-5 h-5 text-white" />
+            <a href="https://t.me/eydost_esim_bot" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors group">
+              <div className="w-10 h-10 bg-[#0088cc] rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <Send className="w-5 h-5 text-white" />
               </div>
               <div>
-                <div className="text-xs text-gray-500">{t.contact.whatsappLabel}</div>
-                <div className="font-semibold text-gray-900">+994 51 277 80 85</div>
+                <div className="text-xs text-gray-500">Telegram</div>
+                <div className="font-semibold text-gray-900">@eydost_esim_bot</div>
               </div>
-            </div>
+            </a>
 
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
               <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shrink-0">
