@@ -6,47 +6,46 @@
     <title>EyDost eSIM</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; text-align: center; background: #f0f2f5; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; cursor: pointer; border: 2px solid transparent; }
-        .card.selected { border-color: #0088cc; background: #e1f5fe; }
-        .btn { background: #0088cc; color: white; padding: 15px; border-radius: 10px; width: 100%; border: none; font-size: 16px; font-weight: bold; margin-top: 20px; }
-        h2 { color: #333; }
-        .price { color: #0088cc; font-weight: bold; }
+        body { font-family: sans-serif; padding: 20px; text-align: center; background: #ffffff; color: #000; }
+        .card { border: 1px solid #ccc; padding: 15px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; text-align: left; }
+        .card.selected { border-color: #000; background: #f0f0f0; }
+        .btn { background: #000; color: #fff; padding: 15px; border-radius: 8px; width: 100%; border: none; font-size: 16px; margin-top: 20px; cursor: pointer; }
+        .price { float: right; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h2>eSIM Paketi Seçin</h2>
+    <h3>PAKET SECIN</h3>
     <div id="plans">
-        <div class="card" onclick="select(this, 'TR 1GB - $0.81')">
-            <strong>Türkiyə 1GB</strong><br>
-            <span class="price">$0.81</span>
+        <div class="card" onclick="select(this, 'Turkey 1GB - 0.81 USD')">
+            <span>Turkey 1GB</span>
+            <span class="price">0.81 USD</span>
         </div>
-        <div class="card" onclick="select(this, 'TR 3GB - $2.43')">
-            <strong>Türkiyə 3GB</strong><br>
-            <span class="price">$2.43</span>
+        <div class="card" onclick="select(this, 'Turkey 3GB - 2.43 USD')">
+            <span>Turkey 3GB</span>
+            <span class="price">2.43 USD</span>
         </div>
-        <div class="card" onclick="select(this, 'AZ 1GB - $4.03')">
-            <strong>Azərbaycan 1GB</strong><br>
-            <span class="price">$4.03</span>
+        <div class="card" onclick="select(this, 'Azerbaijan 1GB - 4.03 USD')">
+            <span>Azerbaijan 1GB</span>
+            <span class="price">4.03 USD</span>
         </div>
     </div>
-    <button class="btn" id="mainBtn" style="display:none;" onclick="send()">SİFARİŞİ TAMAMLA</button>
+    <button class="btn" id="mainBtn" style="display:none;" onclick="send()">SIFARISI TESDIQLE</button>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        let selected = "";
+        var tg = window.Telegram.WebApp;
+        var selectedValue = "";
         
         tg.expand();
         tg.ready();
 
         function select(el, val) {
-            selected = val;
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            selectedValue = val;
+            var cards = document.getElementsByClassName('card');
+            for(var i=0; i<cards.length; i++) { cards[i].classList.remove('selected'); }
             el.classList.add('selected');
             document.getElementById('mainBtn').style.display = "block";
             
-            // Telegram-ın öz MainButton-unu da aktiv edirik (ehtiyat üçün)
-            tg.MainButton.text = "TƏSDİQLƏ: " + val;
+            tg.MainButton.text = "TESDIQLE: " + val;
             tg.MainButton.show();
         }
 
@@ -55,15 +54,20 @@
         });
 
         function send() {
-            if(!selected) return;
+            if(!selectedValue) return;
+            
+            // Telegram API-ni baglamaga mecbur edirik
             try {
-                tg.sendData(selected);
+                tg.sendData(selectedValue);
                 tg.close();
             } catch (e) {
-                // Əgər sendData işləməsə, link ilə yoxla
-                alert("Mesaj göndərilir...");
                 tg.close();
             }
+            
+            // Ehtiyat ucun ikinci defe baglama emri
+            setTimeout(function() {
+                tg.close();
+            }, 100);
         }
     </script>
 </body>
