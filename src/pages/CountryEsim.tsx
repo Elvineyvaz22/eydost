@@ -34,9 +34,7 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
 
-  const isTelegramWebApp = typeof window !== 'undefined' && 
-    (window as any).Telegram?.WebApp?.platform !== undefined && 
-    (window as any).Telegram?.WebApp?.platform !== 'unknown';
+  const isTelegramWebApp = typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData);
   const tg = (window as any).Telegram?.WebApp;
 
   const handleBuyClick = async (e: React.MouseEvent) => {
@@ -46,16 +44,27 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       : `Sifariş: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
+      const textMsg = planCodeEntry
+        ? `ORDER: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
+        : `ORDER: ${countryName} - ${plan.gb}GB - ${plan.days} days - ${plan.price}`;
+
       const handleMainButtonClick = () => {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        tg.sendData(textMsg);
-        tg.MainButton.hide();
-        setTimeout(() => tg.close(), 1500);
+        
+        try {
+          tg.sendData(textMsg);
+          tg.MainButton.hide();
+          setTimeout(() => tg.close(), 1000);
+        } catch (err) {
+          // Guaranteed fallback
+          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
+          tg.openTelegramLink(url);
+        }
       };
 
-      tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
+      tg.MainButton.setText(`CONFIRM ORDER: ${plan.price}`);
       tg.MainButton.show();
-      tg.MainButton.offClick(handleMainButtonClick); // Clear if somehow already there
+      tg.MainButton.offClick(handleMainButtonClick);
       tg.MainButton.onClick(handleMainButtonClick);
       return;
     }

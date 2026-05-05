@@ -197,22 +197,30 @@ export default function RegionalEsim() {
                   {/* Action Button */}
                   <button
                     onClick={(e) => {
-                      e.preventDefault();
-                      const textMsg = `Sifariş: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
+                      const isTelegramWebApp = typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData);
                       if (isTelegramWebApp) {
+                        e.preventDefault();
                         const tg = (window as any).Telegram.WebApp;
+                        const textMsg = `ORDER: ${pkg.name} - ${plan.gb}GB - ${plan.days} days - ${plan.price}`;
+
                         const handleMainButtonClick = () => {
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                          tg.sendData(textMsg);
-                          tg.MainButton.hide();
-                          setTimeout(() => tg.close(), 1500);
+                          try {
+                            tg.sendData(textMsg);
+                            tg.MainButton.hide();
+                            setTimeout(() => tg.close(), 1000);
+                          } catch (err) {
+                            const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
+                            tg.openTelegramLink(url);
+                          }
                         };
 
-                        tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
+                        tg.MainButton.setText(`CONFIRM ORDER: ${plan.price}`);
                         tg.MainButton.show();
                         tg.MainButton.offClick(handleMainButtonClick);
                         tg.MainButton.onClick(handleMainButtonClick);
                       } else {
+                        const textMsg = `Sifariş: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
                         handleBuyClick(e as any, textMsg, plan);
                       }
                     }}
