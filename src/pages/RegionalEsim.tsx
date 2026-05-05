@@ -64,25 +64,15 @@ export default function RegionalEsim() {
         tg.HapticFeedback.notificationOccurred('success');
       }
       
-      const userId = tg.initDataUnsafe?.user?.id;
+      const textMsg = `Sifariş: ${pkg.name}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
 
-      fetch('/api/telegram/mini-app', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'esim_order',
-          country: pkg.name,
-          code: plan.code || 'ESIM',
-          user_id: userId,
-          gb: plan.gb,
-          days: plan.days,
-          price: plan.price
-        })
-      }).finally(() => {
-        const textMsg = `Hi! I want to buy an eSIM for ${pkg.name}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
-        try { tg.sendData(textMsg); } catch(err) {}
-        setTimeout(() => tg.close(), 100);
-      });
+      try {
+        tg.sendData(textMsg);
+        setTimeout(() => tg.close(), 1000);
+      } catch (err) {
+        const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
+        tg.openTelegramLink(url);
+      }
       return;
     }
 

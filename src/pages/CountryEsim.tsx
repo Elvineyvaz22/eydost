@@ -49,27 +49,20 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
         tg.HapticFeedback.notificationOccurred('success');
       }
       
-      const userId = tg.initDataUnsafe?.user?.id;
-      
-      // Backend-mediated Order (Best Practice)
-      fetch('/api/telegram/mini-app', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'esim_order',
-          country: countryName,
-          code: planCodeEntry?.code || 'ESIM',
-          user_id: userId,
-          gb: plan.gb,
-          days: plan.days,
-          price: plan.price
-        })
-      }).finally(() => {
-        // Also try standard way as backup
-        const textMsg = `Hi! I want to buy an eSIM for ${countryName}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
-        try { tg.sendData(textMsg); } catch(e) {}
-        setTimeout(() => tg.close(), 100);
-      });
+      const textMsg = planCodeEntry
+        ? `Sifariş: ${countryName}\nKod: ${planCodeEntry.code}\nData: ${plan.gb}GB\nQiymət: ${plan.price}`
+        : `Sifariş: ${countryName}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
+
+      // Pure Frontend sendData
+      try {
+        tg.sendData(textMsg);
+        // Wait longer to ensure Telegram processes the message before closing
+        setTimeout(() => tg.close(), 1000);
+      } catch (err) {
+        // Ultimate fallback: open chat link
+        const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
+        tg.openTelegramLink(url);
+      }
       return;
     }
 

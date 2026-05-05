@@ -227,20 +227,13 @@ export default function Taxi() {
       setTimeout(() => {
         if (isTelegramWebApp) {
           const tg = (window as any).Telegram.WebApp;
-          const userId = tg.initDataUnsafe?.user?.id;
-
-          fetch('/api/telegram/mini-app', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'taxi_order',
-              user_id: userId,
-              message: msg
-            })
-          }).finally(() => {
-            try { tg.sendData(msg); } catch(e) {}
-            setTimeout(() => tg.close(), 100);
-          });
+          try {
+            tg.sendData(msg);
+            setTimeout(() => tg.close(), 1000);
+          } catch (err) {
+            const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(msg)}`;
+            tg.openTelegramLink(url);
+          }
         } else if (waId) {
           createOrder({
             wa_id: waId,
