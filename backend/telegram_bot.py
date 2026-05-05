@@ -93,48 +93,22 @@ def main():
                     continue
                 
                 chat_id = message["chat"]["id"]
-                first_name = message["chat"].get("first_name", "İstifadəçi")
-                user_id = message["from_user"]["id"] if "from_user" in message else chat_id
+                first_name = message.get("from", {}).get("first_name", "İstifadəçi")
+                user_id = message.get("from", {}).get("id", chat_id)
                 
                 # web_app_data - Mini App-dən gələn sifariş
                 if "web_app_data" in message:
                     raw_data = message["web_app_data"].get("data", "")
                     print(f"[ORDER] Data: {raw_data}")
-                    
+
                     try:
                         order = json.loads(raw_data)
-                        action = order.get("action")
-                        
-                        if action == "esim_order":
-                            country = order.get("country", "N/A")
-                            code = order.get("code", "N/A")
-                            gb = order.get("gb", "N/A")
-                            days = order.get("days", "N/A")
-                            price = order.get("price", "N/A")
-                            
-                            # İstifadəçiyə təsdiq
-                            confirm = (
-                                f"✅ Siz <b>{country}</b> üçün <code>{code}</code> paketini seçdiniz.\n\n"
-                                f"📊 Data: {gb} GB | ⏱ {days} gün | 💰 {price}\n\n"
-                                f"Ödənişə başlayaq?"
-                            )
-                            send_message(chat_id, confirm)
-                            
-                            # Adminə bildiriş
-                            notify_admin(order, user_id, first_name)
-                            
-                        else:
-                            send_message(chat_id, f"📩 Alınan məlumat: <code>{raw_data}</code>")
-                            
+                        # Mini App-dakı hazır mətn birbaşa istifadəçiyə göndərilir
+                        msg = order.get("message", raw_data)
+                        send_message(chat_id, msg)
+
                     except json.JSONDecodeError:
-                        send_message(
-                            chat_id,
-                            "✅ Sifarişiniz alındı! Tezliklə sizinlə əlaqə saxlanılacaq."
-                        )
-                        send_message(
-                            ADMIN_CHAT_ID,
-                            f"⚠️ Raw order (JSON deyil):\n<code>{raw_data}</code>\n\nUser: {first_name} ({user_id})"
-                        )
+                        send_message(chat_id, raw_data)
                 
                 # Text mesajlarını emal et
                 elif "text" in message:
