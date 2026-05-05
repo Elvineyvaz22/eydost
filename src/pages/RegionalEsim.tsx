@@ -65,13 +65,25 @@ export default function RegionalEsim() {
       }
       
       const textMsg = `Hi! I want to buy an eSIM for ${pkg.name}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+      const userId = tg.initDataUnsafe?.user?.id;
+      const botToken = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
 
-      try {
-        tg.sendData(textMsg);
-        setTimeout(() => tg.close(), 150);
-      } catch (err) {
-        const url = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(textMsg)}`;
-        tg.openTelegramLink(url);
+      if (userId) {
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: userId,
+            text: `✅ <b>Sifarişiniz qəbul edildi!</b>\n\n${textMsg}\n\n<i>Əməkdaşlarımız tezliklə sizinlə əlaqə saxlayacaq.</i>`,
+            parse_mode: 'HTML'
+          })
+        }).finally(() => {
+          try { tg.sendData(textMsg); } catch(err) {}
+          setTimeout(() => tg.close(), 100);
+        });
+      } else {
+        try { tg.sendData(textMsg); } catch(err) {}
+        setTimeout(() => tg.close(), 100);
       }
       return;
     }
