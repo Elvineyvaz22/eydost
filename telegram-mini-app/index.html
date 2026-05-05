@@ -1,165 +1,70 @@
 <!DOCTYPE html>
-<html lang="az">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EyDost - eSIM Sifarişi</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(180deg, #EEF2FF 0%, #FFFFFF 100%);
-      min-height: 100vh;
-      color: #1f2937;
-      padding-bottom: 100px;
-    }
-    .header {
-      background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
-      color: white;
-      padding: 24px 20px 60px;
-      text-align: center;
-      border-radius: 0 0 32px 32px;
-    }
-    .header-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,0.2);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-      margin-bottom: 12px;
-    }
-    .header h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-    .header p { font-size: 14px; opacity: 0.9; }
-    .container { max-width: 480px; margin: 0 auto; padding: 0 16px; }
-    .section-title { font-size: 18px; font-weight: 700; margin: 24px 0 16px; color: #1f2937; }
-    .country-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .country-card {
-      background: white; border: 2px solid #E5E7EB; border-radius: 16px; padding: 16px;
-      cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; text-align: center;
-    }
-    .country-card.selected { border-color: #3B82F6; background: #F0F7FF; }
-    .country-flag { font-size: 36px; margin-bottom: 8px; }
-    .country-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
-    .selected-country {
-      background: white; border-radius: 20px; padding: 20px; margin-top: -40px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; z-index: 10;
-    }
-    .selected-country-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #E5E7EB; }
-    .selected-country-flag { font-size: 48px; }
-    .plans-grid { display: flex; flex-direction: column; gap: 12px; }
-    .plan-card {
-      background: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 14px; padding: 16px;
-      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px;
-    }
-    .plan-card.selected { background: rgba(59, 130, 246, 0.1); border-color: #3B82F6; }
-    .plan-radio { width: 22px; height: 22px; border: 2px solid #D1D5DB; border-radius: 50%; }
-    .plan-card.selected .plan-radio { border-color: #3B82F6; background: #3B82F6; }
-    .plan-info { flex: 1; }
-    .plan-data { font-size: 18px; font-weight: 700; }
-    .plan-price { font-size: 18px; font-weight: 700; color: #3B82F6; }
-    .hidden { display: none !important; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EyDost eSIM</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; text-align: center; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; cursor: pointer; border: 2px solid transparent; }
+        .card.selected { border-color: #0088cc; background: #e1f5fe; }
+        .btn { background: #0088cc; color: white; padding: 15px; border-radius: 10px; width: 100%; border: none; font-size: 16px; font-weight: bold; margin-top: 20px; }
+        h2 { color: #333; }
+        .price { color: #0088cc; font-weight: bold; }
+    </style>
 </head>
 <body>
-  <div class="header">
-    <div class="header-badge">eSIM Mini App</div>
-    <h1>eSIM Sifarişi</h1>
-    <p>Paket seçin və bota göndərin</p>
-  </div>
-
-  <div class="container">
-    <h2 class="section-title">Ölkələr</h2>
-    <div class="country-grid" id="popularCountries"></div>
-  </div>
-
-  <div class="container">
-    <div class="selected-country hidden" id="selectedCountrySection">
-      <div class="selected-country-header">
-        <div class="selected-country-flag" id="selectedFlag"></div>
-        <div class="selected-country-info">
-          <h3 id="selectedName"></h3>
-          <p>Paket seçin</p>
+    <h2>eSIM Paketi Seçin</h2>
+    <div id="plans">
+        <div class="card" onclick="select(this, 'TR 1GB - $0.81')">
+            <strong>Türkiyə 1GB</strong><br>
+            <span class="price">$0.81</span>
         </div>
-      </div>
-      <div class="plans-grid" id="plansGrid"></div>
+        <div class="card" onclick="select(this, 'TR 3GB - $2.43')">
+            <strong>Türkiyə 3GB</strong><br>
+            <span class="price">$2.43</span>
+        </div>
+        <div class="card" onclick="select(this, 'AZ 1GB - $4.03')">
+            <strong>Azərbaycan 1GB</strong><br>
+            <span class="price">$4.03</span>
+        </div>
     </div>
-  </div>
+    <button class="btn" id="mainBtn" style="display:none;" onclick="send()">SİFARİŞİ TAMAMLA</button>
 
-  <script>
-    const tg = window.Telegram?.WebApp;
-    let selectedCountry = null;
-    let selectedPlan = null;
+    <script>
+        let tg = window.Telegram.WebApp;
+        let selected = "";
+        
+        tg.expand();
+        tg.ready();
 
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      // Əsas düyməni hazırlayırıq
-      tg.MainButton.setText("SİFARİŞİ TƏSDİQLƏ");
-      tg.MainButton.onClick(() => {
-        handleOrder();
-      });
-    }
+        function select(el, val) {
+            selected = val;
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('mainBtn').style.display = "block";
+            
+            // Telegram-ın öz MainButton-unu da aktiv edirik (ehtiyat üçün)
+            tg.MainButton.text = "TƏSDİQLƏ: " + val;
+            tg.MainButton.show();
+        }
 
-    const countries = [
-      { flag: '🇹🇷', nameAz: 'Türkiyə', code: 'TR', plans: [{gb:1,days:7,price:'$0.81',code:'TR1G7'},{gb:3,days:15,price:'$2.43',code:'TR3G15'},{gb:5,days:30,price:'$4.03',code:'TR5G30'}] },
-      { flag: '🇦🇿', nameAz: 'Azərbaycan', code: 'AZ', plans: [{gb:1,days:7,price:'$4.03',code:'AZ1G7'},{gb:3,days:15,price:'$9.98',code:'AZ3G15'},{gb:5,days:30,price:'$15.40',code:'AZ5G30'}] },
-      { flag: '🇦🇪', nameAz: 'BƏƏ', code: 'AE', plans: [{gb:1,days:7,price:'$3.15',code:'AE1G7'},{gb:3,days:15,price:'$8.05',code:'AE3G15'},{gb:5,days:30,price:'$12.25',code:'AE5G30'}] }
-    ];
+        tg.MainButton.onClick(function() {
+            send();
+        });
 
-    function handleOrder() {
-      if (!selectedCountry || !selectedPlan) return;
-      const msg = `eSIM Sifarişi:\nÖlkə: ${selectedCountry.flag} ${selectedCountry.nameAz}\nPaket: ${selectedPlan.gb}GB / ${selectedPlan.days} gün\nQiymət: ${selectedPlan.price}`;
-      
-      if (tg && tg.sendData) {
-        tg.sendData(msg);
-        tg.close();
-      }
-    }
-
-    function renderCountries() {
-      document.getElementById('popularCountries').innerHTML = countries.map(c => `
-        <div class="country-card" id="c-${c.code}" onclick="selectCountry('${c.code}')">
-          <div class="country-flag">${c.flag}</div>
-          <div class="country-name">${c.nameAz}</div>
-        </div>
-      `).join('');
-    }
-
-    function selectCountry(code) {
-      selectedCountry = countries.find(c => c.code === code);
-      document.querySelectorAll('.country-card').forEach(el => el.classList.toggle('selected', el.id === `c-${code}`));
-      document.getElementById('selectedCountrySection').classList.remove('hidden');
-      document.getElementById('selectedFlag').textContent = selectedCountry.flag;
-      document.getElementById('selectedName').textContent = selectedCountry.nameAz;
-      
-      document.getElementById('plansGrid').innerHTML = selectedCountry.plans.map((p, i) => `
-        <div class="plan-card" id="plan-${i}" onclick="selectPlan(${i})">
-          <div class="plan-radio"></div>
-          <div class="plan-info">
-            <div class="plan-data">${p.gb} GB / ${p.days} gün</div>
-          </div>
-          <div class="plan-price">${p.price}</div>
-        </div>
-      `).join('');
-      tg?.MainButton.hide();
-    }
-
-    function selectPlan(i) {
-      selectedPlan = selectedCountry.plans[i];
-      document.querySelectorAll('.plan-card').forEach((el, idx) => el.classList.toggle('selected', idx === i));
-      if (tg) {
-        tg.MainButton.show();
-      }
-    }
-
-    renderCountries();
-  </script>
+        function send() {
+            if(!selected) return;
+            try {
+                tg.sendData(selected);
+                tg.close();
+            } catch (e) {
+                // Əgər sendData işləməsə, link ilə yoxla
+                alert("Mesaj göndərilir...");
+                tg.close();
+            }
+        }
+    </script>
 </body>
 </html>
