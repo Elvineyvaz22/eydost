@@ -244,26 +244,33 @@
     let selectedCountry = null;
     let selectedPlan = null;
 
-    // ─── Order: Mesajı hazırlayır və Mini App-ı bağlayır ─────────────────────────
+    // ─── Order: Mini App-ı bağlayır və bota məlumat göndərir ─────────────────────
     function handleOrder() {
       if (!selectedCountry || !selectedPlan) return;
       
-      const plan = selectedPlan;
-      const country = selectedCountry;
-      const msg = `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${country.flag} ${country.nameAz}\nPaket: ${plan.gb}GB / ${plan.days} gün\nKod: ${plan.code}\nQiymət: ${plan.price}`;
-      
-      if (tg) {
-        // Telegram daxilində mesaj linkini açırıq
-        const url = `https://t.me/${BOT_USERNAME}?text=${encodeURIComponent(msg)}`;
-        tg.openTelegramLink(url);
-        
-        // Mini App-ı bağlayırıq
-        setTimeout(() => {
-          tg.close();
-        }, 100);
+      // Telegram titrəmə effekti (Premium hiss üçün)
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('medium');
+      }
+
+      const orderData = {
+        country: selectedCountry.nameAz,
+        flag: selectedCountry.flag,
+        gb: selectedPlan.gb,
+        days: selectedPlan.days,
+        price: selectedPlan.price,
+        code: selectedPlan.code,
+        message: `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${selectedCountry.flag} ${selectedCountry.nameAz}\nPaket: ${selectedPlan.gb}GB / ${selectedPlan.days} gün\nKod: ${selectedPlan.code}\nQiymət: ${selectedPlan.price}`
+      };
+
+      if (tg && tg.sendData) {
+        // Bu funksiya Mini App-ı avtomatik bağlayacaq və məlumatı bota göndərəcək
+        tg.sendData(JSON.stringify(orderData));
       } else {
-        // Brauzer testi üçün
-        alert(msg);
+        // Fallback: Əgər sendData aktiv deyilsə (məsələn, brauzerdə və ya Menu düyməsində)
+        const url = `https://t.me/${BOT_USERNAME}?text=${encodeURIComponent(orderData.message)}`;
+        tg?.openTelegramLink(url);
+        setTimeout(() => tg?.close(), 500);
       }
     }
 
