@@ -51,12 +51,23 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       const handleMainButtonClick = () => {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         
-        // This method fills the text in the input area and opens the chat
+        tg.MainButton.setText("GÖNDƏRİLİR...");
+        
         const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
+        
+        // Try both methods for 200% reliability
+        try {
+          tg.sendData(orderInfo);
+        } catch (e) {
+          console.error("sendData error", e);
+        }
+
         tg.openTelegramLink(url);
         
-        // Close the mini app so the user sees the pre-filled text in the chat
-        tg.close();
+        // Small delay to let Telegram process the link before closing
+        setTimeout(() => {
+          tg.close();
+        }, 800);
       };
 
       tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);

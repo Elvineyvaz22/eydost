@@ -234,9 +234,15 @@ export default function Taxi() {
           
           const handleTaxiClick = () => {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            tg.MainButton.setText("GÖNDƏRİLİR...");
             const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(msg)}`;
+            try {
+              tg.sendData(msg);
+            } catch (e) {}
             tg.openTelegramLink(url);
-            tg.close();
+            setTimeout(() => {
+              tg.close();
+            }, 800);
           };
 
           tg.MainButton.onClick(handleTaxiClick);

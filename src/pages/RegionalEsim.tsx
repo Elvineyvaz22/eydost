@@ -206,10 +206,17 @@ export default function RegionalEsim() {
                         const handleMainButtonClick = () => {
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                           const textMsgAZ = `Sifaris: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
+                          tg.MainButton.setText("GÖNDƏRİLİR...");
                           
                           const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
+                          try {
+                            tg.sendData(textMsgAZ);
+                          } catch (e) {}
+                          
                           tg.openTelegramLink(url);
-                          tg.close();
+                          setTimeout(() => {
+                            tg.close();
+                          }, 800);
                         };
 
                         tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);
