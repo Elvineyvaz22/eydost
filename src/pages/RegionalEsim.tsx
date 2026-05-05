@@ -63,8 +63,16 @@ export default function RegionalEsim() {
       if (tg.HapticFeedback) {
         tg.HapticFeedback.notificationOccurred('success');
       }
-      tg.sendData(rawMsg);
-      setTimeout(() => tg.close(), 150);
+      
+      const textMsg = `Hi! I want to buy an eSIM for ${pkg.name}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+
+      try {
+        tg.sendData(textMsg);
+        setTimeout(() => tg.close(), 150);
+      } catch (err) {
+        const url = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(textMsg)}`;
+        tg.openTelegramLink(url);
+      }
       return;
     }
 

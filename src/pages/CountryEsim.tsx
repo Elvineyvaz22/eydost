@@ -39,31 +39,25 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
     (window as any).Telegram?.WebApp?.platform !== 'unknown';
   const tg = (window as any).Telegram?.WebApp;
 
-  const handleBuyClick = async (e: React.MouseEvent) => {
-    const rawMsg = planCodeEntry
-      ? JSON.stringify({
-          country: countryName,
-          code: planCodeEntry.code,
-          gb: plan.gb,
-          days: plan.days,
-          price: plan.price,
-          message: `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-        })
-      : JSON.stringify({
-          country: countryName,
-          gb: plan.gb,
-          days: plan.days,
-          price: plan.price,
-          message: `Hi! I want to buy an eSIM for ${countryName}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`
-        });
+    const textMsg = planCodeEntry
+      ? `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
+      : `Hi! I want to buy an eSIM for ${countryName}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
       e.preventDefault();
       if (tg.HapticFeedback) {
         tg.HapticFeedback.notificationOccurred('success');
       }
-      tg.sendData(rawMsg);
-      setTimeout(() => tg.close(), 150);
+      
+      try {
+        // Try standard way first
+        tg.sendData(textMsg);
+        setTimeout(() => tg.close(), 150);
+      } catch (err) {
+        // Fallback for Menu Button or other restricted modes
+        const url = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(textMsg)}`;
+        tg.openTelegramLink(url);
+      }
       return;
     }
 
