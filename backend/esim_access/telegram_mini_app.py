@@ -149,10 +149,21 @@ async def receive_mini_app_data(request: Request):
                 )
                 send_telegram_message(str(user_id), confirm_text)
             
-            return {
-                "status": "ok",
-                "message": f"Siz {country} üçün {code} paketini seçdiniz. Ödənişə başlayaq?"
-            }
+            return {"status": "ok", "message": "eSIM order processed"}
+
+        elif action == 'taxi_order':
+            user_id = body.get('user_id')
+            message = body.get('message', 'N/A')
+            
+            # Adminə taksi sifarişi
+            admin_text = f"🚖 <b>Yeni Taksi Sifarişi (Mini App)!</b>\n\n{message}\n\n👤 User ID: {user_id}"
+            send_telegram_message(ADMIN_CHAT_ID, admin_text)
+            
+            if user_id:
+                confirm_text = "🚖 <b>Sifarişiniz alındı!</b>\n\nSürücü tezliklə sizinlə əlaqə saxlayacaq. Təşəkkür edirik!"
+                send_telegram_message(str(user_id), confirm_text)
+            
+            return {"status": "ok", "message": "Taxi order processed"}
         
         else:
             return {"status": "error", "message": "Naməlum əməliyyat"}

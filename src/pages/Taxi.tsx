@@ -228,25 +228,19 @@ export default function Taxi() {
         if (isTelegramWebApp) {
           const tg = (window as any).Telegram.WebApp;
           const userId = tg.initDataUnsafe?.user?.id;
-          const botToken = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
 
-          if (userId) {
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: userId,
-                text: `🚖 <b>Taksi Sifarişi Qəbul Edildi!</b>\n\n${msg}\n\n<i>Sürücü tezliklə sizinlə əlaqə saxlayacaq.</i>`,
-                parse_mode: 'HTML'
-              })
-            }).finally(() => {
-              try { tg.sendData(msg); } catch(e) {}
-              setTimeout(() => tg.close(), 100);
-            });
-          } else {
+          fetch('/api/telegram/mini-app', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'taxi_order',
+              user_id: userId,
+              message: msg
+            })
+          }).finally(() => {
             try { tg.sendData(msg); } catch(e) {}
             setTimeout(() => tg.close(), 100);
-          }
+          });
         } else if (waId) {
           createOrder({
             wa_id: waId,

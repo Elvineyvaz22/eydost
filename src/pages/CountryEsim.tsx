@@ -49,33 +49,27 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
         tg.HapticFeedback.notificationOccurred('success');
       }
       
-      const textMsg = planCodeEntry
-        ? `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-        : `Hi! I want to buy an eSIM for ${countryName}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
-
       const userId = tg.initDataUnsafe?.user?.id;
-      const botToken = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
-
-      // 100% Reliable Direct API Method
-      if (userId) {
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: userId,
-            text: `✅ <b>Sifarişiniz qəbul edildi!</b>\n\n${textMsg}\n\n<i>Əməkdaşlarımız tezliklə sizinlə əlaqə saxlayacaq.</i>`,
-            parse_mode: 'HTML'
-          })
-        }).finally(() => {
-          // Also send via standard way just in case
-          try { tg.sendData(textMsg); } catch(e) {}
-          setTimeout(() => tg.close(), 100);
-        });
-      } else {
-        // Fallback if user ID is missing
+      
+      // Backend-mediated Order (Best Practice)
+      fetch('/api/telegram/mini-app', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'esim_order',
+          country: countryName,
+          code: planCodeEntry?.code || 'ESIM',
+          user_id: userId,
+          gb: plan.gb,
+          days: plan.days,
+          price: plan.price
+        })
+      }).finally(() => {
+        // Also try standard way as backup
+        const textMsg = `Hi! I want to buy an eSIM for ${countryName}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
         try { tg.sendData(textMsg); } catch(e) {}
         setTimeout(() => tg.close(), 100);
-      }
+      });
       return;
     }
 
