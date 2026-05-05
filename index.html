@@ -258,13 +258,14 @@
     document.getElementById('whatsappBtn').classList.remove('hidden');
   }
 
-  function handleOrder() {
-    if (!selectedCountry || !selectedPlan) return;
-    const msg = `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${selectedCountry.flag} ${selectedCountry.nameAz}\nPaket: ${selectedPlan.gb}GB / ${selectedPlan.days} gün\nKod: ${selectedPlan.code}\nQiymət: ${selectedPlan.price}`;
-    if (tg && tg.sendData) {
-      tg.sendData(msg);
+    function handleOrder() {
+      if (!selectedCountry || !selectedPlan) return;
+      const msg = `Salam! eSIM sifarişi etmək istəyirəm:\n\nÖlkə: ${selectedCountry.flag} ${selectedCountry.nameAz}\nPaket: ${selectedPlan.gb}GB / ${selectedPlan.days} gün\nKod: ${selectedPlan.code}\nQiymət: ${selectedPlan.price}`;
+      if (tg && tg.sendData) {
+        tg.sendData(msg);
+        tg.close();
+      }
     }
-  }
 
   function handleWhatsApp() {
     if (!selectedCountry || !selectedPlan) return;
