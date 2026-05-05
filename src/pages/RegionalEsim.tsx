@@ -205,18 +205,20 @@ export default function RegionalEsim() {
 
                         const handleMainButtonClick = () => {
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                          const jsonData = JSON.stringify({ message: textMsg });
+                          const textMsgAZ = `Sifaris: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
+                          const jsonData = JSON.stringify({ message: textMsgAZ, action: 'esim_order' });
                           try {
                             tg.sendData(jsonData);
                             tg.MainButton.hide();
-                            setTimeout(() => tg.close(), 2000);
+                            setTimeout(() => tg.close(), 1000);
                           } catch (err) {
-                            const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
+                            const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
                             tg.openTelegramLink(url);
+                            tg.close();
                           }
                         };
 
-                        tg.MainButton.setText(`CONFIRM ORDER: ${plan.price}`);
+                        tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);
                         tg.MainButton.show();
                         tg.MainButton.offClick(handleMainButtonClick);
                         tg.MainButton.onClick(handleMainButtonClick);

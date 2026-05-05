@@ -45,26 +45,29 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
 
     if (isTelegramWebApp && tg) {
       const orderInfo = planCodeEntry
-        ? `ORDER: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
-        : `ORDER: ${countryName} - ${plan.gb}GB - ${plan.days} days - ${plan.price}`;
+        ? `Sifaris: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
+        : `Sifaris: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
 
       const handleMainButtonClick = () => {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         
-        // Match the bot's expected JSON format
-        const jsonData = JSON.stringify({ message: orderInfo });
+        // Match bot expectation
+        const jsonData = JSON.stringify({ message: orderInfo, action: 'esim_order' });
 
         try {
+          // This works for Keyboard Buttons
           tg.sendData(jsonData);
           tg.MainButton.hide();
-          setTimeout(() => tg.close(), 2000);
+          setTimeout(() => tg.close(), 1000);
         } catch (err) {
+          // This is the ONLY way for Menu Buttons
           const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
           tg.openTelegramLink(url);
+          tg.close();
         }
       };
 
-      tg.MainButton.setText(`CONFIRM ORDER: ${plan.price}`);
+      tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);
       tg.MainButton.show();
       tg.MainButton.offClick(handleMainButtonClick);
       tg.MainButton.onClick(handleMainButtonClick);
