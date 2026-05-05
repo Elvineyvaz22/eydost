@@ -24,49 +24,52 @@
     .plan-info b { font-size: 16px; }
     .price { color: #3B82F6; font-weight: 700; font-size: 16px; }
     .action-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 16px 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); border-radius: 24px 24px 0 0; }
-    .btn { width: 100%; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
-    #tgBtn { background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); }
-    #waBtn { background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); }
+    .btn { width: 100%; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); }
+    .btn:disabled { background: #D1D5DB; cursor: not-allowed; }
     .hidden { display: none !important; }
+    #browserMsg { padding: 40px 20px; text-align: center; font-weight: 600; color: #6B7280; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1 id="titleText">eSIM Sifarişi</h1>
-    <p id="subText">İstədiyiniz paketi seçin</p>
-  </div>
-
-  <div class="container">
-    <div id="countryList">
-      <h2 class="section-title">Ölkə seçin</h2>
-      <div class="grid" id="grid"></div>
+  <div id="mainContent">
+    <div class="header">
+      <h1>eSIM Sifarişi</h1>
+      <p>Paket seçin və bota göndərin</p>
     </div>
 
-    <div id="selectionArea" class="selected-area hidden">
-      <h2 class="section-title" id="selectedCountryName"></h2>
-      <div id="plansGrid"></div>
+    <div class="container">
+      <div id="countryList">
+        <h2 class="section-title">Ölkə seçin</h2>
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <div id="selectionArea" class="selected-area hidden">
+        <h2 class="section-title" id="selectedCountryName"></h2>
+        <div id="plansGrid"></div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button id="tgBtn" class="btn" onclick="orderTg()" disabled>SİFARİŞİ TƏSDİQLƏ</button>
     </div>
   </div>
 
-  <div class="action-bar">
-    <button id="tgBtn" class="btn hidden" onclick="orderTg()" disabled>SİFARİŞİ TƏSDİQLƏ</button>
-    <button id="waBtn" class="btn hidden" onclick="orderWa()" disabled>WhatsApp ilə Sifariş</button>
+  <div id="browserMsg" class="hidden">
+    <p>Bu səhifə yalnız Telegram Mini App daxilində işləyir.</p>
   </div>
 
   <script>
     const tg = window.Telegram?.WebApp;
     const isMiniApp = tg && tg.initData !== "";
-    const WHATSAPP_NUM = "994502544444";
     let selectedC = null, selectedP = null;
 
-    // Detection & Text Setup
     if (isMiniApp) {
-      document.getElementById('tgBtn').classList.remove('hidden');
-      document.getElementById('titleText').innerText = "eSIM Sifarişi";
-      tg.ready(); tg.expand();
+      tg.ready();
+      tg.expand();
     } else {
-      document.getElementById('waBtn').classList.remove('hidden');
-      document.getElementById('titleText').innerText = "EyDost eSIM";
+      // Brauzerdə girənlərə xəbərdarlıq göstərmək istəyirsinizsə:
+      // document.getElementById('mainContent').classList.add('hidden');
+      // document.getElementById('browserMsg').classList.remove('hidden');
     }
 
     const countries = [
@@ -97,26 +100,24 @@
       `).join('');
       selectedP = null;
       document.getElementById('tgBtn').disabled = true;
-      document.getElementById('waBtn').disabled = true;
     }
 
     function selP(i) {
       selectedP = selectedC.plans[i];
       document.querySelectorAll('.plan').forEach((x, idx) => x.classList.toggle('selected', idx === i));
       document.getElementById('tgBtn').disabled = false;
-      document.getElementById('waBtn').disabled = false;
     }
 
     function orderTg() {
+      if (!selectedC || !selectedP) return;
       const msg = `eSIM Sifarişi:\nÖlkə: ${selectedC.name}\nPaket: ${selectedP.gb}GB / ${selectedP.d} gün\nQiymət: ${selectedP.p}`;
-      tg.sendData(msg);
-      tg.close();
-      setTimeout(() => tg.close(), 100);
-    }
-
-    function orderWa() {
-      const msg = `Salam! eSIM sifarişi etmək istəyirəm:\nÖlkə: ${selectedC.name}\nPaket: ${selectedP.gb}GB\nQiymət: ${selectedP.p}`;
-      window.open(`https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(msg)}`, '_blank');
+      if (tg && tg.sendData) {
+        tg.sendData(msg);
+        tg.close();
+        setTimeout(() => tg.close(), 100);
+      } else {
+        alert("Bu funksiya yalnız Telegram daxilində işləyir.");
+      }
     }
 
     render();
