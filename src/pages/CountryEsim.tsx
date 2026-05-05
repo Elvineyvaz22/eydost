@@ -59,8 +59,11 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
 
     if (isTelegramWebApp && tg) {
       e.preventDefault();
+      if (tg.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
       tg.sendData(rawMsg);
-      setTimeout(() => tg.close(), 100);
+      setTimeout(() => tg.close(), 150);
       return;
     }
 

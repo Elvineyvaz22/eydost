@@ -60,8 +60,11 @@ export default function RegionalEsim() {
       e.preventDefault();
       const tg = window.Telegram?.WebApp;
       if (!tg) return;
+      if (tg.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
       tg.sendData(rawMsg);
-      tg.close();
+      setTimeout(() => tg.close(), 150);
       return;
     }
 
