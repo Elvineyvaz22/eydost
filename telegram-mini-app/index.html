@@ -27,11 +27,11 @@
     .btn { width: 100%; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); }
     .btn:disabled { background: #D1D5DB; cursor: not-allowed; }
     .hidden { display: none !important; }
-    #browserMsg { padding: 40px 20px; text-align: center; font-weight: 600; color: #6B7280; }
+    #accessDenied { padding: 50px 20px; text-align: center; font-weight: 600; color: #1f2937; height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
   </style>
 </head>
 <body>
-  <div id="mainContent">
+  <div id="mainContent" class="hidden">
     <div class="header">
       <h1>eSIM Sifarişi</h1>
       <p>Paket seçin və bota göndərin</p>
@@ -54,22 +54,21 @@
     </div>
   </div>
 
-  <div id="browserMsg" class="hidden">
-    <p>Bu səhifə yalnız Telegram Mini App daxilində işləyir.</p>
+  <div id="accessDenied" class="hidden">
+    <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
+    <p>Bu səhifə yalnız Telegram Mini App daxilində istifadə üçün nəzərdə tutulub.</p>
   </div>
 
   <script>
     const tg = window.Telegram?.WebApp;
     const isMiniApp = tg && tg.initData !== "";
-    let selectedC = null, selectedP = null;
-
+    
     if (isMiniApp) {
+      document.getElementById('mainContent').classList.remove('hidden');
       tg.ready();
       tg.expand();
     } else {
-      // Brauzerdə girənlərə xəbərdarlıq göstərmək istəyirsinizsə:
-      // document.getElementById('mainContent').classList.add('hidden');
-      // document.getElementById('browserMsg').classList.remove('hidden');
+      document.getElementById('accessDenied').classList.remove('hidden');
     }
 
     const countries = [
@@ -109,14 +108,11 @@
     }
 
     function orderTg() {
-      if (!selectedC || !selectedP) return;
-      const msg = `eSIM Sifarişi:\nÖlkə: ${selectedC.name}\nPaket: ${selectedP.gb}GB / ${selectedP.d} gün\nQiymət: ${selectedP.p}`;
       if (tg && tg.sendData) {
+        const msg = `eSIM Sifarişi:\nÖlkə: ${selectedC.name}\nPaket: ${selectedP.gb}GB / ${selectedP.d} gün\nQiymət: ${selectedP.p}`;
         tg.sendData(msg);
         tg.close();
         setTimeout(() => tg.close(), 100);
-      } else {
-        alert("Bu funksiya yalnız Telegram daxilində işləyir.");
       }
     }
 
