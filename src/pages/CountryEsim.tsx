@@ -134,12 +134,12 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
               tg.MainButton.show();
               tg.MainButton.onClick(() => {
                 const textMsg = planCodeEntry
-                  ? `Sifariş: ${countryName}\nKod: ${planCodeEntry.code}\nData: ${plan.gb}GB\nQiymət: ${plan.price}`
-                  : `Sifariş: ${countryName}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
+                  ? `Sifariş: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
+                  : `Sifariş: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
                 
                 if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 tg.sendData(textMsg);
-                setTimeout(() => tg.close(), 500);
+                // No tg.close() here - Telegram will close automatically if sendData is successful
               });
             } else {
               handleBuyClick(e);

@@ -203,10 +203,9 @@ export default function RegionalEsim() {
                         tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
                         tg.MainButton.show();
                         tg.MainButton.onClick(() => {
-                          const textMsg = `Sifariş: ${pkg.name}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
+                          const textMsg = `Sifariş: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                           tg.sendData(textMsg);
-                          setTimeout(() => tg.close(), 500);
                         });
                       } else {
                         const msg = `Hi! I want to buy an eSIM for ${pkg.name}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
