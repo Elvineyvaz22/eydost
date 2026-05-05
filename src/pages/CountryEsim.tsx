@@ -40,29 +40,23 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
   const tg = (window as any).Telegram?.WebApp;
 
   const handleBuyClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
     const textMsg = planCodeEntry
-      ? `Sifariş: ${countryName}\nKod: ${planCodeEntry.code}\nData: ${plan.gb}GB\nQiymət: ${plan.price}`
-      : `Sifariş: ${countryName}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
+      ? `Sifariş: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
+      : `Sifariş: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
-      e.preventDefault();
-      if (tg.HapticFeedback) {
-        tg.HapticFeedback.notificationOccurred('success');
-      }
-      
-      // Pure Frontend sendData
-      try {
+      tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
+      tg.MainButton.show();
+      tg.MainButton.offClick(() => {}); // Clear previous listeners
+      tg.MainButton.onClick(() => {
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         tg.sendData(textMsg);
-        setTimeout(() => tg.close(), 1000);
-      } catch (err) {
-        const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
-        tg.openTelegramLink(url);
-      }
+      });
       return;
     }
 
     if (waId) {
-      e.preventDefault();
       setIsOrdering(true);
       try {
         await createOrder({
@@ -76,7 +70,7 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
         setIsOrdering(false);
       }
     } else {
-      window.location.href = `${WA_LINK}?text=${waMsg}`;
+      window.location.href = `${WA_LINK}?text=${encodeURIComponent(textMsg)}`;
     }
   };
 
@@ -127,24 +121,7 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       {/* Buy button */}
       <div className="mt-auto">
         <button
-          onClick={(e) => {
-            if (isTelegramWebApp && tg) {
-              e.preventDefault();
-              tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
-              tg.MainButton.show();
-              tg.MainButton.onClick(() => {
-                const textMsg = planCodeEntry
-                  ? `Sifariş: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
-                  : `Sifariş: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
-                
-                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                tg.sendData(textMsg);
-                // No tg.close() here - Telegram will close automatically if sendData is successful
-              });
-            } else {
-              handleBuyClick(e);
-            }
-          }}
+          onClick={handleBuyClick}
           className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
             isTelegramWebApp 
               ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' 

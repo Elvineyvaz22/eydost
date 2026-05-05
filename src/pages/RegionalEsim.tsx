@@ -197,19 +197,19 @@ export default function RegionalEsim() {
                   {/* Action Button */}
                   <button
                     onClick={(e) => {
+                      e.preventDefault();
+                      const textMsg = `Sifariş: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
                       if (isTelegramWebApp) {
-                        e.preventDefault();
                         const tg = (window as any).Telegram.WebApp;
                         tg.MainButton.setText(`SİFARİŞİ TƏSDİQLƏ: ${plan.price}`);
                         tg.MainButton.show();
+                        tg.MainButton.offClick(() => {});
                         tg.MainButton.onClick(() => {
-                          const textMsg = `Sifariş: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                           tg.sendData(textMsg);
                         });
                       } else {
-                        const msg = `Hi! I want to buy an eSIM for ${pkg.name}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
-                        handleBuyClick(e as any, msg, plan);
+                        handleBuyClick(e as any, textMsg, plan);
                       }
                     }}
                     className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
