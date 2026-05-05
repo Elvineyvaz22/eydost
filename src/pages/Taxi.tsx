@@ -234,15 +234,16 @@ export default function Taxi() {
           
           const handleTaxiClick = () => {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            tg.MainButton.setText("GÖNDƏRİLİR...");
-            const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(msg)}`;
+            tg.MainButton.setText("SİFARİŞ GÖNDƏRİLİR...");
             try {
               tg.sendData(msg);
-            } catch (e) {}
-            tg.openTelegramLink(url);
-            setTimeout(() => {
+              tg.MainButton.hide();
+              setTimeout(() => tg.close(), 1000);
+            } catch (e) {
+              const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(msg)}`;
+              tg.openTelegramLink(url);
               tg.close();
-            }, 800);
+            }
           };
 
           tg.MainButton.onClick(handleTaxiClick);

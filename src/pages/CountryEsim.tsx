@@ -51,23 +51,19 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       const handleMainButtonClick = () => {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         
-        tg.MainButton.setText("GÖNDƏRİLİR...");
+        tg.MainButton.setText("SİFARİŞ GÖNDƏRİLİR...");
         
-        const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
-        
-        // Try both methods for 200% reliability
         try {
+          // This is what makes it "automatic" like the bot in your screenshot
           tg.sendData(orderInfo);
+          tg.MainButton.hide();
+          setTimeout(() => tg.close(), 1000);
         } catch (e) {
-          console.error("sendData error", e);
-        }
-
-        tg.openTelegramLink(url);
-        
-        // Small delay to let Telegram process the link before closing
-        setTimeout(() => {
+          // Fallback if Telegram blocks the automatic send
+          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
+          tg.openTelegramLink(url);
           tg.close();
-        }, 800);
+        }
       };
 
       tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);

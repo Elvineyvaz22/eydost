@@ -206,17 +206,17 @@ export default function RegionalEsim() {
                         const handleMainButtonClick = () => {
                           if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                           const textMsgAZ = `Sifaris: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
-                          tg.MainButton.setText("GÖNDƏRİLİR...");
+                          tg.MainButton.setText("SİFARİŞ GÖNDƏRİLİR...");
                           
-                          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
                           try {
                             tg.sendData(textMsgAZ);
-                          } catch (e) {}
-                          
-                          tg.openTelegramLink(url);
-                          setTimeout(() => {
+                            tg.MainButton.hide();
+                            setTimeout(() => tg.close(), 1000);
+                          } catch (e) {
+                            const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
+                            tg.openTelegramLink(url);
                             tg.close();
-                          }, 800);
+                          }
                         };
 
                         tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);
