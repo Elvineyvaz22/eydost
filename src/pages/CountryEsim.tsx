@@ -39,9 +39,10 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
     (window as any).Telegram?.WebApp?.platform !== 'unknown';
   const tg = (window as any).Telegram?.WebApp;
 
+  const handleBuyClick = async (e: React.MouseEvent) => {
     const textMsg = planCodeEntry
-      ? `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-      : `Hi! I want to buy an eSIM for ${countryName}.\nData: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+      ? `Sifariş: ${countryName}\nKod: ${planCodeEntry.code}\nData: ${plan.gb}GB\nQiymət: ${plan.price}`
+      : `Sifariş: ${countryName}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
       e.preventDefault();
@@ -49,17 +50,11 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
         tg.HapticFeedback.notificationOccurred('success');
       }
       
-      const textMsg = planCodeEntry
-        ? `Sifariş: ${countryName}\nKod: ${planCodeEntry.code}\nData: ${plan.gb}GB\nQiymət: ${plan.price}`
-        : `Sifariş: ${countryName}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
-
       // Pure Frontend sendData
       try {
         tg.sendData(textMsg);
-        // Wait longer to ensure Telegram processes the message before closing
         setTimeout(() => tg.close(), 1000);
       } catch (err) {
-        // Ultimate fallback: open chat link
         const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
         tg.openTelegramLink(url);
       }
