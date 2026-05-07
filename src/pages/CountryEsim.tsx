@@ -12,7 +12,7 @@ import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 
-const WA_LINK = 'https://wa.me/994558878889';
+const WA_LINK = 'https://wa.me/994992010117';
 const TG_BOT_USERNAME = 'eydost_esim_bot';
 
 function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; countryName: string; countryCode: string; planIndex: number }) {
@@ -40,36 +40,24 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     const textMsg = planCodeEntry
-      ? `Sifariş: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
-      : `Sifariş: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
+      ? `[ESIM_ORDER]\nÖlkə: ${countryName}\nKod: ${planCodeEntry.code}\nID: ${planCodeEntry.id}\nPaket: ${plan.gb}GB\nQiymət: ${plan.price}`
+      : `[ESIM_ORDER]\nÖlkə: ${countryName}\nPaket: ${plan.gb}GB\nMüddət: ${plan.days} gün\nQiymət: ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
       const orderInfo = planCodeEntry
-        ? `Sifaris: ${countryName} (${planCodeEntry.code}) - ${plan.gb}GB - ${plan.price}`
-        : `Sifaris: ${countryName} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
+        ? `[ESIM_ORDER]\nÖlkə: ${countryName}\nKod: ${planCodeEntry.code}\nID: ${planCodeEntry.id}\nPaket: ${plan.gb}GB\nQiymət: ${plan.price}`
+        : `[ESIM_ORDER]\nÖlkə: ${countryName}\nPaket: ${plan.gb}GB\nMüddət: ${plan.days} gün\nQiymət: ${plan.price}`;
 
-      const handleMainButtonClick = () => {
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        
-        tg.MainButton.setText("SİFARİŞ GÖNDƏRİLİR...");
-        
-        try {
-          // This is what makes it "automatic" like the bot in your screenshot
-          tg.sendData(orderInfo);
-          tg.MainButton.hide();
-          setTimeout(() => tg.close(), 1000);
-        } catch (e) {
-          // Fallback if Telegram blocks the automatic send
-          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
-          tg.openTelegramLink(url);
-          tg.close();
-        }
-      };
-
-      tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);
-      tg.MainButton.show();
-      tg.MainButton.offClick(handleMainButtonClick);
-      tg.MainButton.onClick(handleMainButtonClick);
+      if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      
+      try {
+        tg.sendData(orderInfo);
+        setTimeout(() => tg.close(), 1000);
+      } catch (e) {
+        const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(orderInfo)}`;
+        tg.openTelegramLink(url);
+        tg.close();
+      }
       return;
     }
 

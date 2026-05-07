@@ -12,7 +12,7 @@ import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 
-const WA_LINK = 'https://wa.me/994558878889';
+const WA_LINK = 'https://wa.me/994992010117';
 const TG_BOT_USERNAME = 'eydost_esim_bot';
 
 function getRegionalBySlug(slug: string): RegionalPackage | undefined {
@@ -64,7 +64,9 @@ export default function RegionalEsim() {
         tg.HapticFeedback.notificationOccurred('success');
       }
       
-      const textMsg = `Sifariş: ${pkg.name}\nData: ${plan.gb}GB\nEtibarlılıq: ${plan.days} gün\nQiymət: ${plan.price}`;
+      const textMsg = plan.code 
+        ? `[ESIM_ORDER]\nBölgə: ${pkg.name}\nKod: ${plan.code}\nID: ${plan.id}\nPaket: ${plan.gb}GB\nQiymət: ${plan.price}`
+        : `[ESIM_ORDER]\nBölgə: ${pkg.name}\nPaket: ${plan.gb}GB\nMüddət: ${plan.days} gün\nQiymət: ${plan.price}`;
 
       try {
         tg.sendData(textMsg);
@@ -90,6 +92,8 @@ export default function RegionalEsim() {
       } finally {
         setIsOrdering(false);
       }
+    } else {
+      window.location.href = `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`;
     }
   };
 
@@ -197,36 +201,10 @@ export default function RegionalEsim() {
                   {/* Action Button */}
                   <button
                     onClick={(e) => {
-                      const isTelegramWebApp = typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData);
-                      if (isTelegramWebApp) {
-                        e.preventDefault();
-                        const tg = (window as any).Telegram.WebApp;
-                        const textMsg = `ORDER: ${pkg.name} - ${plan.gb}GB - ${plan.days} days - ${plan.price}`;
-
-                        const handleMainButtonClick = () => {
-                          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                          const textMsgAZ = `Sifaris: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
-                          tg.MainButton.setText("SİFARİŞ GÖNDƏRİLİR...");
-                          
-                          try {
-                            tg.sendData(textMsgAZ);
-                            tg.MainButton.hide();
-                            setTimeout(() => tg.close(), 1000);
-                          } catch (e) {
-                            const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsgAZ)}`;
-                            tg.openTelegramLink(url);
-                            tg.close();
-                          }
-                        };
-
-                        tg.MainButton.setText(`SIFARISI TESTDIQLE: ${plan.price}`);
-                        tg.MainButton.show();
-                        tg.MainButton.offClick(handleMainButtonClick);
-                        tg.MainButton.onClick(handleMainButtonClick);
-                      } else {
-                        const textMsg = `Sifariş: ${pkg.name} - ${plan.gb}GB - ${plan.days} gun - ${plan.price}`;
-                        handleBuyClick(e as any, textMsg, plan);
-                      }
+                      const textMsg = plan.code
+                        ? `[ESIM_ORDER]\nBölgə: ${pkg.name}\nKod: ${plan.code}\nID: ${plan.id}\nPaket: ${plan.gb}GB\nQiymət: ${plan.price}`
+                        : `[ESIM_ORDER]\nBölgə: ${pkg.name}\nPaket: ${plan.gb}GB\nMüddət: ${plan.days} gün\nQiymət: ${plan.price}`;
+                      handleBuyClick(e as any, textMsg, plan);
                     }}
                     className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
                       isTelegramWebApp 

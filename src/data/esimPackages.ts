@@ -188,6 +188,7 @@ export const packages: PackageData[] = [
   { flag: '\u{1F1E6}\u{1F1FD}', countryCode: 'ax', country: 'Aland Islands', slug: 'aland-islands-esim', region: 'europe', plans: gZ },
   { flag: '\u{1F1FB}\u{1F1E6}', countryCode: 'va', country: 'Vatican', slug: 'vatican-esim', region: 'europe', plans: gD },
   { flag: '\u{1F1E6}\u{1F1F2}', countryCode: 'am', country: 'Armenia', slug: 'armenia-esim', region: 'europe', plans: gD },
+  { flag: '\u{1F1EC}\u{1F1F1}', countryCode: 'gl', country: 'Greenland', slug: 'greenland-esim', region: 'americas', plans: gJ },
 
   // ===== ASIA =====
   { flag: '\u{1F1EF}\u{1F1F5}', countryCode: 'jp', country: 'Japan', slug: 'japan-esim', region: 'asia', featured: true, plans: gY },
@@ -230,6 +231,7 @@ export const packages: PackageData[] = [
   { flag: '\u{1F1EC}\u{1F1FA}', countryCode: 'gu', country: 'Guam', slug: 'guam-esim', region: 'asia', plans: gE },
   { flag: '\u{1F1E6}\u{1F1F8}', countryCode: 'as', country: 'American Samoa', slug: 'american-samoa-esim', region: 'asia', plans: gF },
   { flag: '\u{1F1E6}\u{1F1EB}', countryCode: 'af', country: 'Afghanistan', slug: 'afghanistan-esim', region: 'asia', plans: gH },
+  { flag: '\u{1F1E7}\u{1F1F9}', countryCode: 'bt', country: 'Bhutan', slug: 'bhutan-esim', region: 'asia', plans: gE },
 
   // ===== MIDDLE EAST =====
   { flag: '\u{1F1EA}\u{1F1EC}', countryCode: 'eg', country: 'Egypt', slug: 'egypt-esim', region: 'middleeast', featured: true, plans: gC },
@@ -294,6 +296,9 @@ export const packages: PackageData[] = [
   { flag: '\u{1F1F2}\u{1F1F8}', countryCode: 'ms', country: 'Montserrat', slug: 'montserrat-esim', region: 'americas', plans: gH },
   { flag: '\u{1F1F9}\u{1F1E8}', countryCode: 'tc', country: 'Turks and Caicos', slug: 'turks-caicos-esim', region: 'americas', plans: gG },
   { flag: '\u{1F1E8}\u{1F1FB}', countryCode: 'cv', country: 'Cape Verde', slug: 'cape-verde-esim', region: 'americas', plans: gG },
+  { flag: '\u{1F1E8}\u{1F1FC}', countryCode: 'cw', country: 'Curacao', slug: 'curacao-esim', region: 'americas', plans: gH },
+  { flag: '\u{1F1E7}\u{1F1F1}', countryCode: 'bl', country: 'Saint Barthelemy', slug: 'saint-barthelemy-esim', region: 'americas', plans: gB },
+  { flag: '\u{1F1F2}\u{1F1EB}', countryCode: 'mf', country: 'Saint Martin', slug: 'saint-martin-esim', region: 'americas', plans: gB },
 
   // ===== AFRICA =====
   { flag: '\u{1F1F2}\u{1F1E6}', countryCode: 'ma', country: 'Morocco', slug: 'morocco-esim', region: 'africa', featured: true, plans: gA },
@@ -341,6 +346,8 @@ export const packages: PackageData[] = [
   { flag: '\u{1F1F9}\u{1F1EC}', countryCode: 'tg', country: 'Togo', slug: 'togo-esim', region: 'africa', plans: gI },
   { flag: '\u{1F1FF}\u{1F1FC}', countryCode: 'zw', country: 'Zimbabwe', slug: 'zimbabwe-esim', region: 'africa', plans: gH },
   { flag: '\u{1F1EA}\u{1F1ED}', countryCode: 'eh', country: 'Western Sahara', slug: 'western-sahara-esim', region: 'africa', plans: gH },
+  { flag: '\u{1F1E6}\u{1F1F4}', countryCode: 'ao', country: 'Angola', slug: 'angola-esim', region: 'africa', plans: gJ },
+  { flag: '\u{1F1E8}\u{1F1E9}', countryCode: 'cd', country: 'DR Congo', slug: 'dr-congo-esim', region: 'africa', plans: gE },
 ];
 
 export function getPackageBySlug(slug: string): PackageData | undefined {

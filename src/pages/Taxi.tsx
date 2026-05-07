@@ -7,7 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 import { getWaId, createOrder } from '../utils/whatsapp';
 
-const WA_LINK = 'https://wa.me/15551656616';
+const WA_LINK = 'https://wa.me/994992010117';
 
 const libraries: ("places" | "geocoding")[] = ["places"];
 
