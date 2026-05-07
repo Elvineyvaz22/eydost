@@ -40,13 +40,13 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     const textMsg = planCodeEntry
-      ? `[ESIM_ORDER]\nCountry: ${countryName}\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
-      : `[ESIM_ORDER]\nCountry: ${countryName}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+      ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: ${countryName}\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
+      : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: ${countryName}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
       const orderInfo = planCodeEntry
-        ? `[ESIM_ORDER]\nCountry: ${countryName}\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
-        : `[ESIM_ORDER]\nCountry: ${countryName}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: ${countryName}\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
+        : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: ${countryName}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
       if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
       

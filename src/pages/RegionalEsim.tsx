@@ -65,8 +65,8 @@ export default function RegionalEsim() {
       }
       
       const textMsg = plan.code 
-        ? `[ESIM_ORDER]\nRegion: ${pkg.name}\nCode: ${plan.code}\nID: ${plan.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
-        : `[ESIM_ORDER]\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nCode: ${plan.code}\nID: ${plan.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
+        : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
       try {
         tg.sendData(textMsg);
@@ -202,8 +202,8 @@ export default function RegionalEsim() {
                   <button
                     onClick={(e) => {
                       const textMsg = plan.code
-                        ? `[ESIM_ORDER]\nRegion: ${pkg.name}\nCode: ${plan.code}\nID: ${plan.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
-                        : `[ESIM_ORDER]\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+                        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nCode: ${plan.code}\nID: ${plan.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
+                        : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
                       handleBuyClick(e as any, textMsg, plan);
                     }}
                     className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
