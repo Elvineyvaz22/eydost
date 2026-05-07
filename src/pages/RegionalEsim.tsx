@@ -60,43 +60,13 @@ export default function RegionalEsim() {
       e.preventDefault();
       const tg = window.Telegram?.WebApp;
       if (!tg) return;
-      if (tg.HapticFeedback) {
-        tg.HapticFeedback.notificationOccurred('success');
-      }
       
       const textMsg = plan.code 
         ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
         : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
-      const user = tg.initDataUnsafe?.user;
-      
-      if (user && user.id) {
-        setIsOrdering(true);
-        const TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
-        
-        try {
-          await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: user.id,
-              text: textMsg
-            })
-          });
-          tg.close();
-        } catch (err) {
-          console.error("Bot API Error:", err);
-          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
-          tg.openTelegramLink(url);
-          tg.close();
-        } finally {
-          setIsOrdering(false);
-        }
-      } else {
-        const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
-        tg.openTelegramLink(url);
-        tg.close();
-      }
+      tg.sendData(textMsg);
+      tg.close();
       return;
     }
 
