@@ -68,12 +68,34 @@ export default function RegionalEsim() {
         ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
         : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
-      try {
-        tg.sendData(textMsg);
-        setTimeout(() => tg.close(), 1000);
-      } catch (err) {
+      const user = tg.initDataUnsafe?.user;
+      
+      if (user && user.id) {
+        setIsOrdering(true);
+        const TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU";
+        
+        try {
+          await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: user.id,
+              text: textMsg
+            })
+          });
+          tg.close();
+        } catch (err) {
+          console.error("Bot API Error:", err);
+          const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
+          tg.openTelegramLink(url);
+          tg.close();
+        } finally {
+          setIsOrdering(false);
+        }
+      } else {
         const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(textMsg)}`;
         tg.openTelegramLink(url);
+        tg.close();
       }
       return;
     }
