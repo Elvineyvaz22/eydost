@@ -65,7 +65,7 @@ export default function RegionalEsim() {
       }
       
       const textMsg = plan.code 
-        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nCode: ${plan.code}\nID: ${plan.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
+        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
         : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
       try {
@@ -202,7 +202,7 @@ export default function RegionalEsim() {
                   <button
                     onClick={(e) => {
                       const textMsg = plan.code
-                        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nCode: ${plan.code}\nID: ${plan.id}\nPackage: ${plan.gb}GB\nPrice: ${plan.price}`
+                        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
                         : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
                       handleBuyClick(e as any, textMsg, plan);
                     }}
