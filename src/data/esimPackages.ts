@@ -3059,19 +3059,19 @@ export const regionalPackages: RegionalPackage[] = [
     flags: ['\u{1F1EB}\u{1F1F7}', '\u{1F1E9}\u{1F1EA}', '\u{1F1EA}\u{1F1F8}', '\u{1F1EE}\u{1F1F9}'],
     countryCount: 35,
     plans: [
-      { gb: 100, days: 180, price: m(68.33), code: 'EU-35', id: 'PKXX9CW14' },
-      { gb: 10, days: 30, price: m(5.67), code: 'EU-35', id: 'P29FDU5TL' },
-      { gb: 10, days: 1, price: m(5.47), code: 'EU-35', id: 'PQ09CKC6D' },
       { gb: 1, days: 7, price: m(0.62), code: 'EU-35', id: 'P2CYMUS93' },
       { gb: 1, days: 1, price: m(0.68), code: 'EU-35', id: 'PFMF92F0P' },
-      { gb: 20, days: 30, price: m(10.93), code: 'EU-35', id: 'P6PBYX5G4' },
       { gb: 2, days: 1, price: m(1.3), code: 'EU-35', id: 'P9H4SLPM3' },
       { gb: 3, days: 15, price: m(1.64), code: 'EU-35', id: 'PRC8B6GK2' },
       { gb: 3, days: 30, price: m(1.74), code: 'EU-35', id: 'P284YMVMZ' },
       { gb: 3, days: 1, price: m(1.85), code: 'EU-35', id: 'PY57TNMU9' },
-      { gb: 50, days: 90, price: m(32.46), code: 'EU-35', id: 'P0Y5QNV2Z' },
       { gb: 5, days: 30, price: m(2.73), code: 'EU-35', id: 'PV0Q6PZ7G' },
-      { gb: 5, days: 1, price: m(2.9), code: 'EU-35', id: 'P230HJTXM' }
+      { gb: 5, days: 1, price: m(2.9), code: 'EU-35', id: 'P230HJTXM' },
+      { gb: 10, days: 1, price: m(5.47), code: 'EU-35', id: 'PQ09CKC6D' },
+      { gb: 10, days: 30, price: m(5.67), code: 'EU-35', id: 'P29FDU5TL' },
+      { gb: 20, days: 30, price: m(10.93), code: 'EU-35', id: 'P6PBYX5G4' },
+      { gb: 50, days: 90, price: m(32.46), code: 'EU-35', id: 'P0Y5QNV2Z' },
+      { gb: 100, days: 180, price: m(68.33), code: 'EU-35', id: 'PKXX9CW14' }
     ],
   },
   {
