@@ -4,7 +4,7 @@
 
 Azerbaijani travel companion platform (eydost.az) with two main services:
 - **eSIM Sales** — Global eSIM data packages for 150+ countries
-- **Taxi Booking** — Baku taxi service via Google Maps
+- **Taxi Booking** — 50+ ölkədə, 500+ şəhərdə aktiv taksi sifarişi (Google Maps əsaslı)
 
 Architecture: React/Vite frontend (root) + Python FastAPI backend (`/backend`).
 
