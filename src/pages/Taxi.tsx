@@ -228,7 +228,6 @@ export default function Taxi() {
         const res = await fetch('https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps', {
           method: 'POST',
           headers: {
-            'Authorization': 'Bearer vlmftc3wuyeme247ns3sbg2drggop5ba7dgja4vr',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
