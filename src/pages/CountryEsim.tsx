@@ -11,6 +11,7 @@ import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
+import { showToast } from '../components/Toast';
 
 const WA_LINK = 'https://wa.me/994992010117';
 
@@ -51,7 +52,7 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
           code: planCodeEntry?.code || countryCode.toUpperCase(),
           id: planCodeEntry?.id || 'GENERIC',
         });
-        alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
+        showToast('✅ Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
       } finally {
         setIsOrdering(false);
       }

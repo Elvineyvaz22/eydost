@@ -48,10 +48,21 @@ export default function Footer() {
             <div className="text-sm text-gray-400 space-y-2">
               <p><span className="text-gray-500">{t.footer.companyLabel}:</span> NURTEL ELEKTR&#304;K MMC</p>
               <p><span className="text-gray-500">{t.footer.addressLabel}:</span> AZ5000, Sumqay&#305;t, N&#601;riman N&#601;rimanov 7/16</p>
-              <Link to="/privacy" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors pt-2 font-medium">
-                <Shield className="w-4 h-4" />
-                Privacy Policy / Gizlilik Siyasəti
-              </Link>
+              <div className="pt-2 space-y-1.5">
+                <Link to="/about" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+                  About / Haqqımızda
+                </Link>
+                <Link to="/privacy" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+                  <Shield className="w-4 h-4" />
+                  Privacy Policy
+                </Link>
+                <Link to="/terms" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+                  Terms of Service
+                </Link>
+                <Link to="/refund" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+                  Refund Policy
+                </Link>
+              </div>
             </div>
 
             <div className="flex gap-1 mt-4">
