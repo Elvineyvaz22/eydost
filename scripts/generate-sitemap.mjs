@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-const SITE_URL = (process.env.SITE_URL || 'https://eydost.az').trim().replace(/\/+$/, '');
+const SITE_URL = (process.env.SITE_URL || 'https://eydost.com').trim().replace(/\/+$/, '');
 
 function xmlEscape(value) {
   return String(value)

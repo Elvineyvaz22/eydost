@@ -10,7 +10,7 @@ type SeoProps = {
   canonicalPath?: string;
 };
 
-const DEFAULT_SITE_URL = 'https://eydost.az';
+const DEFAULT_SITE_URL = 'https://eydost.com';
 const DEFAULT_TITLE = 'Ey Dost — Global eSIM & Taxi Booking via WhatsApp';
 const DEFAULT_DESCRIPTION =
   "Ey Dost — Your Global Travel Companion on WhatsApp. Instant eSIM in 150+ countries and worldwide taxi booking. No app needed.";

@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
 
-Sitemap: https://eydost.az/sitemap.xml
-
+Sitemap: https://eydost.com/sitemap.xml

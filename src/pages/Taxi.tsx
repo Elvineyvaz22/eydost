@@ -3,6 +3,7 @@ import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLe
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 import { getWaId, createOrder } from '../utils/whatsapp';
@@ -344,6 +345,11 @@ export default function Taxi() {
   if (!isMobile) {
     return (
       <div className="min-h-screen bg-[#0A0F1C] flex flex-col font-sans">
+        <Seo
+          title="Global Taxi Booking via WhatsApp"
+          description="Book reliable taxi rides in 500+ cities across 50+ countries — all through WhatsApp. No app needed. Instant confirmation."
+          canonicalPath="/taxi"
+        />
         <Header />
         <main className="flex-1 pt-24 pb-16 lg:pt-32 lg:pb-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
