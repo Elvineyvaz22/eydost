@@ -184,7 +184,7 @@ export default function Taxi() {
 
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
 
-    const [isOrdering, setIsOrdering] = useState(false);
+    const [isOrdering] = useState(false);
     const waId = getWaId();
 
     const handleBooking = async () => {
@@ -273,7 +273,7 @@ export default function Taxi() {
               tg.sendData(msg);
               tg.MainButton.hide();
               setTimeout(() => tg.close(), 1000);
-            } catch (e) {
+            } catch {
               const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(msg)}`;
               tg.openTelegramLink(url);
               tg.close();
