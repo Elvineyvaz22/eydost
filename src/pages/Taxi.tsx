@@ -222,12 +222,15 @@ export default function Taxi() {
         estimated_price: priceText
       });
 
-      // Forward booking to backend webhook
+      // Forward booking directly to bsqd.me API
       const bookingId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       try {
-        await fetch('/api/webhooks/taxi', {
+        await fetch('https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Authorization': 'Bearer vlmftc3wuyeme247ns3sbg2drggop5ba7dgja4vr',
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             bookingId,
             pickup: {
