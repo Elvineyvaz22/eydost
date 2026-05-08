@@ -8,9 +8,11 @@ type SeoProps = {
   image?: string;
   noIndex?: boolean;
   canonicalPath?: string;
+  jsonLd?: object | object[];
 };
 
 const DEFAULT_SITE_URL = 'https://eydost.com';
+const DEFAULT_OG_IMAGE = 'https://eydost.com/og-image.png';
 const DEFAULT_TITLE = 'Ey Dost — Global eSIM & Taxi Booking via WhatsApp';
 const DEFAULT_DESCRIPTION =
   "Ey Dost — Your Global Travel Companion on WhatsApp. Instant eSIM in 150+ countries and worldwide taxi booking. No app needed.";
@@ -32,10 +34,15 @@ export default function Seo(props: SeoProps) {
 
   const title = props.title ? `${props.title} | Ey Dost` : DEFAULT_TITLE;
   const description = props.description || DEFAULT_DESCRIPTION;
+  const image = props.image || DEFAULT_OG_IMAGE;
 
   const siteUrl = getSiteUrl();
   const canonicalPath = props.canonicalPath ?? location.pathname;
   const canonicalUrl = toCanonicalUrl(siteUrl, canonicalPath);
+
+  const jsonLdItems = props.jsonLd
+    ? Array.isArray(props.jsonLd) ? props.jsonLd : [props.jsonLd]
+    : [];
 
   return (
     <Helmet>
@@ -50,12 +57,14 @@ export default function Seo(props: SeoProps) {
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={canonicalUrl} />
-      {props.image ? <meta property="og:image" content={props.image} /> : null}
+      <meta property="og:image" content={image} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
 
-      <meta name="twitter:card" content={props.image ? 'summary_large_image' : 'summary'} />
+      <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      {props.image ? <meta name="twitter:image" content={props.image} /> : null}
+      <meta name="twitter:image" content={image} />
 
       {props.noIndex ? (
         <>
@@ -63,6 +72,12 @@ export default function Seo(props: SeoProps) {
           <meta name="googlebot" content="noindex, nofollow" />
         </>
       ) : null}
+
+      {jsonLdItems.map((schema, i) => (
+        <script key={i} type="application/ld+json">
+          {JSON.stringify(schema)}
+        </script>
+      ))}
     </Helmet>
   );
 }

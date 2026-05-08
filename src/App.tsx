@@ -8,6 +8,7 @@ import StatsBar from './components/StatsBar';
 import EsimPackages from './components/EsimPackages';
 import HowEsimWorks from './components/HowEsimWorks';
 import WhyEyDost from './components/WhyEyDost';
+import Testimonials from './components/Testimonials';
 import FAQ from './components/FAQ';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
@@ -44,16 +45,94 @@ const TranslationsEditor = lazy(() => import('./pages/admin/TranslationsEditor')
 const Messages = lazy(() => import('./pages/admin/Messages'));
 const PricingEditor = lazy(() => import('./pages/admin/PricingEditor'));
 
+const HOME_JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Ey Dost",
+    "url": "https://eydost.com",
+    "logo": "https://eydost.com/og-image.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "availableLanguage": ["Azerbaijani", "English", "Russian"],
+      "contactOption": "TollFree"
+    },
+    "sameAs": [
+      "https://t.me/eydost_esim_bot",
+      "https://wa.me/994992000444"
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Ey Dost",
+    "url": "https://eydost.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://eydost.com/esim?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is an eSIM and how do I install it?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "An eSIM is a digital SIM. Once you buy a plan via WhatsApp, we send you a QR code. Just scan it with your phone's camera, and your internet will be active in seconds!"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to download an app?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No! Everything from ordering a taxi to buying internet packages is done 100% via WhatsApp. Zero downloads, zero hassle."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "In which countries does the taxi service operate?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Our taxi service is active in 500+ cities across 50+ countries. We partner with local fleets across Europe, Asia, Americas, and the Middle East."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use the eSIM in multiple countries?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! If you purchase our Regional or Global eSIM packages, you can travel across multiple borders without losing connection or changing your eSIM."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Are your services available 24/7?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely. Our WhatsApp automated system and support agents are available around the clock, 24/7/365, to assist you anywhere in the world."
+        }
+      }
+    ]
+  }
+];
+
 function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      <Seo />
+      <Seo jsonLd={HOME_JSON_LD} />
       <Header />
       <Hero />
       <StatsBar />
       <EsimPackages />
       <HowEsimWorks />
       <WhyEyDost />
+      <Testimonials />
       <FAQ />
       <Contact />
       <Footer />
