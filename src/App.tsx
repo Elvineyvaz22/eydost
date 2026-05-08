@@ -96,10 +96,10 @@ const HOME_JSON_LD = [
       },
       {
         "@type": "Question",
-        "name": "In which countries does the taxi service operate?",
+        "name": "In which European cities is the taxi service available?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Our taxi service is active in 500+ cities across 50+ countries. We partner with local fleets across Europe, Asia, Americas, and the Middle East."
+          "text": "Our taxi service operates in 500+ cities across Europe including London, Paris, Berlin, Amsterdam, Barcelona, Rome, Vienna, Prague and many more. Just open the Taxi page and book via WhatsApp."
         }
       },
       {

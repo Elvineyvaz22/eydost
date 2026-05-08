@@ -61,8 +61,8 @@ export const translations = {
     taxi: {
       title: 'Global Taxi Booking',
       subtitle: 'Book rides worldwide through WhatsApp. AI-powered, verified drivers.',
-      feature1Title: 'Worldwide Coverage',
-      feature1Desc: 'Active in 500+ cities across 45 countries.',
+      feature1Title: 'Europe-Wide Coverage',
+      feature1Desc: 'Active in 500+ cities across Europe — from London to Istanbul.',
       feature2Title: 'AI-Powered',
       feature2Desc: 'Smart matching with verified, rated drivers.',
       feature3Title: 'No Extra App',
@@ -246,8 +246,8 @@ export const translations = {
     taxi: {
       title: 'Qlobal Taksi Sifari\u015fi',
       subtitle: 'WhatsApp vasit\u0259sil\u0259 d\u00fcnyadak\u0131 g\u0259di\u015fl\u0259ri sifari\u015f edin. AI-g\u00fccl\u00fc, t\u0259sdiql\u0259nmi\u015f s\u00fcr\u00fcc\u00fcl\u0259r.',
-      feature1Title: 'D\u00fcnyadak\u0131 \u018fhat\u0259',
-      feature1Desc: '45 \u00f6lk\u0259d\u0259 500+ \u015f\u0259h\u0259rd\u0259 aktivdir.',
+      feature1Title: 'Avropa üzrə əhatə',
+      feature1Desc: 'Londandan İstanbula qədər — Avropada 500+ şəhərdə aktiv.',
       feature2Title: 'AI-G\u00fccl\u00fc',
       feature2Desc: 'T\u0259sdiql\u0259nmi\u015f, reytinqli s\u00fcr\u00fcc\u00fcl\u0259rl\u0259 a\u011f\u0131ll\u0131 uyğunla\u015fma.',
       feature3Title: '\u018flav\u0259 Proqram Yoxdur',

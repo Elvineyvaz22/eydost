@@ -3,69 +3,69 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 const testimonials = [
   {
-    name: 'Aynur M.',
-    location: 'Bakı, Azərbaycan',
-    flag: '🇦🇿',
-    rating: 5,
-    text: {
-      en: "Bought a Turkey eSIM for my vacation. Got the QR code on WhatsApp in under 2 minutes. No app, no ID — just instant internet. Absolutely love it!",
-      az: "Tətil üçün Türkiyə eSIM aldım. WhatsApp-da QR kodu 2 dəqiqədən az müddətdə gəldi. Heç bir proqram, şəxsiyyət sənədi lazım olmadı — sadəcə ani internet. Çox bəyəndim!",
-      ru: "Купила eSIM для Турции к отпуску. QR-код пришёл в WhatsApp менее чем за 2 минуты. Никаких приложений, никакого удостоверения — просто мгновенный интернет. Очень доволен!",
-    }
-  },
-  {
-    name: 'Rauf H.',
-    location: 'Dubai, UAE',
-    flag: '🇦🇪',
-    rating: 5,
-    text: {
-      en: "Used Ey Dost for a taxi in Istanbul. The driver was on time, car was clean, price was fair. Booked everything through WhatsApp in 3 messages. Game changer.",
-      az: "İstanbulda taksi üçün Ey Dost-dan istifadə etdim. Sürücü vaxtında gəldi, avtomobil təmiz idi, qiymət ədalətli idi. Hər şeyi WhatsApp-da 3 mesajla sifariş etdim. Əla xidmət.",
-      ru: "Воспользовался Ey Dost для такси в Стамбуле. Водитель приехал вовремя, машина чистая, цена справедливая. Всё заказал через WhatsApp в 3 сообщения. Отлично.",
-    }
-  },
-  {
-    name: 'Leyla K.',
+    name: 'Sophie W.',
     location: 'London, UK',
     flag: '🇬🇧',
     rating: 5,
     text: {
-      en: "I travel for work every month. Ey Dost has become my go-to for eSIMs. Europe package works perfectly across 35 countries. 24/7 support is a lifesaver.",
-      az: "Hər ay iş üçün səfər edirəm. Ey Dost eSIM üçün əvəzolunmaz oldu. Avropa paketi 35 ölkədə mükəmməl işləyir. 24/7 dəstək həyat xilastedicidir.",
-      ru: "Я путешествую по работе каждый месяц. Ey Dost стал моим выбором для eSIM. Европейский пакет отлично работает в 35 странах. Поддержка 24/7 — это спасение.",
+      en: "Bought a Europe eSIM before my trip. QR code arrived on WhatsApp in under 2 minutes. Worked perfectly in 8 countries. No app, no queues — just instant internet!",
+      az: "Səfərdən əvvəl Avropa eSIM aldım. QR kodu WhatsApp-da 2 dəqiqəyə gəldi. 8 ölkədə mükəmməl işlədi. Heç bir proqram, növbə yoxdur — sadəcə ani internet!",
+      ru: "Купила европейский eSIM перед поездкой. QR-код пришёл в WhatsApp за 2 минуты. Работал отлично в 8 странах. Никаких приложений, никаких очередей — просто мгновенный интернет!",
     }
   },
   {
-    name: 'Tural A.',
-    location: 'Berlin, Germany',
-    flag: '🇩🇪',
-    rating: 5,
-    text: {
-      en: "Skeptical at first about WhatsApp-based service, but wow. eSIM arrived instantly, worked perfectly in Germany. Will use for every trip from now on.",
-      az: "Əvvəlcə WhatsApp əsaslı xidmətə şübhə ilə yanaşdım, amma əla. eSIM dərhal gəldi, Almaniyada mükəmməl işlədi. Bundan sonra hər səfərdə istifadə edəcəm.",
-      ru: "Сначала скептически отнёсся к сервису через WhatsApp, но wow. eSIM пришёл мгновенно, отлично работал в Германии. Буду использовать в каждой поездке.",
-    }
-  },
-  {
-    name: 'Nigar R.',
+    name: 'Marc D.',
     location: 'Paris, France',
     flag: '🇫🇷',
     rating: 5,
     text: {
-      en: "Got a taxi through Ey Dost at Charles de Gaulle airport at midnight. Driver was waiting with a sign. Stress-free arrival. Highly recommend!",
-      az: "Gecə yarısı Şarl de Qol hava limanında Ey Dost vasitəsilə taksi sifariş etdim. Sürücü lövhəciklə gözləyirdi. Stresssiz gəliş. Tövsiyə edirəm!",
-      ru: "Вызвал такси через Ey Dost в аэропорту Шарль-де-Голль в полночь. Водитель ждал с табличкой. Приезд без стресса. Очень рекомендую!",
+      en: "Booked a taxi from Charles de Gaulle airport at midnight through Ey Dost. Driver was waiting with a name sign. Clean car, fair price. Absolute lifesaver.",
+      az: "Gecə yarısı Şarl de Qol hava limanından Ey Dost vasitəsilə taksi sifariş etdim. Sürücü adım yazılmış lövhəciklə gözləyirdi. Təmiz avtomobil, ədalətli qiymət. Əvəzedilməz!",
+      ru: "Заказал такси из аэропорта Шарль-де-Голль в полночь через Ey Dost. Водитель ждал с табличкой с моим именем. Чистая машина, честная цена. Просто незаменимо.",
     }
   },
   {
-    name: 'Kamran B.',
-    location: 'İstanbul, Turkey',
-    flag: '🇹🇷',
+    name: 'Anna K.',
+    location: 'Berlin, Germany',
+    flag: '🇩🇪',
     rating: 5,
     text: {
-      en: "Best eSIM service I've tried. Cheaper than airport SIMs, faster to activate, and support actually replies. What more do you need?",
-      az: "İndiyə qədər istifadə etdiyim ən yaxşı eSIM xidməti. Hava limanı SIM-lərindən ucuz, aktivləşdirməsi daha sürətli, dəstək həqiqətən cavab verir. Başqa nə lazımdır?",
-      ru: "Лучший eSIM-сервис, который я пробовал. Дешевле аэропортовых SIM, быстрее активируется, поддержка действительно отвечает. Что ещё нужно?",
+      en: "I travel for work every month across Europe. Ey Dost is my go-to for both eSIM and taxi. The Europe package saves me so much — works in every country I visit.",
+      az: "Hər ay iş üçün Avropa üzrə səfər edirəm. eSIM və taksi üçün Ey Dost əvəzolunmaz oldu. Avropa paketi hər getdiyim ölkədə işləyir — qənaət böyükdür.",
+      ru: "Каждый месяц езжу по работе по Европе. Ey Dost — мой выбор и для eSIM, и для такси. Европейский пакет работает в каждой стране — экономия огромная.",
+    }
+  },
+  {
+    name: 'James O.',
+    location: 'Amsterdam, Netherlands',
+    flag: '🇳🇱',
+    rating: 5,
+    text: {
+      en: "Skeptical about a WhatsApp-based taxi service, but it genuinely impressed me. Booked a ride from Schiphol, driver was professional, no surge pricing. Brilliant.",
+      az: "WhatsApp əsaslı taksi xidmətinə şübhə ilə yanaşdım, amma həqiqətən təəccübləndim. Schiphol-dan sifariş etdim, sürücü peşəkar idi, qiymət artımı yox idi. Əla.",
+      ru: "Скептически относился к такси через WhatsApp, но сервис реально впечатлил. Заказал из Схипхола — водитель профессиональный, никаких наценок. Отлично.",
+    }
+  },
+  {
+    name: 'Clara R.',
+    location: 'Barcelona, Spain',
+    flag: '🇪🇸',
+    rating: 5,
+    text: {
+      en: "Used the Europe eSIM for a 3-week road trip across Spain, France and Italy. Never lost signal, support answered in seconds. Genuinely the best travel tool I've found.",
+      az: "İspaniya, Fransa və İtaliyada 3 həftəlik yol səfəri üçün Avropa eSIM istifadə etdim. Əlaqəni heç vaxt itirmədim, dəstək saniyələr içində cavab verdi. Ən yaxşı səyahət alətidir.",
+      ru: "Использовала европейский eSIM в 3-недельном роуд-трипе по Испании, Франции и Италии. Ни разу не потеряла сигнал, поддержка отвечала за секунды. Лучший travel-инструмент.",
+    }
+  },
+  {
+    name: 'Thomas H.',
+    location: 'Vienna, Austria',
+    flag: '🇦🇹',
+    rating: 5,
+    text: {
+      en: "Pre-booked an early morning airport transfer in Vienna via WhatsApp. Got a confirmation instantly. Driver was there 10 minutes early. Will never use a regular taxi app again.",
+      az: "Vyanada erkən səhər aeroport transferini WhatsApp-da əvvəlcədən sifariş etdim. Dərhal təsdiq gəldi. Sürücü 10 dəqiqə əvvəl gəldi. Artıq adi taksi proqramından istifadə etməyəcəm.",
+      ru: "Заранее забронировал ранний трансфер в аэропорт Вены через WhatsApp. Подтверждение пришло мгновенно. Водитель был за 10 минут до времени. Больше никаких обычных такси-приложений.",
     }
   },
 ];

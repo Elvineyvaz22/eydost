@@ -14,16 +14,16 @@ export default function FAQ() {
 
   const faqs = {
     taxi: [
-      { q: "How do I book a ride globally?", a: "Simply open our Taxi map, select your pickup and drop-off locations anywhere in the world, and click 'Book via WhatsApp'. Our dispatch system will instantly connect you with a driver." },
-      { q: "In which countries does the taxi service operate?", a: "Our taxi service is global! We partner with local fleets and drivers across Europe, Asia, Americas, and the Middle East to ensure you get a ride wherever you are." },
-      { q: "How do I pay for the taxi?", a: "You can pay securely via a payment link sent to you on WhatsApp, or pay the driver directly with cash/card depending on local availability." },
-      { q: "Can I schedule a ride in advance?", a: "Yes, you can message our WhatsApp agents to schedule a pickup for a specific date and time, such as an early morning airport transfer." },
-      { q: "How do I recognize my driver?", a: "Once your ride is confirmed, we will send you the driver's name, car model, and license plate number directly via WhatsApp." },
-      { q: "What happens if my flight is delayed?", a: "If you booked an airport pickup, just provide us with your flight number. Our drivers track flights and will adjust the pickup time automatically at no extra cost." },
-      { q: "Are the prices fixed or metered?", a: "In most cases, we provide an estimated or fixed upfront price before you confirm the ride, so there are no surprises." },
-      { q: "Can I order a ride for someone else?", a: "Absolutely! Just share their pickup location and contact details with us on WhatsApp, and we'll arrange the ride for them." },
-      { q: "Is it safe to use your service?", a: "We only partner with licensed, verified local fleets and highly-rated drivers to ensure your safety and comfort anywhere in the world." },
-      { q: "Can I cancel a ride after ordering?", a: "Yes, you can cancel by messaging us. Please note that a cancellation fee may apply if the driver is already at the pickup location." },
+      { q: "In which European cities is the taxi service available?", a: "We operate in 500+ cities across Europe including London, Paris, Berlin, Amsterdam, Barcelona, Rome, Vienna, Prague, Warsaw, Budapest and many more. Just open the Taxi page, enter your location, and we'll connect you with a local driver." },
+      { q: "How do I book a ride?", a: "Open our Taxi page, select your pickup and drop-off on the map, choose your car class, and tap 'Order via WhatsApp'. Our dispatch system connects you with a verified local driver instantly." },
+      { q: "How do I pay for the taxi?", a: "You can pay securely via a payment link sent to you on WhatsApp, or pay the driver directly with cash or card depending on the city." },
+      { q: "Can I schedule a ride in advance?", a: "Yes! Message our WhatsApp agents to pre-book for a specific date and time — ideal for early morning airport transfers across Europe." },
+      { q: "How do I recognize my driver?", a: "Once confirmed, we send the driver's name, car model, and license plate directly to your WhatsApp." },
+      { q: "What happens if my flight is delayed?", a: "Give us your flight number when booking. Our drivers track flights and adjust pickup time automatically — at no extra cost." },
+      { q: "Are the prices fixed or metered?", a: "We provide an estimated or fixed upfront price before you confirm, so there are no surprises — typical of major European cities." },
+      { q: "Can I order a ride for someone else?", a: "Absolutely! Share their pickup location and contact via WhatsApp and we arrange everything for them." },
+      { q: "Is it safe?", a: "We partner only with licensed, verified local fleets and highly-rated drivers across every European city we serve." },
+      { q: "Can I cancel a ride?", a: "Yes, message us to cancel. A cancellation fee may apply if the driver is already en route to your location." },
     ],
     esim: [
       { q: "What is an eSIM and how do I install it?", a: "An eSIM is a digital SIM. Once you buy a plan via WhatsApp, we send you a QR code. Just scan it with your phone's camera, and your internet will be active in seconds!" },
