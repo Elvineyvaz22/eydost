@@ -225,7 +225,7 @@ export default function Taxi() {
       // Forward booking directly to bsqd.me API
       const bookingId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       try {
-        await fetch('https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps', {
+        const res = await fetch('https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps', {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer vlmftc3wuyeme247ns3sbg2drggop5ba7dgja4vr',
@@ -248,6 +248,11 @@ export default function Taxi() {
             confirmed_at: new Date().toISOString(),
           }),
         });
+        console.log('[TAXI_WEBHOOK] status:', res.status, 'ok:', res.ok);
+        if (!res.ok) {
+          const body = await res.text();
+          console.warn('[TAXI_WEBHOOK] error body:', body);
+        }
       } catch (e) {
         console.warn('Taxi webhook failed:', e);
       }
