@@ -16,9 +16,12 @@ export default function Header() {
   const isTaxiPage = location.pathname === '/taxi';
   const isPackagesPage = location.pathname === '/esim';
 
+  const blogLabel = { en: 'Blog', az: 'Blog', ru: 'Блог' }[language as 'en'|'az'|'ru'] ?? 'Blog';
+
   const navLinks = [
     { href: '/esim', label: t.nav.esim },
     { href: '/taxi', label: t.nav.taxi },
+    { href: '/blog', label: blogLabel },
     { href: '/#how-esim', label: t.nav.howItWorks },
     { href: '/#faq', label: t.nav.faq },
     { href: '/#contact', label: t.nav.contact },

@@ -684,6 +684,201 @@ export const blogPosts: BlogPost[] = [
       ],
     },
   },
+,
+  // ── eSIM vs Roaming ──────────────────────────────────────────────────────────
+  {
+    slug: 'esim-vs-roaming-cost-comparison',
+    category: 'esim',
+    publishedAt: '2026-05-06',
+    readingMinutes: 5,
+    en: {
+      title: 'eSIM vs Roaming in 2026 — Which is Cheaper? (Cost Comparison)',
+      description: 'A detailed cost comparison between eSIM and traditional roaming for European travel in 2026. Find out how much you can save by switching to eSIM.',
+      sections: [
+        { heading: 'The true cost of roaming', body: 'Most major carriers charge between €5 and €15 per day for a "roaming pass" in Europe. For a 10-day trip, that\'s €50–€150 just for internet access — on top of your regular monthly bill.' },
+        { heading: 'What does an eSIM cost?', body: 'A Europe eSIM from Ey Dost covering 35 countries costs:', list: ['1 GB / 7 days — approx. €1.60', '3 GB / 15 days — approx. €3.90', '5 GB / 30 days — approx. €6.70', '10 GB / 30 days — approx. €12.00', '20 GB / 30 days — approx. €20.00'] },
+        { heading: 'Side-by-side comparison', body: 'For a 2-week trip to Europe using 3–5 GB of data:', list: ['Carrier roaming pass: €70–€140', 'Airport SIM card: €25–€40 (single country only)', 'Ey Dost Europe eSIM: €6.70–€12.00', 'Saving with eSIM: up to €130 vs roaming'] },
+        { heading: 'Hidden roaming costs to watch for', body: 'Roaming bills often include hidden extras:', list: ['Per-minute call charges even in EU', 'SMS charges that add up fast', 'Background app data charged at full roaming rate', 'Automatic renewal fees if you exceed daily cap'] },
+        { heading: 'The verdict', body: 'For any trip of 3 days or more, an eSIM is significantly cheaper than roaming — often 5–10x less. And with Ey Dost, you activate in under 2 minutes via WhatsApp. No brainer.' },
+      ],
+    },
+    az: {
+      title: '2026-da eSIM vs Roaming — Hansı daha ucuzdur? (Xərc müqayisəsi)',
+      description: '2026-cı ildə Avropa səfəri üçün eSIM və ənənəvi roaming arasında ətraflı xərc müqayisəsi. eSIM-ə keçərək nə qədər qənaət edə biləcəyinizi öyrənin.',
+      sections: [
+        { heading: 'Roaminqin əsl dəyəri', body: 'Əksər operatorlar Avropada "roaming paketi" üçün gündə 5-15 avro tələb edir. 10 günlük səfər üçün bu, yalnız internet girişi üçün 50–150 avro deməkdir.' },
+        { heading: 'eSIM nə qədər başa gəlir?', body: '35 ölkəni əhatə edən Ey Dost Avropa eSIM-i bu qiymətlərə malikdir:', list: ['1 GB / 7 gün — təxm. €1.60', '3 GB / 15 gün — təxm. €3.90', '5 GB / 30 gün — təxm. €6.70', '10 GB / 30 gün — təxm. €12.00', '20 GB / 30 gün — təxm. €20.00'] },
+        { heading: 'Yan-yana müqayisə', body: '3–5 GB data istifadə edərək Avropada 2 həftəlik səfər üçün:', list: ['Operator roaming paketi: €70–€140', 'Hava limanı SIM kartı: €25–€40 (yalnız bir ölkə)', 'Ey Dost Avropa eSIM: €6.70–€12.00', 'eSIM ilə qənaət: roamingə nisbətən 130 avro-ya qədər'] },
+        { heading: 'Nəticə', body: '3 gün və ya daha uzun müddətli istənilən səfər üçün eSIM roamingdən əhəmiyyətli dərəcədə ucuzdur — çox vaxt 5-10 dəfə az. Ey Dost ilə WhatsApp vasitəsilə 2 dəqiqədən az müddətdə aktivləşdirirsiniz.' },
+      ],
+    },
+    ru: {
+      title: 'eSIM vs роуминг в 2026 — что дешевле? (сравнение стоимости)',
+      description: 'Подробное сравнение стоимости eSIM и традиционного роуминга для поездок по Европе в 2026 году.',
+      sections: [
+        { heading: 'Реальная стоимость роуминга', body: 'Большинство операторов берут €5–15 в день за "пакет роуминга" в Европе. За 10-дневную поездку это €50–€150 только за интернет.' },
+        { heading: 'Сколько стоит eSIM?', body: 'Европейский eSIM Ey Dost, охватывающий 35 стран, стоит:', list: ['1 ГБ / 7 дней — около €1.60', '3 ГБ / 15 дней — около €3.90', '5 ГБ / 30 дней — около €6.70', '10 ГБ / 30 дней — около €12.00', '20 ГБ / 30 дней — около €20.00'] },
+        { heading: 'Сравнение', body: 'За 2-недельную поездку по Европе с 3–5 ГБ трафика:', list: ['Роуминг-пакет оператора: €70–€140', 'SIM-карта в аэропорту: €25–€40 (только одна страна)', 'Ey Dost Europe eSIM: €6.70–€12.00', 'Экономия с eSIM: до €130 по сравнению с роумингом'] },
+        { heading: 'Вывод', body: 'Для любой поездки от 3 дней eSIM значительно дешевле роуминга — часто в 5–10 раз. С Ey Dost вы активируете за 2 минуты через WhatsApp.' },
+      ],
+    },
+  },
+  // ── Best eSIM Germany ─────────────────────────────────────────────────────────
+  {
+    slug: 'best-esim-germany-2026',
+    category: 'esim',
+    publishedAt: '2026-05-07',
+    readingMinutes: 4,
+    en: {
+      title: 'Best eSIM for Germany in 2026 — Stay Connected Everywhere',
+      description: 'Find the best eSIM for Germany in 2026. Compare data plans, coverage, and prices for travelling to Berlin, Munich, Hamburg and across Germany.',
+      sections: [
+        { heading: 'Why Germany needs a good eSIM', body: 'Germany has excellent 4G/LTE coverage in cities, but rural areas can be patchy. A good eSIM with broad network compatibility ensures you stay connected whether you\'re in Berlin\'s Mitte, Munich\'s Englischer Garten, or driving the Autobahn.' },
+        { heading: 'Ey Dost Germany eSIM options', body: 'You can use our Europe eSIM (35 countries) or a dedicated Germany plan:', list: ['Germany-only plan: from €0.93 for 1 GB / 7 days', '5 GB / 30 days: approx. €5.80', 'Europe 35-country plan: from €1.60 — best if visiting multiple countries', '4G/LTE speeds on major German networks'] },
+        { heading: 'Top German cities covered', body: 'Our eSIM works seamlessly across all major German cities and regions:', list: ['Berlin, Hamburg, Munich, Frankfurt, Cologne', 'Stuttgart, Düsseldorf, Dresden, Leipzig', 'All federal motorways (Autobahn) and intercity train routes'] },
+        { heading: 'How to activate before you land', body: 'Order your Germany eSIM on WhatsApp before your flight. The QR code arrives instantly. Scan it, enable data roaming for the eSIM in your phone settings, and you\'ll have internet the moment you land at Frankfurt, Munich, or Berlin airports.' },
+        { heading: 'Tips for using eSIM in Germany', body: '', list: ['German trains (Deutsche Bahn) have WiFi, but coverage can drop in tunnels — keep eSIM as backup', 'Berlin is known for poor indoor coverage — choose a plan with good network partners', 'Enable Low Data Mode on iPhone to stretch your GB further'] },
+      ],
+    },
+    az: {
+      title: '2026-da Almaniya üçün ən yaxşı eSIM — Hər yerdə bağlı qalın',
+      description: '2026-cı ildə Almaniya üçün ən yaxşı eSIM-i tapın. Berlin, Münhen, Hamburq və bütün Almaniyada səfər üçün data planlarını, əhatəni və qiymətləri müqayisə edin.',
+      sections: [
+        { heading: 'Almaniyada niyə yaxşı eSIM lazımdır', body: 'Almaniyada şəhərlərdə əla 4G/LTE əhatəsi var, lakin kənd rayonlarında zəif ola bilər. Geniş şəbəkə uyğunluğu olan yaxşı eSIM ilə Berlin-in Mitte-sində, Münhen-in Englischer Garten-ında və ya Autobahn-da sürərkən bağlı qalırsınız.' },
+        { heading: 'Ey Dost Almaniya eSIM seçimləri', body: 'Avropa eSIM-imizdən (35 ölkə) və ya xüsusi Almaniya planından istifadə edə bilərsiniz:', list: ['Yalnız Almaniya planı: 1 GB / 7 gün üçün €0.93-dən', '5 GB / 30 gün: təxm. €5.80', 'Avropa 35 ölkə planı: €1.60-dan — bir neçə ölkəyə gedərsinizsə ən yaxşı', 'Əsas Alman şəbəkələrində 4G/LTE sürəti'] },
+        { heading: 'Əhatə olunan əsas Alman şəhərləri', body: 'eSIM-imiz bütün əsas Alman şəhərləri və regionlarında sorunsuz işləyir:', list: ['Berlin, Hamburq, Münhen, Frankfurt, Köln', 'Ştutqart, Düsseldorf, Drezden, Leypsiq', 'Bütün federal avtomobil yolları (Autobahn) və şəhərlərarası dəmir yolu marşrutları'] },
+        { heading: 'Enməzdən əvvəl necə aktivləşdirmək olar', body: 'Uçuşunuzdan əvvəl WhatsApp-da Almaniya eSIM-inizi sifariş edin. QR kodu dərhal gəlir. Onu skan edin, telefon parametrlərinizdə eSIM üçün data roaming-i aktivləşdirin və Frankfurt, Münhen və ya Berlin hava limanlarına enən kimi internetiniz olacaq.' },
+      ],
+    },
+    ru: {
+      title: 'Лучший eSIM для Германии в 2026 году',
+      description: 'Найдите лучший eSIM для Германии. Сравните тарифы, покрытие и цены для поездок в Берлин, Мюнхен, Гамбург и по всей Германии.',
+      sections: [
+        { heading: 'Зачем нужен хороший eSIM в Германии', body: 'В городах Германии отличное 4G/LTE-покрытие, но в сельской местности оно может быть нестабильным. Хороший eSIM с широкой совместимостью сетей обеспечит связь в Берлине, Мюнхене и на Autobahn.' },
+        { heading: 'Варианты eSIM Ey Dost для Германии', body: 'Вы можете использовать наш европейский eSIM (35 стран) или отдельный план для Германии:', list: ['Только Германия: от €0.93 за 1 ГБ / 7 дней', '5 ГБ / 30 дней: около €5.80', 'Европейский план на 35 стран: от €1.60 — лучший вариант при посещении нескольких стран', '4G/LTE на ведущих немецких сетях'] },
+        { heading: 'Охваченные города', body: 'Наш eSIM работает по всей Германии:', list: ['Берлин, Гамбург, Мюнхен, Франкфурт, Кёльн', 'Штутгарт, Дюссельдорф, Дрезден, Лейпциг', 'Все федеральные автострады и маршруты межгородских поездов'] },
+        { heading: 'Как активировать до прилёта', body: 'Закажите eSIM для Германии в WhatsApp до вылета. QR-код придёт мгновенно. Отсканируйте его, включите роуминг данных для eSIM — и интернет будет готов, как только вы приземлитесь.' },
+      ],
+    },
+  },
+  // ── eSIM France ──────────────────────────────────────────────────────────────
+  {
+    slug: 'how-to-use-esim-france',
+    category: 'esim',
+    publishedAt: '2026-05-07',
+    readingMinutes: 4,
+    en: {
+      title: 'How to Use eSIM in France — Paris, Lyon, Nice and Beyond',
+      description: 'Complete guide to using an eSIM in France. Everything you need to know about staying connected in Paris, the French Riviera, and across France in 2026.',
+      sections: [
+        { heading: 'eSIM coverage in France', body: 'France has strong 4G/5G coverage in major cities and along major routes. Paris, Lyon, Marseille, Nice, and Bordeaux all have excellent connectivity. Rural areas and mountain regions (Alps, Pyrenees) can have limited coverage.' },
+        { heading: 'Best eSIM options for France', body: 'Choose based on your trip length and data needs:', list: ['1 GB / 7 days — city break in Paris, perfect for maps and WhatsApp', '3 GB / 15 days — road trip or multi-city France tour', '5 GB / 30 days — extended stay with streaming and video calls', 'Europe 35-country plan — best if also visiting Belgium, Spain, or other EU countries'] },
+        { heading: 'Paris travel tips with eSIM', body: 'In Paris, your eSIM is essential for:', list: ['Google Maps and public transport (RATP) navigation', 'Booking restaurant reservations via apps', 'Museum entry — most Paris museums use QR code e-tickets', 'Staying in touch via WhatsApp and social media', 'Translating French menus and signs'] },
+        { heading: 'French Riviera (Côte d\'Azur)', body: 'Nice, Cannes, Monaco, and Saint-Tropez all have excellent coverage. Your Ey Dost eSIM also covers Monaco separately (as part of the Europe plan), so you won\'t lose signal crossing the French-Monégasque border.' },
+        { heading: 'How to get your France eSIM', body: 'Message Ey Dost on WhatsApp before your trip. Say "France eSIM" and we\'ll show you available plans. Pay via the secure link and your QR code arrives in under 2 minutes. Activate before boarding and you\'re ready.' },
+      ],
+    },
+    az: {
+      title: 'Fransada eSIM-dən necə istifadə etmək olar — Paris, Lion, Nis',
+      description: 'Fransada eSIM istifadəsinə dair tam bələdçi. 2026-cı ildə Parisdə, Fransız Rivyerasında bağlı qalmaq üçün lazım olan hər şey.',
+      sections: [
+        { heading: 'Fransada eSIM əhatəsi', body: 'Fransa əsas şəhərlərdə və əsas marşrutlar boyunca güclü 4G/5G əhatəsinə malikdir. Paris, Lion, Marsel, Nis və Bordo hamısı əla bağlantıya malikdir.' },
+        { heading: 'Fransa üçün ən yaxşı eSIM seçimləri', body: 'Səfər müddətinizə və data ehtiyacınıza görə seçin:', list: ['1 GB / 7 gün — Parisdə şəhər gəzintisi, xəritə və WhatsApp üçün ideal', '3 GB / 15 gün — yol səfəri və ya çox şəhərli Fransa turu', '5 GB / 30 gün — yayım və video zənglər ilə uzadılmış qalış', 'Avropa 35 ölkə planı — Belçika, İspaniya və ya digər AB ölkələrini ziyarət edirsinizsə ən yaxşı'] },
+        { heading: 'Paris-də eSIM ilə səyahət məsləhətləri', body: 'Parisdə eSIM-iniz bunlar üçün vacibdir:', list: ['Google Maps və ictimai nəqliyyat (RATP) naviqasiyası', 'Restoran rezervasiyaları', 'Muzey girişi — əksər Paris muzeylərinin QR kod e-biletləri var', 'WhatsApp və sosial media', 'Fransız menyularını və işarələrini tərcümə etmək'] },
+        { heading: 'Fransız Rivyerası (Côte d\'Azur)', body: 'Nis, Kann, Monako və San-Trope hamısı əla əhatəyə malikdir. Ey Dost eSIM-iniz Monakonı da əhatə edir, buna görə Fransız-Monakolu sərhədi keçərkən siqnal itirməyəcəksiniz.' },
+        { heading: 'Fransa eSIM-inizi necə əldə edəsiniz', body: 'Səfərinizdən əvvəl WhatsApp-da Ey Dost-a yazın. "Fransa eSIM" deyin — mövcud planları göstərəcəyik, ödəyin, QR kodu 2 dəqiqəyə gəlir.' },
+      ],
+    },
+    ru: {
+      title: 'Как использовать eSIM во Франции — Париж, Лион, Ницца',
+      description: 'Полное руководство по использованию eSIM во Франции. Всё, что нужно знать для связи в Париже, на Лазурном берегу и по всей Франции.',
+      sections: [
+        { heading: 'Покрытие eSIM во Франции', body: 'Во Франции отличное 4G/5G-покрытие в крупных городах. Париж, Лион, Марсель, Ницца и Бордо — везде отличная связь.' },
+        { heading: 'Лучшие варианты eSIM для Франции', body: 'Выбирайте в зависимости от продолжительности поездки:', list: ['1 ГБ / 7 дней — поездка в Париж, идеально для карт и WhatsApp', '3 ГБ / 15 дней — автотур или маршрут по нескольким городам', '5 ГБ / 30 дней — долгосрочное пребывание со стримингом', 'Европейский план на 35 стран — лучший, если планируете посетить Бельгию, Испанию и другие страны ЕС'] },
+        { heading: 'Советы для Парижа', body: 'В Париже eSIM незаменим для:', list: ['Навигации в Google Maps и метро (RATP)', 'Бронирования ресторанов через приложения', 'Входа в музеи — большинство парижских музеев используют QR-коды', 'Общения в WhatsApp и социальных сетях', 'Перевода французских меню и указателей'] },
+        { heading: 'Как получить eSIM для Франции', body: 'Напишите Ey Dost в WhatsApp перед поездкой. Скажите "France eSIM" — мы покажем доступные тарифы, оплатите, QR-код придёт за 2 минуты.' },
+      ],
+    },
+  },
+  // ── Taxi Europe WhatsApp ─────────────────────────────────────────────────────
+  {
+    slug: 'book-taxi-europe-whatsapp',
+    category: 'taxi',
+    publishedAt: '2026-05-08',
+    readingMinutes: 4,
+    en: {
+      title: 'How to Book a Taxi in Europe via WhatsApp — Ey Dost Guide',
+      description: 'The easiest way to book a taxi anywhere in Europe without downloading an app. Learn how Ey Dost\'s WhatsApp taxi service works in 500+ European cities.',
+      sections: [
+        { heading: 'Why book a taxi via WhatsApp?', body: 'Most ride-hailing apps (Uber, Bolt, Cabify) are not available in every European city. And even where they are, you need to download yet another app, create an account, and add a payment method. Ey Dost solves this: just message us on WhatsApp and we\'ll handle the rest.' },
+        { heading: 'How it works — 3 simple steps', body: 'Booking a taxi through Ey Dost is as easy as sending a message:', list: ['1. Open the Taxi page at eydost.com/taxi — enter your pickup and drop-off', '2. Choose your car class (Economy from €8, Comfort from €14)', '3. Tap "Order via WhatsApp" — we confirm your booking in seconds'] },
+        { heading: 'Where is the service available?', body: 'Ey Dost taxi is active in 500+ cities across Europe including:', list: ['UK: London, Manchester, Birmingham, Edinburgh', 'France: Paris, Lyon, Marseille, Nice, Bordeaux', 'Germany: Berlin, Munich, Hamburg, Frankfurt, Cologne', 'Spain: Madrid, Barcelona, Seville, Valencia', 'Italy: Rome, Milan, Florence, Venice, Naples', 'Netherlands, Belgium, Switzerland, Austria and 40+ more countries'] },
+        { heading: 'Airport transfers', body: 'Ey Dost specialises in airport transfers. Pre-book your airport pickup in advance, give us your flight number, and your driver will track the flight and be waiting when you arrive — even if it\'s delayed.' },
+        { heading: 'Payment and pricing', body: 'Car class pricing gives you clarity before you book: Economy from €8, Comfort from €14, Business from €22, Minivan from €20. Final price is confirmed before you commit. Pay securely via the link sent to WhatsApp.' },
+      ],
+    },
+    az: {
+      title: 'Avropada WhatsApp vasitəsilə taksi necə sifariş etmək olar',
+      description: 'Proqram yükləmədən Avropanın istənilən yerində taksi sifariş etməyin ən asan yolu. Ey Dost-un WhatsApp taksi xidmətinin 500+ Avropa şəhərində necə işlədiyini öyrənin.',
+      sections: [
+        { heading: 'Niyə WhatsApp vasitəsilə taksi sifariş etmək?', body: 'Əksər taksi proqramları (Uber, Bolt) hər Avropa şəhərində mövcud deyil. Mövcud olduqda belə başqa proqram yükləmək, hesab yaratmaq lazımdır. Ey Dost bunu həll edir: sadəcə WhatsApp-da yazın.' },
+        { heading: 'Necə işləyir — 3 sadə addım', body: 'Ey Dost vasitəsilə taksi sifariş etmək mesaj göndərmək qədər asandır:', list: ['1. eydost.com/taxi səhifəsini açın — götürülmə və çatdırılma yerini daxil edin', '2. Avtomobil sinfini seçin (Ekonom €8-dən, Komfort €14-dən)', '3. "WhatsApp ilə Sifariş Et"ə toxunun — sifarişinizi saniyələr içində təsdiqləyirik'] },
+        { heading: 'Xidmət harada mövcuddur?', body: 'Ey Dost taksisi Avropada 500+ şəhərdə aktivdir:', list: ['Böyük Britaniya: London, Manchester, Edinburq', 'Fransa: Paris, Lion, Marsel, Nis', 'Almaniya: Berlin, Münhen, Hamburq, Frankfurt', 'İspaniya: Madrid, Barselona', 'İtaliya: Roma, Milan, Florensiya', 'Hollandiya, Belçika, İsveçrə, Avstriya və 40+ başqa ölkə'] },
+        { heading: 'Hava limanı transferləri', body: 'Ey Dost hava limanı transferlərini xüsusi idarə edir. Uçuş nömrənizi verin — sürücü uçuşunuzu izləyir və gec qalsa belə sizi gözləyir.' },
+        { heading: 'Ödəniş və qiymətlər', body: 'Avtomobil sinif qiymətləndirməsi rezervasiyadan əvvəl aydınlıq verir: Ekonom €8-dən, Komfort €14-dən, Biznes €22-dən, Minivan €20-dən. Son qiymət siz onaylamamışdan əvvəl təsdiqlənir.' },
+      ],
+    },
+    ru: {
+      title: 'Как заказать такси в Европе через WhatsApp — руководство Ey Dost',
+      description: 'Самый простой способ заказать такси в любой точке Европы без загрузки приложения. Узнайте, как работает сервис такси Ey Dost через WhatsApp в 500+ городах.',
+      sections: [
+        { heading: 'Зачем заказывать такси через WhatsApp?', body: 'Большинство приложений для такси (Uber, Bolt) доступны не во всех европейских городах. Ey Dost решает эту проблему: просто напишите в WhatsApp — мы сделаем всё остальное.' },
+        { heading: 'Как это работает — 3 простых шага', body: 'Заказать такси через Ey Dost так же просто, как отправить сообщение:', list: ['1. Откройте eydost.com/taxi — введите место посадки и назначение', '2. Выберите класс автомобиля (Эконом от €8, Комфорт от €14)', '3. Нажмите "Заказать через WhatsApp" — подтверждаем бронирование за секунды'] },
+        { heading: 'Где доступен сервис?', body: 'Такси Ey Dost работает в 500+ городах Европы:', list: ['Великобритания: Лондон, Манчестер, Эдинбург', 'Франция: Париж, Лион, Марсель, Ницца', 'Германия: Берлин, Мюнхен, Гамбург, Франкфурт', 'Испания: Мадрид, Барселона', 'Италия: Рим, Милан, Флоренция', 'Нидерланды, Бельгия, Швейцария, Австрия и 40+ других стран'] },
+        { heading: 'Трансферы из аэропорта', body: 'Ey Dost специализируется на трансферах. Забронируйте заранее, дайте номер рейса — водитель отследит рейс и будет ждать вас даже при задержке.' },
+        { heading: 'Оплата и цены', body: 'Цены по классам автомобилей дают ясность до бронирования: Эконом от €8, Комфорт от €14, Бизнес от €22, Минивэн от €20. Итоговая цена подтверждается до оплаты.' },
+      ],
+    },
+  },
+  // ── Airport Transfer Guide ────────────────────────────────────────────────────
+  {
+    slug: 'airport-transfer-europe-guide',
+    category: 'taxi',
+    publishedAt: '2026-05-08',
+    readingMinutes: 4,
+    en: {
+      title: 'Airport Transfer Guide: The Easiest Way to Get from Airport to City in Europe',
+      description: 'How to pre-book reliable airport transfers across major European airports via WhatsApp. No queues, no apps, driver waiting with your name.',
+      sections: [
+        { heading: 'The airport arrival problem', body: 'After a long flight, the last thing you want is to queue for a taxi, figure out public transport in an unfamiliar city, or get scammed by an unlicensed driver outside the arrivals hall. Pre-booking a transfer via Ey Dost solves all of this.' },
+        { heading: 'How to pre-book your airport transfer', body: 'It takes 2 minutes on WhatsApp:', list: ['Message us your flight number and arrival date', 'Tell us your destination (hotel name or address)', 'Choose your car class', 'Receive driver details and confirmation via WhatsApp', 'Your driver tracks your flight — no need to update if delayed'] },
+        { heading: 'Covered airports', body: 'Ey Dost airport transfers are available at:', list: ['London Heathrow (LHR), Gatwick (LGW), Stansted (STN)', 'Paris Charles de Gaulle (CDG), Orly (ORY)', 'Frankfurt Airport (FRA), Munich (MUC), Berlin (BER)', 'Amsterdam Schiphol (AMS)', 'Barcelona El Prat (BCN), Madrid Barajas (MAD)', 'Rome Fiumicino (FCO), Milan Malpensa (MXP)', 'And 100+ more European airports'] },
+        { heading: 'Flight tracking included', body: 'Every airport transfer includes real-time flight tracking at no extra cost. If your flight is delayed, your driver adjusts automatically. You never need to send a message — we\'ve got it covered.' },
+        { heading: 'Pricing for airport transfers', body: 'Airport transfer prices vary by city and distance, but start from the same base as our standard fares: Economy from €8, Comfort from €14, Business from €22. A premium is applied for very early morning or late-night pickups in some cities.' },
+      ],
+    },
+    az: {
+      title: 'Hava limanı transfer bələdçisi: Avropada hava limanından şəhərə getməyin ən asan yolu',
+      description: 'WhatsApp vasitəsilə əsas Avropa hava limanlarında etibarlı transfer əvvəlcədən necə sifariş edilir. Növbə yoxdur, proqram yoxdur, sürücü adınızla gözləyir.',
+      sections: [
+        { heading: 'Hava limanına gəliş problemi', body: 'Uzun bir uçuşdan sonra istəmədiyiniz son şey taksi növbəsidir. Ey Dost vasitəsilə transferi əvvəlcədən sifariş etmək bütün bu problemləri həll edir.' },
+        { heading: 'Hava limanı transferini necə əvvəlcədən sifariş etmək olar', body: 'WhatsApp-da 2 dəqiqə çəkir:', list: ['Uçuş nömrənizi və gəliş tarixinizi bizə yazın', 'Gedəcəyiniz yeri bildirin (otel adı və ya ünvan)', 'Avtomobil sinfini seçin', 'WhatsApp vasitəsilə sürücü məlumatları və təsdiq alın', 'Sürücünüz uçuşunuzu izləyir — gecikirsinizsə xəbər verməyə ehtiyac yoxdur'] },
+        { heading: 'Əhatə olunan hava limanları', body: 'Ey Dost hava limanı transferləri mövcuddur:', list: ['London Hitroh (LHR), Gatvik (LGW)', 'Paris Şarl de Qol (CDG), Orli (ORY)', 'Frankfurt (FRA), Münhen (MUC), Berlin (BER)', 'Amsterdam Şiphol (AMS)', 'Barselona (BCN), Madrid (MAD)', 'Roma (FCO), Milan (MXP)', 'Və 100+ başqa Avropa hava limanı'] },
+        { heading: 'Uçuş izləmə daxildir', body: 'Hər hava limanı transferi əlavə xərcsiz real vaxt uçuş izləməni əhatə edir. Uçuşunuz gecikirsə, sürücünüz avtomatik uyğunlaşır.' },
+      ],
+    },
+    ru: {
+      title: 'Гид по трансферам из аэропорта: самый простой способ добраться из аэропорта в город в Европе',
+      description: 'Как заблаговременно забронировать надёжный трансфер в крупных европейских аэропортах через WhatsApp. Никаких очередей, приложений, водитель ждёт с вашим именем.',
+      sections: [
+        { heading: 'Проблема прилёта в аэропорт', body: 'После долгого перелёта меньше всего хочется стоять в очереди за такси. Предварительное бронирование трансфера через Ey Dost решает все эти проблемы.' },
+        { heading: 'Как забронировать трансфер из аэропорта', body: 'Это займёт 2 минуты в WhatsApp:', list: ['Напишите нам номер рейса и дату прилёта', 'Укажите место назначения (название отеля или адрес)', 'Выберите класс автомобиля', 'Получите данные водителя и подтверждение в WhatsApp', 'Водитель отслеживает рейс — не нужно сообщать о задержке'] },
+        { heading: 'Охваченные аэропорты', body: 'Трансферы Ey Dost доступны в:', list: ['Лондон Хитроу (LHR), Гатвик (LGW)', 'Париж Шарль-де-Голль (CDG), Орли (ORY)', 'Франкфурт (FRA), Мюнхен (MUC), Берлин (BER)', 'Амстердам Схипхол (AMS)', 'Барселона (BCN), Мадрид (MAD)', 'Рим (FCO), Милан (MXP)', 'И 100+ других европейских аэропортов'] },
+        { heading: 'Отслеживание рейса включено', body: 'Каждый трансфер из аэропорта включает отслеживание рейса в реальном времени. Если рейс задерживается, водитель корректирует расписание автоматически.' },
+        { heading: 'Цены на трансферы', body: 'Цены начинаются от тех же базовых тарифов: Эконом от €8, Комфорт от €14, Бизнес от €22, Минивэн от €20.' },
+      ],
+    },
+  },
 ];
 
 export function getPost(slug: string): BlogPost | undefined {

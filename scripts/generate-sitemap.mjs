@@ -54,6 +54,11 @@ async function main() {
     'how-to-install-esim-android',
     'best-europe-esim-2026',
     'stay-connected-europe-without-roaming',
+    'esim-vs-roaming-cost-comparison',
+    'best-esim-germany-2026',
+    'how-to-use-esim-france',
+    'book-taxi-europe-whatsapp',
+    'airport-transfer-europe-guide',
   ];
 
   const staticPaths = [
