@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/taxi-webhook",
+      "destination": "https://bot.eydost.az/api/webhooks/taxi"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://bot.eydost.az/api/:path*"
     },
