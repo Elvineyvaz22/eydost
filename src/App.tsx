@@ -141,7 +141,6 @@ function HomePage() {
       <FAQ />
       <Contact />
       <Footer />
-      <FloatingWhatsApp />
     </div>
   );
 }

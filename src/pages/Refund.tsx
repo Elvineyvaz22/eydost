@@ -5,7 +5,7 @@ import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const LAST_UPDATED = 'May 8, 2026';
-const EMAIL = 'eydost@eydost.az';
+const EMAIL = 'info@eydost.com';
 const WA_LINK = 'https://wa.me/994992000444';
 
 export default function Refund() {

@@ -10,12 +10,12 @@ import { Clock, ArrowLeft, ArrowRight, Wifi } from 'lucide-react';
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const { language } = useLanguage();
-  const lang = (['en', 'az', 'ru'].includes(language) ? language : 'en') as 'en' | 'az' | 'ru';
+  const lang: 'en' | 'az' | 'ru' = language === 'az' ? 'az' : language === 'ru' ? 'ru' : 'en';
 
   const post = slug ? getPost(slug) : undefined;
   if (!post) return <Navigate to="/blog" replace />;
 
-  const content = post[lang];
+  const content = lang === 'az' ? post.az : lang === 'ru' ? post.ru : post.en;
 
   const readLabel = { en: 'min read', az: 'dəq oxu', ru: 'мин чтения' }[lang];
   const backLabel = { en: 'Back to Blog', az: 'Bloqa qayıt', ru: 'Назад в блог' }[lang];

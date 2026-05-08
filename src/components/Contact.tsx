@@ -60,7 +60,7 @@ export default function Contact() {
               </div>
               <div>
                 <div className="text-xs text-gray-500">{t.contact.emailLabel}</div>
-                <div className="font-semibold text-gray-900">info@eydost.az</div>
+                <div className="font-semibold text-gray-900">info@eydost.com</div>
               </div>
             </div>
 

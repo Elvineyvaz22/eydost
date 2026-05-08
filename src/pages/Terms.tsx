@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 const LAST_UPDATED = 'May 8, 2026';
 const COMPANY = 'NURTEL ELEKTRİK MMC';
-const EMAIL = 'eydost@eydost.az';
+const EMAIL = 'info@eydost.com';
 
 export default function Terms() {
   const { language } = useLanguage();

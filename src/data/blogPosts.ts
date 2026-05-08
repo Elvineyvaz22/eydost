@@ -684,7 +684,6 @@ export const blogPosts: BlogPost[] = [
       ],
     },
   },
-,
   // ── eSIM vs Roaming ──────────────────────────────────────────────────────────
   {
     slug: 'esim-vs-roaming-cost-comparison',

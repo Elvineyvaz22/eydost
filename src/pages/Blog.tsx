@@ -25,9 +25,15 @@ const uiText = {
   ru: { title: 'Блог Ey Dost', subtitle: 'Руководства по eSIM, советы для путешественников.', readMin: 'мин чтения' },
 };
 
+function getLang(language: string): 'en' | 'az' | 'ru' {
+  if (language === 'az') return 'az';
+  if (language === 'ru') return 'ru';
+  return 'en';
+}
+
 export default function Blog() {
   const { language } = useLanguage();
-  const lang = (language as keyof typeof uiText) in uiText ? language as keyof typeof uiText : 'en';
+  const lang = getLang(language);
   const ui = uiText[lang];
 
   const sorted = [...blogPosts].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
@@ -52,7 +58,7 @@ export default function Blog() {
         <section className="py-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {sorted.map((post) => {
-              const content = post[lang];
+              const content = lang === 'az' ? post.az : lang === 'ru' ? post.ru : post.en;
               const catColor = categoryColors[post.category] || 'bg-gray-100 text-gray-600';
               const catLabel = categoryLabels[post.category]?.[lang] || post.category;
 
