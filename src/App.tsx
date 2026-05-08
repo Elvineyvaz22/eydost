@@ -27,10 +27,6 @@ function EsimRouter() {
   // RegionalEsim page removed – fallback to CountryEsim for any slug
   return <CountryEsim />;
 }
-  const { slug } = useParams<{ slug: string }>();
-  if (slug && REGIONAL_SLUGS.includes(slug)) return <RegionalEsim />;
-  return <CountryEsim />;
-}
 
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
