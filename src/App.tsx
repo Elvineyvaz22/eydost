@@ -21,6 +21,8 @@ import Privacy from './pages/Privacy';
 import About from './pages/About';
 import Terms from './pages/Terms';
 import Refund from './pages/Refund';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 import Seo from './components/Seo';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import { PackagesProvider } from './contexts/PackagesContext';
@@ -164,6 +166,8 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/refund" element={<Refund />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/esim" element={<AllPackages />} />
                 <Route path="/taxi" element={<Taxi />} />

@@ -25,6 +25,7 @@ export default function Footer() {
               <li><a href="/esim" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.features}</a></li>
               <li><a href="#faq" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.faq}</a></li>
               <li><a href="#contact" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.contact}</a></li>
+              <li><Link to="/blog" className="text-gray-400 hover:text-cyan-400 transition-colors">Blog</Link></li>
             </ul>
           </div>
 

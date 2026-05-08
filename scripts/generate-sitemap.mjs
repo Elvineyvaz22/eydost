@@ -28,7 +28,9 @@ function getMeta(p) {
   if (p === '/') return { priority: '1.0', changefreq: 'weekly' };
   if (p === '/esim') return { priority: '0.9', changefreq: 'daily' };
   if (p === '/taxi') return { priority: '0.9', changefreq: 'weekly' };
+  if (p === '/blog') return { priority: '0.8', changefreq: 'weekly' };
   if (p === '/about') return { priority: '0.7', changefreq: 'monthly' };
+  if (p.startsWith('/blog/')) return { priority: '0.7', changefreq: 'monthly' };
   if (p === '/privacy' || p === '/terms' || p === '/refund') return { priority: '0.4', changefreq: 'yearly' };
   // eSIM country/regional slugs
   return { priority: '0.8', changefreq: 'weekly' };
@@ -45,7 +47,20 @@ async function loadSlugs() {
 async function main() {
   const slugs = await loadSlugs();
 
-  const staticPaths = ['/', '/esim', '/taxi', '/about', '/privacy', '/terms', '/refund'];
+  // Blog post slugs — keep in sync with src/data/blogPosts.ts
+  const blogSlugs = [
+    'what-is-esim-complete-guide',
+    'how-to-install-esim-iphone',
+    'how-to-install-esim-android',
+    'best-europe-esim-2026',
+    'stay-connected-europe-without-roaming',
+  ];
+
+  const staticPaths = [
+    '/', '/esim', '/taxi', '/about', '/blog',
+    '/privacy', '/terms', '/refund',
+    ...blogSlugs.map(s => `/blog/${s}`),
+  ];
   const allPaths = new Set([...staticPaths, ...slugs.map(s => `/${s}`)]);
 
   const urls = Array.from(allPaths).sort((a, b) => {
