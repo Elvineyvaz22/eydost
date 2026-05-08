@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AdminProvider } from './contexts/AdminContext';
@@ -13,7 +13,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import CountryEsim from './pages/CountryEsim';
-// import RegionalEsim removed – not part of core
+import RegionalEsim from './pages/RegionalEsim';
 import Taxi from './pages/Taxi';
 import AllPackages from './pages/AllPackages';
 import Privacy from './pages/Privacy';
@@ -21,7 +21,17 @@ import Seo from './components/Seo';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import { PackagesProvider } from './contexts/PackagesContext';
 
+const REGIONAL_SLUGS = new Set([
+  'europe-esim',
+  'asia-esim',
+  'middle-east-africa-esim',
+  'americas-esim',
+  'global-esim',
+]);
+
 function EsimRouter() {
+  const { slug } = useParams<{ slug: string }>();
+  if (slug && REGIONAL_SLUGS.has(slug)) return <RegionalEsim />;
   return <CountryEsim />;
 }
 
