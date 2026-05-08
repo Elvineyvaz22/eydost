@@ -64,7 +64,9 @@ export default function EsimPackages() {
     regionalPackages: staticRegional, 
     globalPackage: staticGlobal,
     liveCountryGroups,
-    liveRegionalPackages
+    liveRegionalPackages,
+    liveError,
+    refreshLivePackages
   } = usePackages();
   const [tab, setTab] = useState<Tab>('popular');
   const [search, setSearch] = useState('');
@@ -113,7 +115,10 @@ export default function EsimPackages() {
     return staticRegional;
   }, [liveRegionalPackages, staticRegional]);
 
-  const featured = activePackages.filter(p => p.featured || true).slice(0, 4); // Show first 4 if none marked featured
+  const featured = useMemo(() => {
+    const marked = activePackages.filter(p => p.featured);
+    return (marked.length > 0 ? marked : activePackages).slice(0, 4);
+  }, [activePackages]);
   const allSorted = [...activePackages].sort((a, b) => a.country.localeCompare(b.country));
 
   const searchResults = search.length > 0
@@ -140,6 +145,18 @@ export default function EsimPackages() {
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">{esimT.title}</h2>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">{esimT.subtitle}</p>
         </div>
+
+        {liveError && (
+          <div className="max-w-2xl mx-auto mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
+            <span className="text-sm text-amber-700">⚠️ {liveError}</span>
+            <button
+              onClick={() => refreshLivePackages()}
+              className="text-sm font-medium text-amber-800 hover:text-amber-900 underline"
+            >
+              ↻ Retry
+            </button>
+          </div>
+        )}
 
         {/* Search — always visible */}
         <div className="max-w-md mx-auto mb-6">

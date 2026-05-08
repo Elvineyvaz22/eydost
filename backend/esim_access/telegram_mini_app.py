@@ -10,14 +10,16 @@ import hmac
 import time
 import requests
 import logging
+from urllib.parse import unquote
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU")
-ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "7767493706")
-BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")  # initData validation üçün
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "")
+BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
 
 def validate_init_data(init_data: str) -> dict | None:
@@ -44,30 +46,24 @@ def validate_init_data(init_data: str) -> dict | None:
                 key, value = item.split('=', 1)
                 parsed[key] = value
         
-        # Hash-i çıxarırıq
         received_hash = parsed.pop('hash', '')
         
-        # Data string-i: sorted key=value formatında
         data_check_string = '\n'.join(
             f"{k}={v}" for k, v in sorted(parsed.items())
         )
         
-        # Secret key yaradırıq
         if not BOT_TOKEN:
             logger.warning("BOT_TOKEN yoxdur, initData validation keçilir")
-            return parsed.get('user') and json.loads(
-                unquote(parsed.get('user', '{}'))
-            )
+            user_raw = parsed.get('user', '{}')
+            return json.loads(unquote(user_raw)) if user_raw else None
         
-        secret_key = hmac.new(
+        secret_key = hmac.HMAC(
             b"WebAppData",
             BOT_TOKEN.encode(),
             hashlib.sha256
         ).digest()
         
-        # Expected hash
-        from urllib.parse import unquote
-        expected_hash = hmac.new(
+        expected_hash = hmac.HMAC(
             secret_key,
             data_check_string.encode(),
             hashlib.sha256
@@ -77,9 +73,7 @@ def validate_init_data(init_data: str) -> dict | None:
             logger.warning("initData hash uyğun gəlmir!")
             return None
         
-        # User məlumatlarını parse edirik
         if 'user' in parsed:
-            import json
             user_data = json.loads(unquote(parsed['user']))
             return user_data
         
@@ -102,64 +96,61 @@ def send_telegram_message(chat_id: str, text: str):
         return None
 
 
+class MiniAppOrderRequest(BaseModel):
+    action: str
+    country: str = 'N/A'
+    code: str = 'N/A'
+    user_id: int | str | None = None
+    gb: str = 'N/A'
+    days: str = 'N/A'
+    price: str = 'N/A'
+
+
 @router.post("/api/telegram/mini-app")
 async def receive_mini_app_data(request: Request):
     """
     Telegram Mini App-dən gələn web_app_data-nı emal edir.
-    
-    Göndərilən format:
-    {"action": "esim_order", "country": "Azerbaijan", "code": "AZ_10GB", "user_id": 123456}
-    
-    İstifadəçiyə təsdiq mesajı, adminə tam sifariş göndərilir.
     """
     try:
         body = await request.json()
-        logger.info(f"Mini app data received: {body}")
+        order = MiniAppOrderRequest(**body)
+        logger.info(f"Mini app data received: action={order.action} country={order.country}")
         
-        action = body.get('action')
-        
-        if action == 'esim_order':
-            country = body.get('country', 'N/A')
-            code = body.get('code', 'N/A')
-            user_id = body.get('user_id')
-            gb = body.get('gb', 'N/A')
-            days = body.get('days', 'N/A')
-            price = body.get('price', 'N/A')
-            
-            # Adminə sifariş göndəririk
+        if order.action == 'esim_order':
             admin_text = f"""📦 <b>Yeni eSIM Sifarişi (Mini App)!</b>
 
-🏷 Code: <code>{code}</code>
-🌍 Ölkə: {country}
-📊 Data: {gb} GB
-⏱ Etibarlılıq: {days} gün
-💰 Qiymət: {price}
-👤 User ID: {user_id}
+🏷 Code: <code>{order.code}</code>
+🌍 Ölkə: {order.country}
+📊 Data: {order.gb} GB
+⏱ Etibarlılıq: {order.days} gün
+💰 Qiymət: {order.price}
+👤 User ID: {order.user_id}
 
 🔗 Mənbə: Telegram Mini App"""
             
             send_telegram_message(ADMIN_CHAT_ID, admin_text)
             
-            # İstifadəçiyə təsdiq göndəririk
-            if user_id:
+            if order.user_id:
                 confirm_text = (
-                    f"✅ Siz <b>{country}</b> üçün <code>{code}</code> paketini seçdiniz.\n\n"
-                    f"📊 Data: {gb} GB | ⏱ {days} gün | 💰 {price}\n\n"
+                    f"✅ Siz <b>{order.country}</b> üçün <code>{order.code}</code> paketini seçdiniz.\n\n"
+                    f"📊 Data: {order.gb} GB | ⏱ {order.days} gün | 💰 {order.price}\n\n"
                     f"Ödənişə başlayaq? /pay"
                 )
-                send_telegram_message(str(user_id), confirm_text)
+                send_telegram_message(str(order.user_id), confirm_text)
             
             return {
                 "status": "ok",
-                "message": f"Siz {country} üçün {code} paketini seçdiniz. Ödənişə başlayaq?"
+                "message": f"Siz {order.country} üçün {order.code} paketini seçdiniz. Ödənişə başlayaq?"
             }
         
         else:
-            return {"status": "error", "message": "Naməlum əməliyyat"}
+            raise HTTPException(status_code=400, detail="Naməlum əməliyyat")
             
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Mini app xətası: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/api/telegram/validate")

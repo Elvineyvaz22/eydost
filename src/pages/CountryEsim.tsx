@@ -13,23 +13,12 @@ import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 
 const WA_LINK = 'https://wa.me/994992010117';
-const TG_BOT_USERNAME = 'eydost_esim_bot';
 
 function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; countryName: string; countryCode: string; planIndex: number }) {
   const { t } = useLanguage();
 
   const planCodeEntry = getPlanCode(countryCode, planIndex);
 
-  const tgRawMsg = planCodeEntry
-    ? `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-    : `Hi! I want to buy an eSIM for ${countryName}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`;
-
-  const waRawMsg = planCodeEntry
-    ? `Hi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-    : `Hi! I want to buy an eSIM for ${countryName}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`;
-
-  const waMsg = encodeURIComponent(waRawMsg);
-  const tgLink = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(tgRawMsg)}`;
 
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();

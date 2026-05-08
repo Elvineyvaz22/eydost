@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { Send, Mail, Phone, User, MessageSquare, CheckCircle, AlertCircle } from 'lucide-react';
+import { Send, Mail, Phone, User, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 

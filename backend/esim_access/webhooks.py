@@ -45,7 +45,7 @@ async def receive_webhook(request: Request):
     # Optional signature verification
     if WEBHOOK_SECRET:
         sig_header = request.headers.get("X-Signature", "")
-        expected_sig = hmac.new(
+        expected_sig = hmac.HMAC(
             WEBHOOK_SECRET.encode(), raw_body, hashlib.sha256
         ).hexdigest()
         if not hmac.compare_digest(sig_header, expected_sig):

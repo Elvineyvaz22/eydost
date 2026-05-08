@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { MessageCircle, Menu, X, Car, Smartphone, Send } from 'lucide-react';
+import { MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation } from 'react-router-dom';
 
 const WA_LINK = 'https://wa.me/994992000444';
-const TG_LINK = 'https://t.me/eydost_esim_bot';
 
 export default function Header() {
   const { language, setLanguage, t, brand } = useLanguage();

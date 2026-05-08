@@ -7,12 +7,23 @@ import requests
 import os
 import logging
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU")
-ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "7767493706")
+
+class TelegramOrderRequest(BaseModel):
+    code: str = 'N/A'
+    id: str = 'N/A'
+    country: str = 'N/A'
+    gb: str = 'N/A'
+    days: str = 'N/A'
+    price: str = 'N/A'
+    message: str = ''
+
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "")
 
 def send_telegram_message(chat_id: str, text: str):
     """Bot API ilə mesaj göndərir"""
@@ -33,41 +44,25 @@ def send_telegram_message(chat_id: str, text: str):
 
 
 @router.post("/api/telegram/order")
-async def receive_telegram_order(data: dict):
+async def receive_telegram_order(data: TelegramOrderRequest):
     """
     Saytdan Telegram sifarişi alır və adminə göndərir.
-    WhatsApp-dakı kimi avtomatik emal.
-    
-    data = {
-        code: "TR",
-        id: "turkey-5gb", 
-        country: "Turkey",
-        gb: "5",
-        days: "15",
-        price: "$9.99",
-        message: "Hi! I want to buy an eSIM..."
-    }
     """
-    logger.info(f"Telegram order received: {data}")
+    if not TELEGRAM_BOT_TOKEN or not ADMIN_CHAT_ID:
+        raise HTTPException(status_code=503, detail="Telegram not configured")
+
+    logger.info(f"Telegram order received: country={data.country} code={data.code}")
     
-    code = data.get('code', 'N/A')
-    esim_id = data.get('id', 'N/A')
-    country = data.get('country', 'N/A')
-    gb = data.get('gb', 'N/A')
-    days = data.get('days', 'N/A')
-    price = data.get('price', 'N/A')
-    
-    # Adminə sifariş məlumatı göndər - WhatsApp-dakı kimi
     admin_text = f"""📦 <b>Yeni eSIM Sifarişi!</b>
 
-🏷 Code: <code>{code}</code>
-🆔 ID: <code>{esim_id}</code>
-🌍 Ölkə: {country}
-📊 Data: {gb} GB
-⏱ Etibarlılıq: {days} gün
-💰 Qiymət: {price}
+🏷 Code: <code>{data.code}</code>
+🆔 ID: <code>{data.id}</code>
+🌍 Ölkə: {data.country}
+📊 Data: {data.gb} GB
+⏱ Etibarlılıq: {data.days} gün
+💰 Qiymət: {data.price}
 
-📨 Mesaj: {data.get('message', 'N/A')}"""
+📨 Mesaj: {data.message or 'N/A'}"""
 
     admin_result = send_telegram_message(ADMIN_CHAT_ID, admin_text)
     
@@ -75,8 +70,8 @@ async def receive_telegram_order(data: dict):
         logger.info(f"Order sent to admin successfully. Message ID: {admin_result.get('result', {}).get('message_id')}")
         return {
             "status": "ok",
-            "message": f"✅ Sifariş alındı! Code: {code}, Ölkə: {country}, {gb}GB/{days}gün - {price}"
+            "message": f"✅ Sifariş alındı! Code: {data.code}, Ölkə: {data.country}, {data.gb}GB/{data.days}gün - {data.price}"
         }
     else:
         logger.error(f"Failed to send to admin: {admin_result}")
-        return {"status": "ok", "message": "Sifariş emal olunur..."}
+        raise HTTPException(status_code=502, detail="Telegram API ilə əlaqə uğursuz oldu")

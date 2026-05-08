@@ -1,4 +1,6 @@
 import os
+import hmac
+import hashlib
 import logging
 import requests
 from typing import Dict, Any
@@ -129,7 +131,7 @@ async def verify_whatsapp_webhook(
     """
     config = get_whatsapp_config()
     verify_token = config["verify_token"]
-    logger.info(f"Verify Webhook - Mode: {hub_mode}, Token: {hub_verify_token}, Expected: {verify_token}")
+    logger.info(f"Verify Webhook - Mode: {hub_mode}, Token matches: {hub_verify_token == verify_token}")
     
     if hub_mode == "subscribe" and hub_verify_token == verify_token:
         logger.info("WhatsApp webhook verified successfully.")
@@ -139,12 +141,35 @@ async def verify_whatsapp_webhook(
     raise HTTPException(status_code=403, detail="Verification failed")
 
 
+def _verify_webhook_signature(request: Request, raw_body: bytes) -> bool:
+    """Verify X-Hub-Signature-256 from Meta WhatsApp webhook."""
+    app_secret = os.environ.get("WHATSAPP_APP_SECRET", "")
+    if not app_secret:
+        return True  # Skip verification if secret not configured
+
+    signature_header = request.headers.get("X-Hub-Signature-256", "")
+    if not signature_header.startswith("sha256="):
+        return False
+
+    expected_sig = hmac.HMAC(
+        app_secret.encode(), raw_body, hashlib.sha256
+    ).hexdigest()
+    received_sig = signature_header[7:]  # Remove "sha256=" prefix
+    return hmac.compare_digest(expected_sig, received_sig)
+
+
 @router.post("/webhooks/whatsapp", summary="Receive WhatsApp Messages")
 async def receive_whatsapp_message(request: Request):
     """
     Receives incoming messages from WhatsApp users.
-    Checks for order patterns and replies accordingly.
+    Verifies X-Hub-Signature-256 if WHATSAPP_APP_SECRET is configured.
     """
+    raw_body = await request.body()
+
+    if not _verify_webhook_signature(request, raw_body):
+        logger.warning("WhatsApp webhook received with invalid signature")
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
     try:
         body = await request.json()
     except Exception:

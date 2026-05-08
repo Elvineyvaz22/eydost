@@ -3,9 +3,9 @@ import time
 import os
 import json
 
-TOKEN = "8667080152:AAEPvJqAcyEA90A_pE89rJT80Ur2B9WxlmU"
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 URL = f"https://api.telegram.org/bot{TOKEN}"
-ADMIN_CHAT_ID = "7767493706"
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "")
 
 def get_updates(offset=None):
     url = f"{URL}/getUpdates"

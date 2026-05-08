@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AdminProvider } from './contexts/AdminContext';
@@ -21,10 +21,7 @@ import Seo from './components/Seo';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import { PackagesProvider } from './contexts/PackagesContext';
 
-const REGIONAL_SLUGS = ['europe-esim', 'asia-esim', 'middle-east-africa-esim', 'americas-esim', 'global-esim'];
-
 function EsimRouter() {
-  // RegionalEsim page removed – fallback to CountryEsim for any slug
   return <CountryEsim />;
 }
 

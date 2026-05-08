@@ -1,4 +1,4 @@
-import { Mail, Phone, Shield, Send } from 'lucide-react';
+import { Mail, Phone, Shield } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 

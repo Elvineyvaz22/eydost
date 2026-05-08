@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { ChevronDown, Car, Wifi, MessageCircle } from 'lucide-react';
 import { trackEvent, EVENTS } from '../utils/analytics';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Tab = 'taxi' | 'esim' | 'general';
 
 export default function FAQ() {
+  const { t } = useLanguage();
+  const faqT = t.faq as Record<string, string>;
   const [activeTab, setActiveTab] = useState<Tab>('taxi');
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [showAll, setShowAll] = useState(false);
@@ -52,8 +55,8 @@ export default function FAQ() {
     <section id="faq" className="py-20 bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">Frequently Asked Questions</h2>
-          <p className="text-lg text-gray-600">Everything you need to know about our global Super App services.</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">{faqT.title}</h2>
+          <p className="text-lg text-gray-600">{faqT.subtitle}</p>
         </div>
 
         {/* Custom Tabs */}
@@ -92,6 +95,7 @@ export default function FAQ() {
             <div key={index} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 transition-all hover:border-gray-200">
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                aria-expanded={openIndex === index}
                 className="w-full px-6 py-5 text-left flex items-center justify-between gap-4"
               >
                 <span className="font-bold text-gray-900 text-base">{faq.q}</span>
@@ -125,8 +129,8 @@ export default function FAQ() {
 
         {/* CTA */}
         <div className="mt-12 text-center p-8 bg-gradient-to-br from-gray-900 to-black rounded-3xl shadow-xl">
-          <h3 className="text-xl font-bold text-white mb-2">Still have questions?</h3>
-          <p className="text-gray-400 text-sm mb-6">Our WhatsApp agents are ready to help you 24/7.</p>
+          <h3 className="text-xl font-bold text-white mb-2">{faqT.ctaTitle}</h3>
+          <p className="text-gray-400 text-sm mb-6">{faqT.ctaSubtitle}</p>
           <a
             href="https://wa.me/994992000444"
             target="_blank"
@@ -134,7 +138,7 @@ export default function FAQ() {
             onClick={() => trackEvent(EVENTS.WHATSAPP_CHAT_GENERAL, { source: 'faq_cta' })}
             className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#20bd5a] transition-colors shadow-lg shadow-[#25D366]/20"
           >
-            <MessageCircle className="w-5 h-5" /> Chat with us
+            <MessageCircle className="w-5 h-5" /> {faqT.ctaButton}
           </a>
         </div>
       </div>

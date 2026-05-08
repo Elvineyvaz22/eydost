@@ -22,7 +22,8 @@ function m(cost: number): string {
   return '$' + (cost * 1.75).toFixed(2);
 }
 
-const gX: Plan[] = [
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _gX: Plan[] = [
   { gb: 1, days: 7, price: m(0.46) },
   { gb: 3, days: 15, price: m(1.39) },
   { gb: 3, days: 30, price: m(1.42) },
@@ -30,7 +31,8 @@ const gX: Plan[] = [
   { gb: 10, days: 30, price: m(4.20) },
   { gb: 20, days: 30, price: m(7.00) },
 ];
-const gY: Plan[] = [
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _gY: Plan[] = [
   { gb: 1, days: 7, price: m(0.70) },
   { gb: 3, days: 15, price: m(1.70) },
   { gb: 3, days: 30, price: m(1.80) },
@@ -46,7 +48,8 @@ const gZ: Plan[] = [
   { gb: 10, days: 30, price: m(6.10) },
   { gb: 20, days: 30, price: m(10.60) },
 ];
-const gA: Plan[] = [
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _gA: Plan[] = [
   { gb: 1, days: 7, price: m(1.10) },
   { gb: 3, days: 15, price: m(2.80) },
   { gb: 3, days: 30, price: m(3.00) },
@@ -54,7 +57,8 @@ const gA: Plan[] = [
   { gb: 10, days: 30, price: m(7.60) },
   { gb: 20, days: 30, price: m(12.90) },
 ];
-const gB: Plan[] = [
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _gB: Plan[] = [
   { gb: 1, days: 7, price: m(1.50) },
   { gb: 3, days: 15, price: m(3.70) },
   { gb: 3, days: 30, price: m(3.80) },

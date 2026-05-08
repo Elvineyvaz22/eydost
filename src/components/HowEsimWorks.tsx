@@ -1,24 +1,28 @@
 import { MessageSquare, CreditCard, Smartphone } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function HowEsimWorks() {
+  const { t } = useLanguage();
+  const howEsim = t.howEsim as Record<string, string>;
+
   const steps = [
     { 
       icon: MessageSquare, 
-      title: "Message Us", 
-      desc: "Tell us your destination country directly on WhatsApp.", 
+      title: howEsim.step1Title, 
+      desc: howEsim.step1Desc, 
       color: 'from-green-400 to-emerald-500' 
     },
     { 
       icon: CreditCard, 
-      title: "Pay Instantly", 
-      desc: "Secure checkout. We support fast payments.", 
+      title: howEsim.step2Title, 
+      desc: howEsim.step2Desc, 
       color: 'from-blue-400 to-cyan-500',
       showPayLogos: true
     },
     { 
       icon: Smartphone, 
-      title: "Get Connected", 
-      desc: "Receive a QR code, scan it, and activate in seconds.", 
+      title: howEsim.step3Title, 
+      desc: howEsim.step3Desc, 
       color: 'from-orange-400 to-amber-500' 
     },
   ];
@@ -26,7 +30,7 @@ export default function HowEsimWorks() {
   return (
     <section id="how-esim" className="py-20 bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-14">How It Works</h2>
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-14">{howEsim.title}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step, i) => {
             const Icon = step.icon;

@@ -13,7 +13,6 @@ import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 
 const WA_LINK = 'https://wa.me/994992010117';
-const TG_BOT_USERNAME = 'eydost_esim_bot';
 
 function getRegionalBySlug(slug: string): RegionalPackage | undefined {
   if (globalPackage.slug === slug) return globalPackage;
@@ -148,8 +147,6 @@ export default function RegionalEsim() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {pkg.plans.map((plan, i) => {
-                const rawMsg = `Hi! I want to buy an eSIM for ${pkg.name}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`;
-                const tgLink = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(rawMsg)}`;
                 return (
                   <div
                     key={i}

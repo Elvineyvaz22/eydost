@@ -331,9 +331,6 @@
     <loc>https://eydost.az/kyrgyzstan-esim</loc>
   </url>
   <url>
-    <loc>https://eydost.az/qatar-esim</loc>
-  </url>
-  <url>
     <loc>https://eydost.az/laos-esim</loc>
   </url>
   <url>
@@ -361,10 +358,10 @@
     <loc>https://eydost.az/madagascar-esim</loc>
   </url>
   <url>
-    <loc>https://eydost.az/malaysia-esim</loc>
+    <loc>https://eydost.az/malawi-esim</loc>
   </url>
   <url>
-    <loc>https://eydost.az/malawi-esim</loc>
+    <loc>https://eydost.az/malaysia-esim</loc>
   </url>
   <url>
     <loc>https://eydost.az/maldives-esim</loc>
@@ -490,6 +487,9 @@
     <loc>https://eydost.az/puerto-rico-esim</loc>
   </url>
   <url>
+    <loc>https://eydost.az/qatar-esim</loc>
+  </url>
+  <url>
     <loc>https://eydost.az/republic-of-the-congo-esim</loc>
   </url>
   <url>
@@ -580,9 +580,6 @@
     <loc>https://eydost.az/switzerland-esim</loc>
   </url>
   <url>
-    <loc>https://eydost.az/taxi</loc>
-  </url>
-  <url>
     <loc>https://eydost.az/taiwan-esim</loc>
   </url>
   <url>
@@ -590,6 +587,9 @@
   </url>
   <url>
     <loc>https://eydost.az/tanzania-esim</loc>
+  </url>
+  <url>
+    <loc>https://eydost.az/taxi</loc>
   </url>
   <url>
     <loc>https://eydost.az/thailand-esim</loc>
@@ -649,6 +649,9 @@
     <loc>https://eydost.az/vietnam-esim</loc>
   </url>
   <url>
+    <loc>https://eydost.az/western-sahara-esim</loc>
+  </url>
+  <url>
     <loc>https://eydost.az/yemen-esim</loc>
   </url>
   <url>
@@ -656,8 +659,5 @@
   </url>
   <url>
     <loc>https://eydost.az/zimbabwe-esim</loc>
-  </url>
-  <url>
-    <loc>https://eydost.az/western-sahara-esim</loc>
   </url>
 </urlset>

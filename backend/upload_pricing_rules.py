@@ -7,8 +7,11 @@ import json
 import os
 import requests
 
-SUPABASE_URL = 'https://grudfrtojmllelbhefms.supabase.co'
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdydWRmcnRvam1sbGVsYmhlZm1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDIwMTAsImV4cCI6MjA4MDYxODAxMH0.X-JHCmKcBWp7Y3drAxBKUErR2RilBewdMuR_GeGtlL0'
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_KEY = os.environ.get('SUPABASE_ANON_KEY', '')
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required")
 
 HEADERS = {
     'apikey': SUPABASE_KEY,
