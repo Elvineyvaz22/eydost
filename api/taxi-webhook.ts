@@ -11,6 +11,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const body = req.body;
+  const bookingIdFromUrl = req.query.bookingId as string | undefined;
+  console.log('[VERCEL_taxi-webhook] bookingId from URL:', bookingIdFromUrl);
   console.log('[VERCEL_taxi-webhook] body.pickup:', body?.pickup);
   console.log('[VERCEL_taxi-webhook] body.destination:', body?.destination);
 
