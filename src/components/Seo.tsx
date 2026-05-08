@@ -50,6 +50,12 @@ export default function Seo(props: SeoProps) {
       <title>{title}</title>
       <link rel="canonical" href={canonicalUrl} />
 
+      {/* hreflang — same URL serves EN/AZ/RU */}
+      <link rel="alternate" hrefLang="en" href={canonicalUrl} />
+      <link rel="alternate" hrefLang="az" href={canonicalUrl} />
+      <link rel="alternate" hrefLang="ru" href={canonicalUrl} />
+      <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+
       <meta name="description" content={description} />
 
       <meta property="og:type" content="website" />

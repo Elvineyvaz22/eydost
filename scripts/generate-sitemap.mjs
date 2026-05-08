@@ -2,18 +2,12 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Build-time sitemap generator (static data source).
-// Usage:
-//   node scripts/generate-sitemap.mjs
-//
-// Config:
-//   SITE_URL=https://eydost.az node scripts/generate-sitemap.mjs
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
 const SITE_URL = (process.env.SITE_URL || 'https://eydost.com').trim().replace(/\/+$/, '');
+const TODAY = new Date().toISOString().split('T')[0];
 
 function xmlEscape(value) {
   return String(value)
@@ -29,20 +23,21 @@ function toAbsUrl(p) {
   return `${SITE_URL}${pathname}`;
 }
 
+// Priority and changefreq per path type
+function getMeta(p) {
+  if (p === '/') return { priority: '1.0', changefreq: 'weekly' };
+  if (p === '/esim') return { priority: '0.9', changefreq: 'daily' };
+  if (p === '/taxi') return { priority: '0.9', changefreq: 'weekly' };
+  if (p === '/about') return { priority: '0.7', changefreq: 'monthly' };
+  if (p === '/privacy' || p === '/terms' || p === '/refund') return { priority: '0.4', changefreq: 'yearly' };
+  // eSIM country/regional slugs
+  return { priority: '0.8', changefreq: 'weekly' };
+}
+
 async function loadSlugs() {
-  // Import TS module via Vite/TS? Not available in plain Node.
-  // Instead, we rely on ESM + TS transpilation not being present at build-time,
-  // so we keep this file as .mjs and import the compiled JS? Not available either.
-  //
-  // Solution: dynamic import of TS works in Node only with a loader; we avoid that.
-  // We parse slugs from source by importing through Vite's TS transpilation is not possible here.
-  //
-  // Therefore, we keep the generator independent: it reads the source file as text and extracts `slug: '...'`.
-  // This is robust for your current dataset layout.
   const fs = await import('node:fs/promises');
   const srcPath = path.join(projectRoot, 'src', 'data', 'esimPackages.ts');
   const content = await fs.readFile(srcPath, 'utf8');
-
   const slugMatches = [...content.matchAll(/slug:\s*'([^']+)'/g)].map(m => m[1]);
   return Array.from(new Set(slugMatches));
 }
@@ -50,22 +45,30 @@ async function loadSlugs() {
 async function main() {
   const slugs = await loadSlugs();
 
-  const paths = new Set([
-    '/',
-    '/esim',
-    '/taxi',
-    '/privacy',
-  ]);
+  const staticPaths = ['/', '/esim', '/taxi', '/about', '/privacy', '/terms', '/refund'];
+  const allPaths = new Set([...staticPaths, ...slugs.map(s => `/${s}`)]);
 
-  for (const slug of slugs) paths.add(`/${slug}`);
+  const urls = Array.from(allPaths).sort((a, b) => {
+    // Sort: home first, then main pages, then slugs
+    const order = ['/', '/esim', '/taxi', '/about'];
+    const ai = order.indexOf(a), bi = order.indexOf(b);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return a.localeCompare(b);
+  });
 
-  const urls = Array.from(paths)
-    .map(p => ({ loc: toAbsUrl(p) }))
-    .sort((a, b) => a.loc.localeCompare(b.loc));
-
-  const body = urls
-    .map(u => `  <url>\n    <loc>${xmlEscape(u.loc)}</loc>\n  </url>`)
-    .join('\n');
+  const body = urls.map(p => {
+    const { priority, changefreq } = getMeta(p);
+    return [
+      '  <url>',
+      `    <loc>${xmlEscape(toAbsUrl(p))}</loc>`,
+      `    <lastmod>${TODAY}</lastmod>`,
+      `    <changefreq>${changefreq}</changefreq>`,
+      `    <priority>${priority}</priority>`,
+      '  </url>',
+    ].join('\n');
+  }).join('\n');
 
   const xml =
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
@@ -86,4 +89,3 @@ main().catch((err) => {
   console.error('[sitemap] failed:', err);
   process.exitCode = 1;
 });
-

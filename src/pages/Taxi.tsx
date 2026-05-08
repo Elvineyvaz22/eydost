@@ -15,10 +15,10 @@ const libraries: ("places" | "geocoding")[] = ["places"];
 const defaultCenter = { lat: 40.409264, lng: 49.867092 }; // Baku
 
 const CAR_CLASSES = [
-  { id: 'economy', name: 'Economy', desc: 'Affordable everyday rides', icon: Car, priceStr: '$$' },
-  { id: 'comfort', name: 'Comfort', desc: 'Newer cars with extra legroom', icon: Star, priceStr: '$$$' },
-  { id: 'business', name: 'Business', desc: 'Premium luxury vehicles', icon: Briefcase, priceStr: '$$$$' },
-  { id: 'minivan', name: 'Minivan', desc: 'Groups up to 6 people', icon: Users, priceStr: '$$$$' },
+  { id: 'economy',  name: 'Economy',  desc: 'Affordable everyday rides',      icon: Car,      priceStr: 'from €8' },
+  { id: 'comfort',  name: 'Comfort',  desc: 'Newer cars with extra legroom',   icon: Star,     priceStr: 'from €14' },
+  { id: 'business', name: 'Business', desc: 'Premium luxury vehicles',          icon: Briefcase, priceStr: 'from €22' },
+  { id: 'minivan',  name: 'Minivan',  desc: 'Groups up to 6 people',           icon: Users,    priceStr: 'from €20' },
 ];
 
 export default function Taxi() {
