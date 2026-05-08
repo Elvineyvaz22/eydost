@@ -37,7 +37,7 @@ export default function FloatingWhatsApp() {
 
   return (
     <a
-      href={waId ? "#" : `https://wa.me/994992010117?text=${genericMsg}`}
+      href={waId ? "#" : `https://wa.me/994992000444?text=${genericMsg}`}
       target={waId ? "_self" : "_blank"}
       rel="noopener noreferrer"
       onClick={handleSupportClick}

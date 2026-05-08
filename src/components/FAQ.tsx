@@ -128,7 +128,7 @@ export default function FAQ() {
           <h3 className="text-xl font-bold text-white mb-2">Still have questions?</h3>
           <p className="text-gray-400 text-sm mb-6">Our WhatsApp agents are ready to help you 24/7.</p>
           <a
-            href="https://wa.me/994992010117"
+            href="https://wa.me/994992000444"
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackEvent(EVENTS.WHATSAPP_CHAT_GENERAL, { source: 'faq_cta' })}

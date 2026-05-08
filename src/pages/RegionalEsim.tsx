@@ -49,8 +49,8 @@ export default function RegionalEsim() {
 
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
-  const isTelegramWebApp = typeof window !== 'undefined' && 
-    (window as any).Telegram?.WebApp?.platform !== undefined && 
+  const isTelegramWebApp = typeof window !== 'undefined' &&
+    (window as any).Telegram?.WebApp?.platform !== undefined &&
     (window as any).Telegram?.WebApp?.platform !== 'unknown';
 
   if (!pkg) return <Navigate to="/" replace />;
@@ -60,8 +60,8 @@ export default function RegionalEsim() {
       e.preventDefault();
       const tg = window.Telegram?.WebApp;
       if (!tg) return;
-      
-      const textMsg = plan.code 
+
+      const textMsg = plan.code
         ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
         : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
@@ -151,64 +151,64 @@ export default function RegionalEsim() {
                 const rawMsg = `Hi! I want to buy an eSIM for ${pkg.name}.\n📊 Data: ${plan.gb}GB\n⏱ Validity: ${plan.days} days\n💰 Price: ${plan.price}`;
                 const tgLink = `https://t.me/${TG_BOT_USERNAME}?text=${encodeURIComponent(rawMsg)}`;
                 return (
-                <div
-                  key={i}
-                  className="bg-white rounded-2xl border border-gray-100 p-8 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 flex flex-col h-full group"
-                >
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="bg-blue-50 text-blue-700 text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider">
-                      {i === pkg.plans.length - 1 ? t.countryEsim.bestValue : `${plan.gb}GB`}
-                    </div>
-                    <span className="text-3xl font-black text-gray-900">{plan.price}</span>
-                  </div>
-                  <div className="space-y-4 mb-8 flex-1">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                        <Wifi className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{t.countryEsim.data}</p>
-                        <p className="text-base font-black text-gray-900">{plan.gb} GB</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                        <Clock className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{t.countryEsim.validity}</p>
-                        <p className="text-base font-black text-gray-900">{plan.days} {t.esimPackages.days}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                        <Globe className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{t.countryEsim.coverage}</p>
-                        <p className="text-base font-black text-gray-900 uppercase">{pkg.name}</p>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Action Button */}
-                  <button
-                    onClick={(e) => {
-                      const textMsg = plan.code
-                        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
-                        : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
-                      handleBuyClick(e as any, textMsg, plan);
-                    }}
-                    className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
-                      isTelegramWebApp 
-                        ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' 
-                        : 'bg-[#25D366] hover:bg-[#20bd5a]'
-                    } ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-gray-100 p-8 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 flex flex-col h-full group"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    {isOrdering ? '...' : (isTelegramWebApp ? 'SEÇ' : t.esimPackages.buyButton)}
-                  </button>
-                </div>
-              )})}
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="bg-blue-50 text-blue-700 text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider">
+                        {i === pkg.plans.length - 1 ? t.countryEsim.bestValue : `${plan.gb}GB`}
+                      </div>
+                      <span className="text-3xl font-black text-gray-900">{plan.price}</span>
+                    </div>
+                    <div className="space-y-4 mb-8 flex-1">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                          <Wifi className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{t.countryEsim.data}</p>
+                          <p className="text-base font-black text-gray-900">{plan.gb} GB</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                          <Clock className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{t.countryEsim.validity}</p>
+                          <p className="text-base font-black text-gray-900">{plan.days} {t.esimPackages.days}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                          <Globe className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{t.countryEsim.coverage}</p>
+                          <p className="text-base font-black text-gray-900 uppercase">{pkg.name}</p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Action Button */}
+                    <button
+                      onClick={(e) => {
+                        const textMsg = plan.code
+                          ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
+                          : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+                        handleBuyClick(e as any, textMsg, plan);
+                      }}
+                      className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${isTelegramWebApp
+                          ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]'
+                          : 'bg-[#25D366] hover:bg-[#20bd5a]'
+                        } ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      {isOrdering ? '...' : (isTelegramWebApp ? 'SEÇ' : t.esimPackages.buyButton)}
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>

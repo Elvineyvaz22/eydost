@@ -3080,15 +3080,15 @@ export const regionalPackages: RegionalPackage[] = [
     flags: ['\u{1F1EF}\u{1F1F5}', '\u{1F1F9}\u{1F1ED}', '\u{1F1F0}\u{1F1F7}', '\u{1F1F8}\u{1F1EC}'],
     countryCount: 15,
     plans: [
-      { gb: 20, days: 30, price: m(70), code: 'AS-20', id: 'HK' },
-      { gb: 3, days: 30, price: m(16.1), code: 'AS-20', id: 'HK' },
-      { gb: 10, days: 30, price: m(40.25), code: 'AS-20', id: 'HK' },
-      { gb: 1, days: 30, price: m(6.48), code: 'AS-20', id: 'HK' },
       { gb: 1, days: 7, price: m(6.3), code: 'AS-20', id: 'HK' },
-      { gb: 20, days: 90, price: m(73.5), code: 'AS-20', id: 'HK' },
+      { gb: 1, days: 30, price: m(6.48), code: 'AS-20', id: 'HK' },
       { gb: 3, days: 15, price: m(15.58), code: 'AS-20', id: 'HK' },
-      { gb: 50, days: 180, price: m(155.75), code: 'AS-20', id: 'HK' },
-      { gb: 5, days: 30, price: m(23.8), code: 'AS-20', id: 'HK' }
+      { gb: 3, days: 30, price: m(16.1), code: 'AS-20', id: 'HK' },
+      { gb: 5, days: 30, price: m(23.8), code: 'AS-20', id: 'HK' },
+      { gb: 10, days: 30, price: m(40.25), code: 'AS-20', id: 'HK' },
+      { gb: 20, days: 30, price: m(70), code: 'AS-20', id: 'HK' },
+      { gb: 20, days: 90, price: m(73.5), code: 'AS-20', id: 'HK' },
+      { gb: 50, days: 180, price: m(155.75), code: 'AS-20', id: 'HK' }
     ],
   },
   {
@@ -3097,15 +3097,15 @@ export const regionalPackages: RegionalPackage[] = [
     flags: ['\u{1F1EA}\u{1F1EC}', '\u{1F1F2}\u{1F1E6}', '\u{1F1F0}\u{1F1EA}', '\u{1F1EE}\u{1F1F1}'],
     countryCount: 18,
     plans: [
-      { gb: 10, days: 30, price: m(96.25), code: 'ME-12', id: 'EG' },
+      { gb: 1, days: 7, price: m(9.98), code: 'AF-29', id: 'LR' },
       { gb: 1, days: 7, price: m(12.25), code: 'ME-12', id: 'EG' },
-      { gb: 20, days: 30, price: m(185.5), code: 'ME-12', id: 'EG' },
+      { gb: 3, days: 30, price: m(25.2), code: 'AF-29', id: 'LR' },
       { gb: 3, days: 15, price: m(30.63), code: 'ME-12', id: 'EG' },
       { gb: 3, days: 30, price: m(31.32), code: 'ME-12', id: 'EG' },
+      { gb: 5, days: 30, price: m(36.75), code: 'AF-29', id: 'LR' },
       { gb: 5, days: 30, price: m(49.88), code: 'ME-12', id: 'EG' },
-      { gb: 1, days: 7, price: m(9.98), code: 'AF-29', id: 'LR' },
-      { gb: 3, days: 30, price: m(25.2), code: 'AF-29', id: 'LR' },
-      { gb: 5, days: 30, price: m(36.75), code: 'AF-29', id: 'LR' }
+      { gb: 10, days: 30, price: m(96.25), code: 'ME-12', id: 'EG' },
+      { gb: 20, days: 30, price: m(185.5), code: 'ME-12', id: 'EG' }
     ],
   },
   {
@@ -3114,22 +3114,22 @@ export const regionalPackages: RegionalPackage[] = [
     flags: ['\u{1F1FA}\u{1F1F8}', '\u{1F1E8}\u{1F1E6}', '\u{1F1F2}\u{1F1FD}', '\u{1F1EF}\u{1F1F2}'],
     countryCount: 8,
     plans: [
-      { gb: 10, days: 30, price: m(78.58), code: 'CB-25', id: 'PR' },
-      { gb: 1, days: 7, price: m(10.33), code: 'CB-25', id: 'PR' },
-      { gb: 3, days: 30, price: m(26.08), code: 'CB-25', id: 'PR' },
-      { gb: 5, days: 30, price: m(47.08), code: 'CB-25', id: 'PR' },
-      { gb: 10, days: 30, price: m(28), code: 'USCA-2', id: 'CA"' },
-      { gb: 1, days: 7, price: m(3.38), code: 'USCA-2', id: 'CA"' },
+      { gb: 0.5, days: 1, price: m(1.93), code: 'USCA-2', id: 'CA"' },
       { gb: 1, days: 1, price: m(2.98), code: 'USCA-2', id: 'CA"' },
-      { gb: 20, days: 30, price: m(52.5), code: 'USCA-2', id: 'CA"' },
+      { gb: 1, days: 7, price: m(3.38), code: 'USCA-2', id: 'CA"' },
       { gb: 2, days: 1, price: m(5.25), code: 'USCA-2', id: 'CA"' },
+      { gb: 0.5, days: 1, price: m(5.25), code: 'CB-25', id: 'PR' },
       { gb: 3, days: 15, price: m(9.01), code: 'USCA-2', id: 'CA"' },
       { gb: 3, days: 30, price: m(9.63), code: 'USCA-2', id: 'CA"' },
-      { gb: 0.5, days: 1, price: m(1.93), code: 'USCA-2', id: 'CA"' },
-      { gb: 5, days: 30, price: m(15.05), code: 'USCA-2', id: 'CA"' },
+      { gb: 1, days: 7, price: m(10.33), code: 'CB-25', id: 'PR' },
       { gb: 1, days: 1, price: m(11.9), code: 'CB-25', id: 'PR' },
-      { gb: 0.5, days: 1, price: m(5.25), code: 'CB-25', id: 'PR' },
-      { gb: 5, days: 1, price: m(61.25), code: 'CB-25', id: 'PR' }
+      { gb: 5, days: 30, price: m(15.05), code: 'USCA-2', id: 'CA"' },
+      { gb: 3, days: 30, price: m(26.08), code: 'CB-25', id: 'PR' },
+      { gb: 10, days: 30, price: m(28), code: 'USCA-2', id: 'CA"' },
+      { gb: 5, days: 30, price: m(47.08), code: 'CB-25', id: 'PR' },
+      { gb: 20, days: 30, price: m(52.5), code: 'USCA-2', id: 'CA"' },
+      { gb: 5, days: 1, price: m(61.25), code: 'CB-25', id: 'PR' },
+      { gb: 10, days: 30, price: m(78.58), code: 'CB-25', id: 'PR' }
     ],
   },
 ];
@@ -3140,14 +3140,14 @@ export const globalPackage: RegionalPackage = {
   flags: ['\u{1F30D}', '\u{1F30E}', '\u{1F30F}', '\u{2708}\u{FE0F}'],
   countryCount: 70,
   plans: [
-      { gb: 10, days: 30, price: m(59.5), code: 'GL-120', id: 'HK' },
-      { gb: 1, days: 365, price: m(12.25), code: 'GL-120', id: 'HK' },
-      { gb: 1, days: 7, price: m(8.05), code: 'GL-120', id: 'HK' },
       { gb: 1, days: 1, price: m(7.79), code: 'GL-120', id: 'HK' },
-      { gb: 20, days: 30, price: m(105), code: 'GL-120', id: 'HK' },
-      { gb: 20, days: 90, price: m(116.38), code: 'GL-120', id: 'HK' },
+      { gb: 1, days: 7, price: m(8.05), code: 'GL-120', id: 'HK' },
+      { gb: 1, days: 365, price: m(12.25), code: 'GL-120', id: 'HK' },
       { gb: 2, days: 1, price: m(13.16), code: 'GL-120', id: 'HK' },
       { gb: 3, days: 30, price: m(19.95), code: 'GL-120', id: 'HK' },
-      { gb: 5, days: 30, price: m(31.5), code: 'GL-120', id: 'HK' }
+      { gb: 5, days: 30, price: m(31.5), code: 'GL-120', id: 'HK' },
+      { gb: 10, days: 30, price: m(59.5), code: 'GL-120', id: 'HK' },
+      { gb: 20, days: 30, price: m(105), code: 'GL-120', id: 'HK' },
+      { gb: 20, days: 90, price: m(116.38), code: 'GL-120', id: 'HK' }
     ],
 };

@@ -1,7 +1,7 @@
 import { Globe, Bot, Smartphone, MapPin, Car, Users, CheckCircle, MessageCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const WA_LINK = 'https://wa.me/994992010117';
+const WA_LINK = 'https://wa.me/994992000444';
 
 function MovingCars() {
   return (

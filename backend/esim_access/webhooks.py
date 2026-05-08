@@ -131,3 +131,72 @@ def _handle_smdp_event(payload: WebhookPayload):
     """
     logger.info(f"[SMDP_EVENT] SM-DP+ event | iccid={payload.iccid} data={payload.data}")
     # TODO: Update eSIM status in your database
+
+
+# ─── Taxi Booking Webhook ─────────────────────────────────────────────────────
+
+import httpx
+from pydantic import BaseModel
+from typing import Optional
+
+TAXI_WEBHOOK_URL = "https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps"
+TAXI_WEBHOOK_TOKEN = "vlmftc3wuyeme247ns3sbg2drggop5ba7dgja4vr"
+
+
+class LocationData(BaseModel):
+    display_name: str
+    formatted_address: str
+    lat: float
+    lng: float
+
+
+class TaxiBookingPayload(BaseModel):
+    bookingId: str
+    pickup: LocationData
+    destination: LocationData
+    confirmed_at: str
+
+
+@router.post("/webhooks/taxi", summary="Forward taxi booking to external API")
+async def receive_taxi_webhook(payload: TaxiBookingPayload):
+    """
+    Receives a taxi booking from the frontend and forwards it
+    to the bsqd.me external API.
+    """
+    logger.info(f"[TAXI_WEBHOOK] bookingId={payload.bookingId} pickup={payload.pickup.display_name} destination={payload.destination.display_name}")
+
+    headers = {
+        "Authorization": f"Bearer {TAXI_WEBHOOK_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    body = {
+        "bookingId": payload.bookingId,
+        "pickup": {
+            "display_name": payload.pickup.display_name,
+            "formatted_address": payload.pickup.formatted_address,
+            "lat": payload.pickup.lat,
+            "lng": payload.pickup.lng,
+        },
+        "destination": {
+            "display_name": payload.destination.display_name,
+            "formatted_address": payload.destination.formatted_address,
+            "lat": payload.destination.lat,
+            "lng": payload.destination.lng,
+        },
+        "confirmed_at": payload.confirmed_at,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(TAXI_WEBHOOK_URL, json=body, headers=headers)
+            logger.info(f"[TAXI_WEBHOOK] forwarded to bsqd.me | status={response.status_code}")
+            response.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        logger.error(f"[TAXI_WEBHOOK] HTTP error: {e.response.status_code} body={e.response.text}")
+        raise HTTPException(status_code=502, detail="External taxi API error")
+    except Exception as e:
+        logger.error(f"[TAXI_WEBHOOK] Failed to forward: {e}")
+        raise HTTPException(status_code=500, detail="Failed to forward taxi booking")
+
+    return {"received": True, "bookingId": payload.bookingId}

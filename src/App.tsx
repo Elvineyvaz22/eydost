@@ -13,7 +13,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import CountryEsim from './pages/CountryEsim';
-import RegionalEsim from './pages/RegionalEsim';
+// import RegionalEsim removed – not part of core
 import Taxi from './pages/Taxi';
 import AllPackages from './pages/AllPackages';
 import Privacy from './pages/Privacy';
@@ -24,6 +24,9 @@ import { PackagesProvider } from './contexts/PackagesContext';
 const REGIONAL_SLUGS = ['europe-esim', 'asia-esim', 'middle-east-africa-esim', 'americas-esim', 'global-esim'];
 
 function EsimRouter() {
+  // RegionalEsim page removed – fallback to CountryEsim for any slug
+  return <CountryEsim />;
+}
   const { slug } = useParams<{ slug: string }>();
   if (slug && REGIONAL_SLUGS.includes(slug)) return <RegionalEsim />;
   return <CountryEsim />;

@@ -222,6 +222,33 @@ export default function Taxi() {
         estimated_price: priceText
       });
 
+      // Forward booking to backend webhook
+      const bookingId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      try {
+        await fetch('/api/webhooks/taxi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bookingId,
+            pickup: {
+              display_name: pickupAddress.split(',')[0] || pickupAddress,
+              formatted_address: pickupAddress,
+              lat: pickupCoords?.lat ?? 0,
+              lng: pickupCoords?.lng ?? 0,
+            },
+            destination: {
+              display_name: dropoffAddress.split(',')[0] || dropoffAddress,
+              formatted_address: dropoffAddress,
+              lat: dropoffCoords?.lat ?? 0,
+              lng: dropoffCoords?.lng ?? 0,
+            },
+            confirmed_at: new Date().toISOString(),
+          }),
+        });
+      } catch (e) {
+        console.warn('Taxi webhook failed:', e);
+      }
+
       setIsSuccess(true);
 
       setTimeout(() => {
