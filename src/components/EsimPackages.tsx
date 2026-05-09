@@ -65,8 +65,6 @@ export default function EsimPackages() {
     globalPackage: staticGlobal,
     liveCountryGroups,
     liveRegionalPackages,
-    liveError,
-    refreshLivePackages
   } = usePackages();
   const [tab, setTab] = useState<Tab>('popular');
   const [search, setSearch] = useState('');
@@ -146,17 +144,6 @@ export default function EsimPackages() {
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">{esimT.subtitle}</p>
         </div>
 
-        {liveError && (
-          <div className="max-w-2xl mx-auto mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
-            <span className="text-sm text-amber-700">⚠️ {liveError}</span>
-            <button
-              onClick={() => refreshLivePackages()}
-              className="text-sm font-medium text-amber-800 hover:text-amber-900 underline"
-            >
-              ↻ Retry
-            </button>
-          </div>
-        )}
 
         {/* Search — always visible */}
         <div className="max-w-md mx-auto mb-6">
