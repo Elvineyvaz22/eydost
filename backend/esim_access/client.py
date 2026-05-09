@@ -9,6 +9,10 @@ Auth: RT-AccessCode header
 
 import os
 import time
+import hmac
+import hashlib
+import uuid
+import json
 import logging
 import threading
 import requests
@@ -110,9 +114,16 @@ class ESIMAccessClient:
 
     def __init__(self):
         self.access_code: str = os.environ.get("ESIM_ACCESS_CODE", "")
+        self.secret_key: str = os.environ.get("ESIM_SECRET_KEY", "")
+
         if not self.access_code:
             raise ESIMAuthError(
                 "ESIM_ACCESS_CODE environment variable is not set. "
+                "Please set it before instantiating ESIMAccessClient."
+            )
+        if not self.secret_key:
+            raise ESIMAuthError(
+                "ESIM_SECRET_KEY environment variable is not set. "
                 "Please set it before instantiating ESIMAccessClient."
             )
 
@@ -121,13 +132,37 @@ class ESIMAccessClient:
 
         self._session = requests.Session()
         self._session.headers.update({
-            "RT-AccessCode": self.access_code,
             "Content-Type": "application/json",
             "Accept": "application/json",
         })
 
         self._rate_limiter = RateLimiter(rate=8, period=1.0)
         logger.info(f"ESIMAccessClient initialized. Base URL: {self.base_url}")
+
+    def _build_auth_headers(self, body_str: str) -> dict:
+        """
+        Build HMAC-SHA256 authentication headers for each request.
+
+        Signature formula (from eSIM Access docs):
+            signData  = Timestamp + RequestID + AccessCode + RequestBody
+            signature = HMAC-SHA256(signData, SecretKey)
+        """
+        timestamp = str(int(time.time() * 1000))   # Unix ms
+        request_id = str(uuid.uuid4())
+
+        sign_data = timestamp + request_id + self.access_code + body_str
+        signature = hmac.new(
+            self.secret_key.encode("utf-8"),
+            sign_data.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        return {
+            "RT-AccessCode": self.access_code,
+            "RT-RequestID":  request_id,
+            "RT-Timestamp":  timestamp,
+            "RT-Signature":  signature,
+        }
 
     def _url(self, path: str) -> str:
         return f"{self.base_url}/{path.lstrip('/')}"
@@ -168,10 +203,18 @@ class ESIMAccessClient:
         # Enforce rate limit
         self._rate_limiter.acquire()
 
+        body_str = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+        auth_headers = self._build_auth_headers(body_str)
+
         logger.info(f"POST {url} | payload keys: {list(payload.keys())}")
 
         try:
-            response = self._session.post(url, json=payload, timeout=self.timeout)
+            response = self._session.post(
+                url,
+                data=body_str.encode("utf-8"),
+                headers=auth_headers,
+                timeout=self.timeout,
+            )
         except requests.Timeout:
             logger.error(f"Timeout reaching {url}")
             raise ESIMTimeoutError(f"Request to {url} timed out after {self.timeout}s")
