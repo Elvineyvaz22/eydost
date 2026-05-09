@@ -92,10 +92,11 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
         .eq('key', 'esim_packages_cache')
         .maybeSingle();
 
-      if (cacheData?.value?.packages?.length > 0) {
+      const cachedPackages = cacheData?.value?.packages;
+      if (Array.isArray(cachedPackages) && cachedPackages.length > 0) {
         // Use Supabase-cached packages, but recompute prices from current admin rules.
         const { applyPricingRules, countryCodeToFlag, getCountryName } = await import('../services/esimApi');
-        const rawPackages = await applyPricingRules(cacheData.value.packages);
+        const rawPackages = await applyPricingRules(cachedPackages);
         
         // Group manually
         const countryMap = new Map<string, any[]>();
