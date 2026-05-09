@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const BSQD_URL = 'https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps';
 const BOT_ID = '388c046c-c54f-4b56-9107-24f4ffca0600';
+const BSQD_TOKEN = 'vlmftc3wuyeme247ns3sbg2drggop5ba7dgja4vr';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[VERCEL_taxi-webhook] method:', req.method);
@@ -26,6 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${BSQD_TOKEN}`,
       },
       body: JSON.stringify({
         bookingId: body.bookingId || '',
