@@ -8,7 +8,6 @@ import StatsBar from './components/StatsBar';
 import EsimPackages from './components/EsimPackages';
 import HowEsimWorks from './components/HowEsimWorks';
 import WhyEyDost from './components/WhyEyDost';
-import Testimonials from './components/Testimonials';
 import FAQ from './components/FAQ';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
@@ -137,7 +136,6 @@ function HomePage() {
       <EsimPackages />
       <HowEsimWorks />
       <WhyEyDost />
-      <Testimonials />
       <FAQ />
       <Contact />
       <Footer />
