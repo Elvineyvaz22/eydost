@@ -52,6 +52,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
   const CACHE_KEY = 'eydost_live_packages';
   const CACHE_TIME_KEY = 'eydost_live_packages_time';
   const CACHE_PRICING_VERSION_KEY = 'eydost_live_packages_pricing_version';
+  const CACHE_SCHEMA_VERSION = '2';
   const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
   const loadFromCache = (expectedPricingVersion: string) => {
@@ -67,6 +68,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
       ) {
         try {
           const parsed = JSON.parse(cachedData);
+          if (parsed.schemaVersion !== CACHE_SCHEMA_VERSION) return false;
           setLiveCountryGroups(parsed.countryGroups || []);
           setLiveRegionalPackages(parsed.regional || []);
           setLiveLoading(false);
@@ -91,10 +93,9 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (cacheData?.value?.packages?.length > 0) {
-        // Use Supabase-cached packages, group them same way as live API
-        const { fetchCountryGroups: groupPackages } = await import('../services/esimApi');
-        // Re-use the grouping logic by temporarily mocking fetch
-        const rawPackages = cacheData.value.packages;
+        // Use Supabase-cached packages, but recompute prices from current admin rules.
+        const { applyPricingRules, countryCodeToFlag, getCountryName } = await import('../services/esimApi');
+        const rawPackages = await applyPricingRules(cacheData.value.packages);
         
         // Group manually
         const countryMap = new Map<string, any[]>();
@@ -110,7 +111,6 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
           }
         }
         
-        const { countryCodeToFlag, getCountryName } = await import('../services/esimApi');
         const countryGroups = Array.from(countryMap.entries())
           .map(([code, pkgs]) => ({
             countryCode: code,
@@ -124,7 +124,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
         setLiveRegionalPackages(regional);
         
         const pricingVersion = localStorage.getItem('eydost_pricing_version') || '0';
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ countryGroups, regional }));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ schemaVersion: CACHE_SCHEMA_VERSION, countryGroups, regional }));
         localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
         localStorage.setItem(CACHE_PRICING_VERSION_KEY, pricingVersion);
         return;
@@ -136,7 +136,7 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
       setLiveRegionalPackages(regional);
       
       const pricingVersion = localStorage.getItem('eydost_pricing_version') || '0';
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ countryGroups, regional }));
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ schemaVersion: CACHE_SCHEMA_VERSION, countryGroups, regional }));
       localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
       localStorage.setItem(CACHE_PRICING_VERSION_KEY, pricingVersion);
     } catch (err: any) {
