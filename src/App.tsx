@@ -43,6 +43,7 @@ function EsimRouter() {
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
 const EsimEditor = lazy(() => import('./pages/admin/EsimEditor'));
+const EsimSync = lazy(() => import('./pages/admin/EsimSync'));
 const TaxiEditor = lazy(() => import('./pages/admin/TaxiEditor'));
 const Analytics = lazy(() => import('./pages/admin/Analytics'));
 const TranslationsEditor = lazy(() => import('./pages/admin/TranslationsEditor'));
@@ -184,6 +185,15 @@ function App() {
                     <ProtectedRoute>
                       <Seo title="Admin Dashboard" noIndex canonicalPath="/admin/dashboard" />
                       <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/esim-sync"
+                  element={
+                    <ProtectedRoute>
+                      <Seo title="eSIM Sync" noIndex canonicalPath="/admin/esim-sync" />
+                      <EsimSync />
                     </ProtectedRoute>
                   }
                 />

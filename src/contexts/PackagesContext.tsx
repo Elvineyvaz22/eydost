@@ -83,11 +83,58 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
     if (!silent) setLiveLoading(true);
     setLiveError(null);
     try {
+      // First try Supabase cache (set by admin sync)
+      const { data: cacheData } = await supabase
+        .from('site_content')
+        .select('value')
+        .eq('key', 'esim_packages_cache')
+        .maybeSingle();
+
+      if (cacheData?.value?.packages?.length > 0) {
+        // Use Supabase-cached packages, group them same way as live API
+        const { fetchCountryGroups: groupPackages } = await import('../services/esimApi');
+        // Re-use the grouping logic by temporarily mocking fetch
+        const rawPackages = cacheData.value.packages;
+        
+        // Group manually
+        const countryMap = new Map<string, any[]>();
+        const regional: any[] = [];
+        for (const pkg of rawPackages) {
+          const locs = (pkg.location || '').split(',').map((l: string) => l.trim()).filter(Boolean);
+          if (locs.length === 1 && !locs[0].startsWith('!')) {
+            const code = locs[0].toUpperCase();
+            if (!countryMap.has(code)) countryMap.set(code, []);
+            countryMap.get(code)!.push(pkg);
+          } else {
+            regional.push(pkg);
+          }
+        }
+        
+        const { countryCodeToFlag, getCountryName } = await import('../services/esimApi');
+        const countryGroups = Array.from(countryMap.entries())
+          .map(([code, pkgs]) => ({
+            countryCode: code,
+            countryName: getCountryName(code),
+            flag: countryCodeToFlag(code),
+            packages: pkgs.sort((a: any, b: any) => a.price - b.price),
+          }))
+          .sort((a, b) => a.countryName.localeCompare(b.countryName));
+
+        setLiveCountryGroups(countryGroups);
+        setLiveRegionalPackages(regional);
+        
+        const pricingVersion = localStorage.getItem('eydost_pricing_version') || '0';
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ countryGroups, regional }));
+        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        localStorage.setItem(CACHE_PRICING_VERSION_KEY, pricingVersion);
+        return;
+      }
+
+      // Fallback: try live API (only works locally with backend)
       const { countryGroups, regionalPackages: regional } = await fetchCountryGroups();
       setLiveCountryGroups(countryGroups);
       setLiveRegionalPackages(regional);
       
-      // Save to cache
       const pricingVersion = localStorage.getItem('eydost_pricing_version') || '0';
       localStorage.setItem(CACHE_KEY, JSON.stringify({ countryGroups, regional }));
       localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
