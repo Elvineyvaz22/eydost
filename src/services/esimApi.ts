@@ -154,11 +154,12 @@ function applyRule(rule: PricingRule, apiPrice: number): number {
   return Math.round(apiPrice * (rule.margin || 1.75));
 }
 
-async function applyPricingRules(packages: ESIMPackageRaw[]): Promise<ESIMPackageRaw[]> {
+export async function applyPricingRules(packages: ESIMPackageRaw[]): Promise<ESIMPackageRaw[]> {
+  const basePackages = packages.map(pkg => ({ ...pkg, sellingPrice: undefined }));
   const rules = await fetchPricingRules().catch(() => []);
-  if (rules.length === 0) return packages;
+  if (rules.length === 0) return basePackages;
 
-  return packages.map(pkg => {
+  return basePackages.map(pkg => {
     const locations = (pkg.location || '').split(',').map(code => normalizeTarget(code)).filter(Boolean);
     const isSingleCountry = locations.length === 1;
     const countryCode = isSingleCountry ? locations[0] : '';
