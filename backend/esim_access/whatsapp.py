@@ -211,8 +211,8 @@ async def _handle_order_message(recipient_id: str, message_text: str):
     import re
     
     # Try to extract Code and ID
-    code_match = re.search(r"Code:\s*([A-Z0-9_-]+)", message_text)
-    id_match = re.search(r"ID:\s*([A-Z0-9_-]+)", message_text)
+    code_match = re.search(r"Code:\s*([A-Za-z0-9_-]+)", message_text)
+    id_match = re.search(r"ID:\s*([A-Za-z0-9_-]+)", message_text)
     
     code = code_match.group(1) if code_match else None
     plan_id = id_match.group(1) if id_match else None

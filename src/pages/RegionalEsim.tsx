@@ -73,11 +73,15 @@ export default function RegionalEsim() {
       e.preventDefault();
       setIsOrdering(true);
       try {
+        const orderIdentifiers = plan.code && plan.id
+          ? { code: plan.code, id: plan.id }
+          : { code: pkg.name.toUpperCase(), id: plan.gb + 'GB' };
+
         await createOrder({
           wa_id: waId,
           type: 'esim',
-          code: pkg.name.toUpperCase(),
-          id: plan.gb + 'GB',
+          code: orderIdentifiers.code,
+          id: orderIdentifiers.id,
         });
         alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
       } finally {
