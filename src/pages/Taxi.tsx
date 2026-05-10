@@ -197,6 +197,10 @@ export default function Taxi() {
         alert(language === 'az' ? "Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin." : (language === 'ru' ? "Пожалуйста, выберите пункты отправления и назначения." : "Please select both pickup and drop-off locations."));
         return;
       }
+      if (!pickupCoords || !dropoffCoords) {
+        alert(language === 'az' ? "Zəhmət olmasa ünvanları xəritədən və ya axtarış nəticəsindən seçin." : (language === 'ru' ? "Пожалуйста, выберите адреса на карте или из результатов поиска." : "Please select both locations from the map or search results."));
+        return;
+      }
       const car = CAR_CLASSES.find(c => c.id === selectedCar);
       let priceText = "";
       
@@ -240,14 +244,14 @@ export default function Taxi() {
             pickup: {
               display_name: pickupAddress.split(',')[0] || pickupAddress,
               formatted_address: pickupAddress,
-              lat: pickupCoords?.lat ?? 0,
-              lng: pickupCoords?.lng ?? 0,
+              lat: pickupCoords.lat,
+              lng: pickupCoords.lng,
             },
             destination: {
               display_name: dropoffAddress.split(',')[0] || dropoffAddress,
               formatted_address: dropoffAddress,
-              lat: dropoffCoords?.lat ?? 0,
-              lng: dropoffCoords?.lng ?? 0,
+              lat: dropoffCoords.lat,
+              lng: dropoffCoords.lng,
             },
             confirmed_at: new Date().toISOString(),
           }),
@@ -395,7 +399,10 @@ export default function Taxi() {
                               <input
                                 type="text"
                                 value={pickupAddress}
-                                onChange={(e) => setPickupAddress(e.target.value)}
+                                onChange={(e) => {
+                                  setPickupAddress(e.target.value);
+                                  setPickupCoords(null);
+                                }}
                                 placeholder={t.taxi.pickupPlaceholder}
                                 className="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
                               />
@@ -423,7 +430,10 @@ export default function Taxi() {
                               <input
                                 type="text"
                                 value={dropoffAddress}
-                                onChange={(e) => setDropoffAddress(e.target.value)}
+                                onChange={(e) => {
+                                  setDropoffAddress(e.target.value);
+                                  setDropoffCoords(null);
+                                }}
                                 placeholder={t.taxi.dropoffPlaceholder}
                                 className="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
                               />
@@ -659,7 +669,10 @@ export default function Taxi() {
                       <input
                         type="text"
                         value={pickupAddress}
-                        onChange={(e) => setPickupAddress(e.target.value)}
+                        onChange={(e) => {
+                          setPickupAddress(e.target.value);
+                          setPickupCoords(null);
+                        }}
                         placeholder={t.taxi.pickupPlaceholder}
                         className="w-full bg-transparent text-gray-900 font-bold focus:outline-none truncate text-base placeholder-gray-400"
                       />
@@ -682,7 +695,10 @@ export default function Taxi() {
                       <input
                         type="text"
                         value={dropoffAddress}
-                        onChange={(e) => setDropoffAddress(e.target.value)}
+                        onChange={(e) => {
+                          setDropoffAddress(e.target.value);
+                          setDropoffCoords(null);
+                        }}
                         placeholder={t.taxi.dropoffPlaceholder}
                         className="w-full bg-transparent text-gray-900 font-bold focus:outline-none truncate text-base placeholder-gray-400"
                       />

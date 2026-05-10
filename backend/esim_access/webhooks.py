@@ -139,8 +139,11 @@ import httpx
 from pydantic import BaseModel
 from typing import Optional
 
-TAXI_WEBHOOK_URL = "https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps"
-TAXI_WEBHOOK_TOKEN = "vlmftc3wuyeme247ns3sbg2drggop5ba7dgja4vr"
+TAXI_WEBHOOK_URL = os.environ.get(
+    "TAXI_WEBHOOK_URL",
+    "https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps",
+)
+TAXI_WEBHOOK_TOKEN = os.environ.get("TAXI_WEBHOOK_TOKEN", "")
 
 
 class LocationData(BaseModel):
@@ -164,6 +167,10 @@ async def receive_taxi_webhook(payload: TaxiBookingPayload):
     to the bsqd.me external API.
     """
     logger.info(f"[TAXI_WEBHOOK] bookingId={payload.bookingId} pickup={payload.pickup.display_name} destination={payload.destination.display_name}")
+
+    if not TAXI_WEBHOOK_TOKEN:
+        logger.error("[TAXI_WEBHOOK] TAXI_WEBHOOK_TOKEN is not configured")
+        raise HTTPException(status_code=500, detail="Taxi webhook is not configured")
 
     headers = {
         "Authorization": f"Bearer {TAXI_WEBHOOK_TOKEN}",

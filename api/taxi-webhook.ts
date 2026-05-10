@@ -1,8 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const BSQD_URL = 'https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps';
-const BOT_ID = '388c046c-c54f-4b56-9107-24f4ffca0600';
-const BSQD_TOKEN = 'vlmftc3wuyeme247ns3sbg2drggop5ba7dgja4vr';
+const BSQD_URL = process.env.BSQD_WEBHOOK_URL || 'https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/master/event/recieve_maps';
+const BOT_ID = process.env.BSQD_BOT_ID || '388c046c-c54f-4b56-9107-24f4ffca0600';
+const BSQD_TOKEN = process.env.BSQD_WEBHOOK_TOKEN || process.env.TAXI_WEBHOOK_TOKEN || '';
+
+const hasValidLocation = (location: any) =>
+  location &&
+  typeof location.display_name === 'string' &&
+  typeof location.formatted_address === 'string' &&
+  typeof location.lat === 'number' &&
+  typeof location.lng === 'number' &&
+  Number.isFinite(location.lat) &&
+  Number.isFinite(location.lng);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[VERCEL_taxi-webhook] method:', req.method);
@@ -16,9 +25,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[VERCEL_taxi-webhook] body.pickup:', body?.pickup);
   console.log('[VERCEL_taxi-webhook] body.destination:', body?.destination);
 
-  if (!body || !body.pickup || !body.destination) {
+  if (!body || !hasValidLocation(body.pickup) || !hasValidLocation(body.destination)) {
     console.log('[VERCEL_taxi-webhook] Invalid payload - missing pickup or destination');
     return res.status(400).json({ error: 'Invalid payload' });
+  }
+
+  if (!BSQD_TOKEN) {
+    console.log('[VERCEL_taxi-webhook] Missing BSQD webhook token');
+    return res.status(500).json({ error: 'Taxi webhook is not configured' });
   }
 
   try {

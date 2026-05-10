@@ -18,7 +18,9 @@ const WA_LINK = 'https://wa.me/994992010117';
 function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; countryName: string; countryCode: string; planIndex: number }) {
   const { t } = useLanguage();
 
-  const planCodeEntry = getPlanCode(countryCode, planIndex);
+  const planCodeEntry = plan.code && plan.id
+    ? { code: plan.code, id: plan.id }
+    : getPlanCode(countryCode, planIndex);
 
 
   const [isOrdering, setIsOrdering] = useState(false);
