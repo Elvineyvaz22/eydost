@@ -2,7 +2,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLeft, LocateFixed, CheckCircle, XCircle } from 'lucide-react';
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
-import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Seo from '../components/Seo';
@@ -26,8 +25,9 @@ const CAR_CLASSES = [
 export default function Taxi() {
   const { t, language } = useLanguage();
   const [searchParams] = useSearchParams();
-  // bookingId from URL (?id=RIT-7842) — set by bsqd.me when opening the map
   const urlBookingId = searchParams.get('id') || searchParams.get('bookingId');
+  const paymentStatus = searchParams.get('status');
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     libraries,
@@ -46,10 +46,6 @@ export default function Taxi() {
   const [activeInput, setActiveInput] = useState<'pickup' | 'dropoff'>('pickup');
   const [mobileStep, setMobileStep] = useState<'select_pickup' | 'select_dropoff' | 'confirm_ride'>('select_pickup');
   const [isSuccess, setIsSuccess] = useState(false);
-
-  // Ödəniş nəticəsi - Taxibooker-dən yönləndirmə
-  const [searchParams] = useSearchParams();
-  const paymentStatus = searchParams.get('status');
   
   // Coordinates
   const [mapCenter, setMapCenter] = useState(defaultCenter);
