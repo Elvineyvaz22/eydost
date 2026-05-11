@@ -341,20 +341,10 @@ export default function Taxi() {
             : 'Your order has been confirmed. You will be contacted shortly.'}
         </p>
         
-        <div className="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-xl p-6 mb-8 border border-green-100">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-              <Car className="w-5 h-5 text-green-600" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm text-gray-500">{language === 'az' ? 'Sifariş nömrəsi' : (language === 'ru' ? 'Номер заказа' : 'Order ID')}</p>
-              <p className="font-bold text-gray-900">#{Date.now().toString().slice(-6)}</p>
-            </div>
-          </div>
-        </div>
-
         <a 
-          href={`${WA_LINK}?text=${encodeURIComponent(language === 'az' ? 'Salam, mən taxi sifariş etmişəm, ödəniş uğurlu oldu.' : (language === 'ru' ? 'Здравствуйте, я заказал такси, оплата прошла успешно.' : 'Hello, I ordered a taxi, payment was successful.'))}`}
+          href={WA_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
           className="w-full max-w-sm mx-auto bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/30 mb-4"
         >
           <MessageCircle className="w-5 h-5" />
