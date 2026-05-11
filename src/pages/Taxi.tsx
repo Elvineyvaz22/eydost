@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLeft, LocateFixed, CheckCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLeft, LocateFixed, CheckCircle, XCircle } from 'lucide-react';
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
@@ -45,6 +46,10 @@ export default function Taxi() {
   const [activeInput, setActiveInput] = useState<'pickup' | 'dropoff'>('pickup');
   const [mobileStep, setMobileStep] = useState<'select_pickup' | 'select_dropoff' | 'confirm_ride'>('select_pickup');
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Ödəniş nəticəsi - Taxibooker-dən yönləndirmə
+  const [searchParams] = useSearchParams();
+  const paymentStatus = searchParams.get('status');
   
   // Coordinates
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -322,6 +327,90 @@ export default function Taxi() {
     }
   };
 
+  // Taxibooker ödəniş nəticəsi ekranları
+  if (paymentStatus === 'success') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+        <div className="w-28 h-28 bg-green-500 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-green-500/30 animate-bounce">
+          <CheckCircle className="w-14 h-14 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          {language === 'az' ? 'Ödəniş Uğurlu Oldu!' : (language === 'ru' ? 'Оплата прошла успешно!' : 'Payment Successful!')}
+        </h2>
+        <p className="text-gray-500 text-lg mb-10 max-w-sm mx-auto leading-relaxed">
+          {language === 'az' 
+            ? 'Sifarişiniz təsdiqləndi. Tezliklə sizinlə əlaqə saxlanılacaq.' 
+            : language === 'ru' 
+            ? 'Ваш заказ подтверждён. Скоро с вами свяжутся.' 
+            : 'Your order has been confirmed. You will be contacted shortly.'}
+        </p>
+        
+        <div className="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-xl p-6 mb-8 border border-green-100">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <Car className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm text-gray-500">{language === 'az' ? 'Sifariş nömrəsi' : (language === 'ru' ? 'Номер заказа' : 'Order ID')}</p>
+              <p className="font-bold text-gray-900">#{Date.now().toString().slice(-6)}</p>
+            </div>
+          </div>
+        </div>
+
+        <a 
+          href={`${WA_LINK}?text=${encodeURIComponent(language === 'az' ? 'Salam, mən taxi sifariş etmişəm, ödəniş uğurlu oldu.' : (language === 'ru' ? 'Здравствуйте, я заказал такси, оплата прошла успешно.' : 'Hello, I ordered a taxi, payment was successful.'))}`}
+          className="w-full max-w-sm mx-auto bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/30 mb-4"
+        >
+          <MessageCircle className="w-5 h-5" />
+          {language === 'az' ? 'WhatsApp-la Əlaqə' : (language === 'ru' ? 'Связаться в WhatsApp' : 'Contact on WhatsApp')}
+        </a>
+        
+        <button 
+          onClick={() => window.location.href = '/taxi'}
+          className="text-gray-500 hover:text-gray-700 font-medium transition-colors mt-2"
+        >
+          {language === 'az' ? '← Yeni Sifariş' : (language === 'ru' ? '← Новый заказ' : '← New Order')}
+        </button>
+      </div>
+    );
+  }
+
+  if (paymentStatus === 'failed') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-red-50 to-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+        <div className="w-28 h-28 bg-red-500 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-red-500/30">
+          <XCircle className="w-14 h-14 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          {language === 'az' ? 'Ödəniş Baş Tutmadı' : (language === 'ru' ? 'Оплата не прошла' : 'Payment Failed')}
+        </h2>
+        <p className="text-gray-500 text-lg mb-10 max-w-sm mx-auto leading-relaxed">
+          {language === 'az' 
+            ? 'Ödəniş prosesində xəta baş verdi. Zəhmət olmasa bir daha cəhd edin.' 
+            : language === 'ru' 
+            ? 'Произошла ошибка при оплате. Пожалуйста, попробуйте ещё раз.' 
+            : 'An error occurred during payment. Please try again.'}
+        </p>
+
+        <a 
+          href={`${WA_LINK}?text=${encodeURIComponent(language === 'az' ? 'Salam, taxi sifarişi ilə bağlı problem yarandı, kömək lazımdır.' : (language === 'ru' ? 'Здравствуйте, возникла проблема с заказом такси, нужна помощь.' : 'Hello, there was an issue with the taxi order, I need help.'))}`}
+          className="w-full max-w-sm mx-auto bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/30 mb-4"
+        >
+          <MessageCircle className="w-5 h-5" />
+          {language === 'az' ? 'Dəstək Al' : (language === 'ru' ? 'Получить поддержку' : 'Get Support')}
+        </a>
+        
+        <button 
+          onClick={() => window.location.href = '/taxi'}
+          className="text-gray-500 hover:text-gray-700 font-medium transition-colors mt-2"
+        >
+          {language === 'az' ? '← Bir Daha Cəhd Et' : (language === 'ru' ? '← Попробовать ещё раз' : '← Try Again')}
+        </button>
+      </div>
+    );
+  }
+
+  // Köhnə WhatsApp axını — sifariş ötürüldükdən sonra
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
