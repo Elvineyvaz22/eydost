@@ -350,6 +350,9 @@ export default function Taxi() {
           <MessageCircle className="w-5 h-5" />
           {language === 'az' ? 'WhatsApp-la Əlaqə' : (language === 'ru' ? 'Связаться в WhatsApp' : 'Contact on WhatsApp')}
         </a>
+        <p className="text-gray-400 text-sm mt-3">
+          {language === 'az' ? '← Geri qayıt' : language === 'ru' ? '← Вернуться' : '← Go Back'}
+        </p>
       </div>
     );
   }
@@ -380,6 +383,9 @@ export default function Taxi() {
           <MessageCircle className="w-5 h-5" />
           {language === 'az' ? 'Dəstək Al' : (language === 'ru' ? 'Получить поддержку' : 'Get Support')}
         </a>
+        <p className="text-gray-400 text-sm mt-3">
+          {language === 'az' ? '← Geri qayıt' : language === 'ru' ? '← Вернуться' : '← Go Back'}
+        </p>
       </div>
     );
   }
