@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { packages as initialPackages, regionalPackages as initialRegional, globalPackage as initialGlobal } from '../data/esimPackages';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
-import type { ESIMCountryGroup, ESIMPackageRaw } from '../services/esimApi';
+import { fetchCountryGroups, type ESIMCountryGroup, type ESIMPackageRaw } from '../services/esimApi';
+import { supabase } from '../lib/supabase';
 
 interface PackagesContextType {
   // Legacy static packages (for admin editor compatibility)
@@ -42,19 +43,139 @@ export function PackagesProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('eydost_esim_data', JSON.stringify(newPackages));
   };
 
-  // ── Live API data (disabled — prices managed manually) ────────────────────
-  const liveCountryGroups: ESIMCountryGroup[] = [];
-  const liveRegionalPackages: ESIMPackageRaw[] = [];
-  const liveError: string | null = null;
+  // ── Live API data ──────────────────────────────────────────────────────────
+  const [liveCountryGroups, setLiveCountryGroups] = useState<ESIMCountryGroup[]>([]);
+  const [liveRegionalPackages, setLiveRegionalPackages] = useState<ESIMPackageRaw[]>([]);
   const [liveLoading, setLiveLoading] = useState(true);
+  const [liveError, setLiveError] = useState<string | null>(null);
 
-  const refreshLivePackages = async () => {
-    // Live API disabled — prices are managed manually via static data
+  const CACHE_KEY = 'eydost_live_packages';
+  const CACHE_TIME_KEY = 'eydost_live_packages_time';
+  const CACHE_PRICING_VERSION_KEY = 'eydost_live_packages_pricing_version';
+  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+  const loadFromCache = (expectedPricingVersion: string) => {
+    const cachedData = localStorage.getItem(CACHE_KEY);
+    const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+    const cachedPricingVersion = localStorage.getItem(CACHE_PRICING_VERSION_KEY);
+    
+    if (cachedData && cachedTime) {
+      const now = Date.now();
+      if (
+        now - parseInt(cachedTime) < CACHE_DURATION &&
+        cachedPricingVersion === expectedPricingVersion
+      ) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          setLiveCountryGroups(parsed.countryGroups || []);
+          setLiveRegionalPackages(parsed.regional || []);
+          setLiveLoading(false);
+          return true;
+        } catch (e) {
+          console.error('Failed to parse cached live data', e);
+        }
+      }
+    }
+    return false;
+  };
+
+  const refreshLivePackages = async (silent = false) => {
+    if (!silent) setLiveLoading(true);
+    setLiveError(null);
+    try {
+      // First try Supabase cache (set by admin sync)
+      const { data: cacheData } = await supabase
+        .from('site_content')
+        .select('value')
+        .eq('key', 'esim_packages_cache')
+        .maybeSingle();
+
+      if (cacheData?.value?.packages?.length > 0) {
+        const rawPackages = cacheData.value.packages;
+        
+        // Group cached packages the same way the live eSIM API response is grouped.
+        const countryMap = new Map<string, any[]>();
+        const regional: any[] = [];
+        for (const pkg of rawPackages) {
+          const locs = (pkg.location || '').split(',').map((l: string) => l.trim()).filter(Boolean);
+          if (locs.length === 1 && !locs[0].startsWith('!')) {
+            const code = locs[0].toUpperCase();
+            if (!countryMap.has(code)) countryMap.set(code, []);
+            countryMap.get(code)!.push(pkg);
+          } else {
+            regional.push(pkg);
+          }
+        }
+        
+        const { countryCodeToFlag, getCountryName } = await import('../services/esimApi');
+        const countryGroups = Array.from(countryMap.entries())
+          .map(([code, pkgs]) => ({
+            countryCode: code,
+            countryName: getCountryName(code),
+            flag: countryCodeToFlag(code),
+            packages: pkgs.sort((a: any, b: any) => a.price - b.price),
+          }))
+          .sort((a, b) => a.countryName.localeCompare(b.countryName));
+
+        setLiveCountryGroups(countryGroups);
+        setLiveRegionalPackages(regional);
+        
+        const pricingVersion = localStorage.getItem('eydost_pricing_version') || '0';
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ countryGroups, regional }));
+        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        localStorage.setItem(CACHE_PRICING_VERSION_KEY, pricingVersion);
+        return;
+      }
+
+      // Fallback: try live API (only works locally with backend)
+      const { countryGroups, regionalPackages: regional } = await fetchCountryGroups();
+      setLiveCountryGroups(countryGroups);
+      setLiveRegionalPackages(regional);
+      
+      const pricingVersion = localStorage.getItem('eydost_pricing_version') || '0';
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ countryGroups, regional }));
+      localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+      localStorage.setItem(CACHE_PRICING_VERSION_KEY, pricingVersion);
+    } catch (err: any) {
+      console.warn('Live packages unavailable:', err.message);
+      setLiveError(err.message);
+    } finally {
+      setLiveLoading(false);
+    }
   };
 
   useEffect(() => {
-    // Live API disabled — prices are managed manually via static data
-    setLiveLoading(false);
+    const init = async () => {
+      // Check for pricing updates first
+      let versionChanged = false;
+      let remoteVersion = '0';
+      try {
+        const { data } = await supabase
+          .from('site_content')
+          .select('value')
+          .eq('key', 'pricing_version')
+          .maybeSingle();
+        
+        remoteVersion = data?.value || '0';
+        const localVersion = localStorage.getItem('eydost_pricing_version');
+        
+        if (remoteVersion !== localVersion) {
+          localStorage.removeItem(CACHE_KEY);
+          localStorage.removeItem(CACHE_TIME_KEY);
+          localStorage.removeItem(CACHE_PRICING_VERSION_KEY);
+          localStorage.setItem('eydost_pricing_version', remoteVersion);
+          versionChanged = true;
+        }
+      } catch (e) {
+        console.warn('Pricing version check failed', e);
+      }
+
+      const hasCache = loadFromCache(remoteVersion);
+      // Refresh if no cache, or if version changed, or background refresh if cache exists
+      refreshLivePackages(!hasCache || versionChanged);
+    };
+
+    init();
   }, []);
 
   return (
