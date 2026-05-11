@@ -345,18 +345,11 @@ export default function Taxi() {
           href={WA_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full max-w-sm mx-auto bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/30 mb-4"
+          className="w-full max-w-sm mx-auto bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/30"
         >
           <MessageCircle className="w-5 h-5" />
           {language === 'az' ? 'WhatsApp-la Əlaqə' : (language === 'ru' ? 'Связаться в WhatsApp' : 'Contact on WhatsApp')}
         </a>
-        
-        <button 
-          onClick={() => window.location.href = '/taxi'}
-          className="text-gray-500 hover:text-gray-700 font-medium transition-colors mt-2"
-        >
-          {language === 'az' ? '← Yeni Sifariş' : (language === 'ru' ? '← Новый заказ' : '← New Order')}
-        </button>
       </div>
     );
   }
@@ -379,19 +372,14 @@ export default function Taxi() {
         </p>
 
         <a 
-          href={`${WA_LINK}?text=${encodeURIComponent(language === 'az' ? 'Salam, taxi sifarişi ilə bağlı problem yarandı, kömək lazımdır.' : (language === 'ru' ? 'Здравствуйте, возникла проблема с заказом такси, нужна помощь.' : 'Hello, there was an issue with the taxi order, I need help.'))}`}
+          href={WA_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
           className="w-full max-w-sm mx-auto bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/30 mb-4"
         >
           <MessageCircle className="w-5 h-5" />
           {language === 'az' ? 'Dəstək Al' : (language === 'ru' ? 'Получить поддержку' : 'Get Support')}
         </a>
-        
-        <button 
-          onClick={() => window.location.href = '/taxi'}
-          className="text-gray-500 hover:text-gray-700 font-medium transition-colors mt-2"
-        >
-          {language === 'az' ? '← Bir Daha Cəhd Et' : (language === 'ru' ? '← Попробовать ещё раз' : '← Try Again')}
-        </button>
       </div>
     );
   }
@@ -406,15 +394,9 @@ export default function Taxi() {
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
            {language === 'az' ? 'Sifariş Ötürüldü!' : (language === 'ru' ? 'Заказ отправлен!' : 'Order Sent!')}
         </h2>
-        <p className="text-gray-600 text-lg mb-10 max-w-sm mx-auto">
+        <p className="text-gray-600 text-lg max-w-sm mx-auto">
            {language === 'az' ? 'Məlumatlar WhatsApp-a uğurla ötürüldü. Zəhmət olmasa çat bölməsinə keçin.' : (language === 'ru' ? 'Информация успешно отправлена в WhatsApp. Пожалуйста, перейдите в чат.' : 'Information successfully sent to WhatsApp. Please return to your chat.')}
         </p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="bg-black text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg active:scale-95"
-        >
-           {language === 'az' ? 'Yeni Sifariş' : (language === 'ru' ? 'Новый заказ' : 'New Order')}
-        </button>
       </div>
     );
   }
