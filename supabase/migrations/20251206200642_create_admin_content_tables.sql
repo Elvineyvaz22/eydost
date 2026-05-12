@@ -84,7 +84,7 @@ ON CONFLICT (email) DO NOTHING;
 -- Initialize default content
 INSERT INTO site_content (key, value) 
 VALUES 
-  ('hero', '{"badge": "Bakıda AI-ilə İdarə Olunan Taksi Sifarişi", "title": "Gediş Sifarişinizi", "titleHighlight": "WhatsApp-da Ey Dost ilə Verin", "subtitle": "Ağıllı taksi köməkçiniz. Təbii söhbət edin, dərhal sifariş verin. Bakıda rahat gediş üçün təchiz edilib.", "ctaWhatsapp": "WhatsApp-da Söhbətə Başla", "ctaContact": "Əlaqə Saxla"}'::jsonb),
+  ('hero', '{"badge": "AI-Powered WhatsApp Assistant", "title": "Gediş Sifarişinizi", "titleHighlight": "WhatsApp-da Ey Dost ilə Verin", "subtitle": "Ağıllı taksi köməkçiniz. Təbii söhbət edin, dərhal sifariş verin. Bakıda rahat gediş üçün təchiz edilib.", "ctaWhatsapp": "WhatsApp-da Söhbətə Başla", "ctaContact": "Əlaqə Saxla"}'::jsonb),
   ('brand', '{"logoUrl": "", "primaryColor": "#0891b2", "secondaryColor": "#0e7490"}'::jsonb),
   ('footer', '{"email": "info@eydost.ai", "phone": "+994505555555", "instagram": "https://instagram.com/eydost", "whatsapp": "https://wa.me/994512778085", "text": "Ağıllı WhatsApp taksi köməkçiniz. Bakıda nəqliyyatı bir söhbətlə asanlaşdırırıq."}'::jsonb),
   ('future_modules', '["Otel Rezervasiyaları — 2026-da Gəlir", "Uçuş Biletləri — 2026-da Gəlir", "Restoran Rezervasiyaları — 2026-da Gəlir", "Yemək Çatdırılması — 2026-da Gəlir"]'::jsonb)

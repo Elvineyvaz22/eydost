@@ -497,61 +497,17 @@ export default function Taxi() {
                     </div>
                   </div>
 
-                  <div className="mt-8 flex-1">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{t.taxi.carClass}</h3>
-                      {routeDetails && (
-                        <span className="text-sm font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full">
-                          {routeDetails.distance?.text} • {routeDetails.duration?.text}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      {CAR_CLASSES.map((car) => {
-                        const Icon = car.icon;
-                        const isSelected = selectedCar === car.id;
-                        let priceDisplay = car.priceStr;
-                        if (routeDetails) {
-                          const distanceKm = (routeDetails.distance?.value || 0) / 1000;
-                          const durationMin = (routeDetails.duration?.value || 0) / 60;
-                          let totalFare = 2.0 + (distanceKm * 0.8) + (durationMin * 0.15);
-                          const isAirport = pickupAddress.toLowerCase().match(/airport|aeroport|hava liman/i) || dropoffAddress.toLowerCase().match(/airport|aeroport|hava liman/i);
-                          if (isAirport) totalFare *= 1.15;
-                          let multiplier = 1;
-                          if (car.id === 'comfort') multiplier = 1.4;
-                          if (car.id === 'business') multiplier = 2.2;
-                          if (car.id === 'minivan') multiplier = 1.8;
-                          totalFare *= multiplier;
-                          priceDisplay = `$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)}`;
-                        }
-
-                        return (
-                          <button
-                            key={car.id}
-                            onClick={() => {
-                              setSelectedCar(car.id);
-                              trackEvent(EVENTS.CAR_CLASS_SELECTED, { car_class: car.id });
-                            }}
-                            className={`flex flex-col gap-2 p-4 rounded-xl border transition-all ${
-                              isSelected ? 'bg-green-500/10 border-green-500 text-green-500' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3 w-full">
-                              <Icon className="w-5 h-5 shrink-0" />
-                              <div className="text-left min-w-0">
-                                <p className="font-bold text-sm truncate">{car.name}</p>
-                              </div>
-                            </div>
-                            <div className={`font-bold text-lg text-left ${isSelected ? 'text-green-400' : 'text-white'}`}>
-                              {priceDisplay}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {routeDetails && <p className="text-xs text-gray-500 mt-4 text-center">{t.taxi.airportNote}</p>}
-                  </div>
+                    {routeDetails && (
+                      <div className="mt-8">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{t.taxi.distance} & {t.taxi.duration}</h3>
+                          <span className="text-sm font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full">
+                            {routeDetails.distance?.text} • {routeDetails.duration?.text}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 text-center">{t.taxi.airportNote}</p>
+                      </div>
+                    )}
 
                     <button
                       onClick={handleBooking}
@@ -563,7 +519,7 @@ export default function Taxi() {
                       }`}
                     >
                       <MessageCircle className="w-5 h-5" />
-                      {isOrdering ? '...' : (isTelegramWebApp ? t.taxi.orderTelegram : t.taxi.orderWhatsApp)}
+                      {isOrdering ? '...' : t.taxi.continueOrder}
                     </button>
                 </div>
               </div>
@@ -772,48 +728,14 @@ export default function Taxi() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-gray-900 text-sm">{t.taxi.carClass}</h3>
-                  {routeDetails && (
+                {routeDetails && (
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-gray-900 text-sm">{t.taxi.distance} & {t.taxi.duration}</h3>
                     <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">
                       {routeDetails.distance?.text} • {routeDetails.duration?.text}
                     </span>
-                  )}
-                </div>
-                
-                <div className="space-y-2 mb-4 max-h-[30vh] overflow-y-auto pr-1">
-                  {CAR_CLASSES.map((car) => {
-                    const Icon = car.icon;
-                    const isSelected = selectedCar === car.id;
-                    let priceDisplay = car.priceStr;
-                    if (routeDetails) {
-                      const distanceKm = (routeDetails.distance?.value || 0) / 1000;
-                      const durationMin = (routeDetails.duration?.value || 0) / 60;
-                      let totalFare = 2.0 + (distanceKm * 0.8) + (durationMin * 0.15);
-                      const isAirport = pickupAddress.toLowerCase().match(/airport|aeroport|hava liman/i) || dropoffAddress.toLowerCase().match(/airport|aeroport|hava liman/i);
-                      if (isAirport) totalFare *= 1.15;
-                      let multiplier = 1;
-                      if (car.id === 'comfort') multiplier = 1.4;
-                      if (car.id === 'business') multiplier = 2.2;
-                      if (car.id === 'minivan') multiplier = 1.8;
-                      totalFare *= multiplier;
-                      priceDisplay = `$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)}`;
-                    }
-
-                    return (
-                      <button key={car.id} onClick={() => setSelectedCar(car.id)} className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${isSelected ? 'border-black bg-gray-50 shadow-sm' : 'border-transparent hover:bg-gray-50'}`}>
-                        <div className="flex items-center gap-3">
-                          <Icon className={`w-5 h-5 ${isSelected ? 'text-black' : 'text-gray-400'}`} />
-                          <div className="text-left">
-                            <p className={`font-bold text-sm ${isSelected ? 'text-black' : 'text-gray-700'}`}>{car.name}</p>
-                          </div>
-                        </div>
-                        <span className="font-bold text-gray-900 text-sm">{priceDisplay}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {routeDetails && <p className="text-[10px] text-gray-500 mb-3 text-center leading-tight">{t.taxi.airportNote}</p>}
+                  </div>
+                )}
 
                 <button onClick={handleBooking} disabled={isOrdering} className={`w-full text-white py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all ${
                   isOrdering ? 'opacity-70 cursor-not-allowed' : ''
@@ -821,7 +743,7 @@ export default function Taxi() {
                   isTelegramWebApp ? 'bg-[#24A1DE] shadow-[#24A1DE]/30' : 'bg-[#25D366] shadow-[#25D366]/30'
                 }`}>
                   <MessageCircle className="w-5 h-5" />
-                  {isOrdering ? '...' : (isTelegramWebApp ? t.taxi.orderTelegram : t.taxi.orderWhatsApp)}
+                  {isOrdering ? '...' : t.taxi.continueOrder}
                 </button>
               </div>
             )}
