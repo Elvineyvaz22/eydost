@@ -87,7 +87,7 @@ export const translations = {
       orderTelegram: 'Order via Telegram',
       confirmLocation: 'Confirm Location',
       confirmDestination: 'Confirm Destination',
-      continueOrder: 'Continue Order',
+      continueOrder: 'Continue er',
       airportNote: '* Prices are estimated (USD) and may vary based on traffic or airport fees.',
       distance: 'Distance',
       duration: 'Duration',
