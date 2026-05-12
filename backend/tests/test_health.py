@@ -22,3 +22,13 @@ def test_openapi_docs(client):
     response = client.get("/openapi.json")
     assert response.status_code == 200
     assert "paths" in response.json()
+
+
+def test_critical_backend_routes_are_registered(client):
+    paths = client.get("/openapi.json").json()["paths"]
+
+    assert "/webhooks/esim" in paths
+    assert "/webhooks/taxi" in paths
+    assert "/api/esim/admin/sync" in paths
+    assert "/api/esim/admin/sync-status" in paths
+    assert "/api/webhooks/esim" not in paths
