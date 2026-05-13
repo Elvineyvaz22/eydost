@@ -64,6 +64,7 @@ app.add_middleware(
 
 # ── Mount Routers ─────────────────────────────────────────────────────────────
 app.include_router(esim_router, prefix="/api/esim", tags=["eSIM"])
+app.include_router(webhook_router, prefix="", tags=["Webhooks"])
 app.include_router(webhook_router, prefix="/api", tags=["Webhooks"])
 app.include_router(whatsapp_router, prefix="", tags=["WhatsApp"])
 app.include_router(telegram_router, prefix="", tags=["Telegram"])
