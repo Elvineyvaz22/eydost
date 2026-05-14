@@ -46,7 +46,6 @@ interface LivePlan {
   price: string;
   code: string;
   id: string;
-  dataType: number;
 }
 
 function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: string }) {
@@ -251,7 +250,7 @@ export default function CountryEsim() {
   const flag = countryCodeToFlag(activeCountryCode || '');
 
   const limitedPlans: LivePlan[] = livePkgs
-    .filter(p => p.dataType === 0)
+    .filter(p => p.volume > 0)
     .map(p => {
       const sellPrice = parseFloat((p as any).sell_price || '0');
       const currency = p.currencyCode || 'AZN';
@@ -264,13 +263,12 @@ export default function CountryEsim() {
         price: priceDisplay,
         code: p.packageCode,
         id: p.slug,
-        dataType: p.dataType,
       };
     })
     .sort((a, b) => parseFloat(a.gb) - parseFloat(b.gb));
 
   const unlimitedPlans: LivePlan[] = livePkgs
-    .filter(p => p.dataType !== 0)
+    .filter(p => p.volume === 0)
     .map(p => {
       const sellPrice = parseFloat((p as any).sell_price || '0');
       const currency = p.currencyCode || 'AZN';
@@ -281,7 +279,6 @@ export default function CountryEsim() {
         price: priceDisplay,
         code: p.packageCode,
         id: p.slug,
-        dataType: p.dataType,
       };
     })
     .sort((a, b) => a.days - b.days);
