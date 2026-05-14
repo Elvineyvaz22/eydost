@@ -1,7 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { MessageCircle, ArrowLeft, Wifi, Clock, Globe, ChevronRight, Zap, Shield } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { usePackages } from '../contexts/PackagesContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
@@ -9,21 +8,44 @@ import { getPackageBySlug, type PackageData, type Plan } from '../data/esimPacka
 import { getPlanCode } from '../data/planCodeMap';
 import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
+import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryName } from '../services/esimApi';
 
 const WA_LINK = 'https://wa.me/994992010117';
 
+const SLUG_TO_CODE: Record<string, string> = {
+  'turkey-esim': 'TR', 'united-states-esim': 'US', 'germany-esim': 'DE',
+  'france-esim': 'FR', 'uk-esim': 'GB', 'italy-esim': 'IT', 'spain-esim': 'ES',
+  'netherlands-esim': 'NL', 'belgium-esim': 'BE', 'switzerland-esim': 'CH',
+  'austria-esim': 'AT', 'poland-esim': 'PL', 'portugal-esim': 'PT', 'sweden-esim': 'SE',
+  'norway-esim': 'NO', 'denmark-esim': 'DK', 'finland-esim': 'FI', 'czech-republic-esim': 'CZ',
+  'hungary-esim': 'HU', 'romania-esim': 'RO', 'bulgaria-esim': 'BG', 'greece-esim': 'GR',
+  'croatia-esim': 'HR', 'slovakia-esim': 'SK', 'slovenia-esim': 'SI', 'estonia-esim': 'EE',
+  'latvia-esim': 'LV', 'lithuania-esim': 'LT', 'ireland-esim': 'IE', 'luxembourg-esim': 'LU',
+  'malta-esim': 'MT', 'cyprus-esim': 'CY', 'azerbaijan-esim': 'AZ', 'georgia-esim': 'GE',
+  'ukraine-esim': 'UA', 'russia-esim': 'RU', 'canada-esim': 'CA', 'mexico-esim': 'MX',
+  'brazil-esim': 'BR', 'argentina-esim': 'AR', 'chile-esim': 'CL', 'colombia-esim': 'CO',
+  'peru-esim': 'PE', 'china-esim': 'CN', 'japan-esim': 'JP', 'south-korea-esim': 'KR',
+  'hong-kong-esim': 'HK', 'taiwan-esim': 'TW', 'singapore-esim': 'SG', 'malaysia-esim': 'MY',
+  'thailand-esim': 'TH', 'indonesia-esim': 'ID', 'philippines-esim': 'PH', 'vietnam-esim': 'VN',
+  'india-esim': 'IN', 'pakistan-esim': 'PK', 'bangladesh-esim': 'BD', 'sri-lanka-esim': 'LK',
+  'australia-esim': 'AU', 'new-zealand-esim': 'NZ', 'uae-esim': 'AE', 'saudi-arabia-esim': 'SA',
+  'israel-esim': 'IL', 'jordan-esim': 'JO', 'kuwait-esim': 'KW', 'qatar-esim': 'QA',
+  'bahrain-esim': 'BH', 'oman-esim': 'OM', 'lebanon-esim': 'LB', 'egypt-esim': 'EG',
+  'south-africa-esim': 'ZA', 'nigeria-esim': 'NG', 'kenya-esim': 'KE', 'ghana-esim': 'GH',
+  'tanzania-esim': 'TZ', 'ethiopia-esim': 'ET', 'morocco-esim': 'MA', 'tunisia-esim': 'TN',
+  'algeria-esim': 'DZ', 'uganda-esim': 'UG', 'moldova-esim': 'MD', 'iceland-esim': 'IS',
+  'albania-esim': 'AL', 'bosnia-esim': 'BA', 'north-macedonia-esim': 'MK', 'serbia-esim': 'RS',
+  'montenegro-esim': 'ME',
+};
+
 function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; countryName: string; countryCode: string; planIndex: number }) {
   const { t } = useLanguage();
-
   const planCodeEntry = getPlanCode(countryCode, planIndex);
-
-
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
-
   const isTelegramWebApp = typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData);
   const tg = (window as any).Telegram?.WebApp;
 
@@ -34,11 +56,7 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
       : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: ${countryName}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
 
     if (isTelegramWebApp && tg) {
-      const orderInfo = planCodeEntry
-        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${planCodeEntry.code}\nID: ${planCodeEntry.id}`
-        : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: ${countryName}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
-
-      tg.sendData(orderInfo);
+      tg.sendData(textMsg);
       tg.close();
       return;
     }
@@ -63,7 +81,6 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
-      {/* Price header */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <span className="text-2xl font-extrabold text-gray-900">{plan.price}</span>
@@ -73,8 +90,6 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
           <div className="text-xs text-gray-400">Auto-activate</div>
         </div>
       </div>
-
-      {/* Plan details */}
       <div className="space-y-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -104,15 +119,11 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
           </div>
         </div>
       </div>
-
-      {/* Buy button */}
       <div className="mt-auto">
         <button
           onClick={handleBuyClick}
           className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${
-            isTelegramWebApp 
-              ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' 
-              : 'bg-[#25D366] hover:bg-[#20bd5a]'
+            isTelegramWebApp ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]' : 'bg-[#25D366] hover:bg-[#20bd5a]'
           } ${isOrdering ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
           <MessageCircle className="w-4 h-4" />
@@ -126,43 +137,56 @@ function PlanCard({ plan, countryName, countryCode, planIndex }: { plan: Plan; c
 export default function CountryEsim() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useLanguage();
-  const { liveCountryGroups, liveLoading } = usePackages();
 
-  // Try to find in live data first
-  const livePkg = useMemo(() => {
-    if (!slug || !liveCountryGroups) return undefined;
-    return liveCountryGroups.find(group => 
-      `${group.countryName.toLowerCase().replace(/\s+/g, '-')}-esim` === slug
-    );
-  }, [liveCountryGroups, slug]);
+  // Static package first (legacy data)
+  const staticPkg = slug ? getPackageBySlug(slug) : undefined;
 
-  const pkg = useMemo(() => {
-    if (livePkg) {
+  // Country code from static data or slug map
+  const staticCountryCode = staticPkg?.countryCode;
+  const fallbackCode = slug ? SLUG_TO_CODE[slug] : null;
+  const activeCountryCode = staticCountryCode || fallbackCode;
+
+  // Live packages from public API
+  const [livePkgs, setLivePkgs] = useState<any[]>([]);
+  const [liveLoading, setLiveLoading] = useState(false);
+  const [, setLiveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeCountryCode || staticPkg) return;
+    setLiveLoading(true);
+    setLiveError(null);
+    fetchPublicPackagesForCountry(activeCountryCode)
+      .then(pkgs => { setLivePkgs(pkgs); setLiveLoading(false); })
+      .catch(err => { setLiveError(err.message); setLiveLoading(false); });
+  }, [activeCountryCode, staticPkg]);
+
+  // Build pkg
+  const pkg = staticPkg || (livePkgs.length > 0 ? {
+    country: getCountryName(activeCountryCode!),
+    countryCode: activeCountryCode!,
+    flag: countryCodeToFlag(activeCountryCode!),
+    slug: slug!,
+    region: 'all',
+    plans: livePkgs.map((p: any) => {
+      const currency = p.currencyCode || 'AZN';
+      const sellPrice = parseFloat(p.sell_price || '0');
+      const priceDisplay = currency === 'AZN' ? `${sellPrice.toFixed(2)} ₼` : `$${sellPrice.toFixed(2)}`;
       return {
-        country: livePkg.countryName,
-        countryCode: livePkg.countryCode,
-        flag: livePkg.flag,
-        slug: slug!,
-        region: 'all',
-        plans: livePkg.packages.map(p => ({
-          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
-          days: p.duration,
-          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
-          code: p.packageCode,
-          id: p.slug
-        }))
-      } as PackageData;
-    }
-    return slug ? getPackageBySlug(slug) : undefined;
-  }, [livePkg, slug]);
+        gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
+        days: p.duration,
+        price: priceDisplay,
+        code: p.packageCode,
+        id: p.slug,
+      };
+    }),
+  } as PackageData : undefined);
 
-  // If country code is invalid/unknown, show not found
-  if (liveLoading && !pkg) {
+  if (!staticPkg && liveLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
         </main>
         <Footer />
       </div>
@@ -191,17 +215,10 @@ export default function CountryEsim() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Seo
-        title={`${pkg.country} eSIM`}
-        description={`Buy ${pkg.country} eSIM plans. Instant delivery via WhatsApp. Choose data and validity that fits your trip.`}
-        canonicalPath={`/${pkg.slug}`}
-      />
+      <Seo title={`${pkg.country} eSIM`} description={`Buy ${pkg.country} eSIM plans. Instant delivery via WhatsApp.`} canonicalPath={`/${pkg.slug}`} />
       <Header />
-
-      {/* Hero */}
       <div className="bg-gradient-to-br from-gray-900 to-[#0A0F1C] pt-28 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
             <Link to="/" className="hover:text-white transition-colors">{t.countryEsim.home}</Link>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -209,15 +226,12 @@ export default function CountryEsim() {
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-white font-medium">{pkg.country}</span>
           </div>
-
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 flex-shrink-0">
-               <FlagImage flag={pkg.flag} countryCode={pkg.countryCode} size="full" />
+              <FlagImage flag={pkg.flag} countryCode={pkg.countryCode} size="full" />
             </div>
             <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 uppercase">
-                {pkg.country} eSIM
-              </h1>
+              <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 uppercase">{pkg.country} eSIM</h1>
               <p className="text-gray-400 text-lg">{t.countryEsim.subtitle}</p>
               <div className="flex flex-wrap items-center gap-4 mt-3">
                 <span className="flex items-center gap-1.5 text-green-400 text-sm font-medium">
@@ -231,15 +245,12 @@ export default function CountryEsim() {
           </div>
         </div>
       </div>
-
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Link to="/esim"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-8">
+          <Link to="/esim" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
             {t.countryEsim.backToAll}
           </Link>
-
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-6">{t.countryEsim.availablePlans}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -250,7 +261,6 @@ export default function CountryEsim() {
           </div>
         </div>
       </main>
-
       <Footer />
       <FloatingWhatsApp />
     </div>

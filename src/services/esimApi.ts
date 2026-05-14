@@ -176,6 +176,40 @@ async function applyPricingRules(packages: ESIMPackageRaw[]): Promise<ESIMPackag
 
 // ── API Functions ─────────────────────────────────────────────────────────────
 
+/**
+ * Fetch packages for a specific country using the public API endpoint.
+ * Returns packages with sell prices already including markup, sorted by price ascending.
+ */
+export async function fetchPublicPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
+  const res = await fetch(`https://bot.eydost.az/api/public/packages?country_code=${countryCode}`, {
+    headers: { 'x-api-key': '0283e222ea829a8300d3f2ce4b42855d' },
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error?.message || 'API error');
+
+  return (data.data || []).map((p: any) => ({
+    packageCode: p.package_code,
+    slug: p.slug,
+    name: p.name,
+    price: 0,
+    sellingPrice: Math.round(parseFloat(p.sell_price) * 10000),
+    currencyCode: p.currency,
+    retailPrice: 0,
+    volume: parseInt(p.volume),
+    duration: p.duration,
+    durationUnit: 'DAY',
+    location: p.country_code,
+    description: p.name,
+    activeType: 1,
+    speed: '4G',
+    smsStatus: 0,
+    dataType: 0,
+    favorite: false,
+    supportTopUpType: 0,
+  })).sort((a: ESIMPackageRaw, b: ESIMPackageRaw) => (a.sellingPrice ?? 0) - (b.sellingPrice ?? 0));
+}
+
 /** Fetch all packages from backend */
 async function fetchAllPackages(): Promise<ESIMPackageRaw[]> {
   const res = await fetch('/api/esim/packages?package_type=BASE', {
