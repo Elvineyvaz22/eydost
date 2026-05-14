@@ -252,9 +252,11 @@ export default function CountryEsim() {
   const limitedPlans: LivePlan[] = livePkgs
     .filter(p => p.volume > 0)
     .map(p => {
-      const sellPrice = parseFloat((p as any).sell_price || '0');
-      const currency = p.currencyCode || 'AZN';
-      const priceDisplay = currency === 'AZN' ? sellPrice.toFixed(2) + " Manat" : "$" + sellPrice.toFixed(2);
+      const sellMinor = (p as any).sell_price_minor ?? 0;
+      const currency = p.currencyCode || 'USD';
+      const priceDisplay = currency === 'AZN'
+        ? (sellMinor / 100).toFixed(2) + " \u20BC"
+        : "$" + (sellMinor / 100).toFixed(2);
       const gbNum = p.volume / (1024 * 1024 * 1024);
       const gbDisplay = gbNum >= 1 ? gbNum.toFixed(1) : (gbNum * 1024).toFixed(0);
       return {
@@ -270,9 +272,11 @@ export default function CountryEsim() {
   const unlimitedPlans: LivePlan[] = livePkgs
     .filter(p => p.volume === 0)
     .map(p => {
-      const sellPrice = parseFloat((p as any).sell_price || '0');
-      const currency = p.currencyCode || 'AZN';
-      const priceDisplay = currency === 'AZN' ? sellPrice.toFixed(2) + " Manat" : "$" + sellPrice.toFixed(2);
+      const sellMinor = (p as any).sell_price_minor ?? 0;
+      const currency = p.currencyCode || 'USD';
+      const priceDisplay = currency === 'AZN'
+        ? (sellMinor / 100).toFixed(2) + " \u20BC"
+        : "$" + (sellMinor / 100).toFixed(2);
       return {
         gb: '0',
         days: p.duration,

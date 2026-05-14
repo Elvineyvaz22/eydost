@@ -15,6 +15,7 @@ export interface ESIMPackageRaw {
   name: string;
   price: number;          // in units (divide by 10000 for USD)
   sellingPrice?: number;   // calculated price from backend
+  sell_price_minor?: number; // final sell price in minor units (cents)
   currencyCode: string;
   retailPrice: number;
   volume: number;         // in bytes
@@ -179,6 +180,7 @@ async function applyPricingRules(packages: ESIMPackageRaw[]): Promise<ESIMPackag
 /**
  * Fetch packages for a specific country using the public API endpoint.
  * Returns packages with sell prices already including markup, sorted by price ascending.
+ * Uses sell_price_minor (in minor currency units, e.g. cents) for accurate pricing.
  */
 export async function fetchPublicPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
   const res = await fetch(`https://bot.eydost.az/api/public/packages?country_code=${countryCode}`, {
@@ -188,26 +190,30 @@ export async function fetchPublicPackagesForCountry(countryCode: string): Promis
   const data = await res.json();
   if (!data.success) throw new Error(data.error?.message || 'API error');
 
-  return (data.data || []).map((p: any) => ({
-    packageCode: p.package_code,
-    slug: p.slug,
-    name: p.name,
-    price: 0,
-    sellingPrice: Math.round(parseFloat(p.sell_price) * 10000),
-    currencyCode: p.currency,
-    retailPrice: 0,
-    volume: parseInt(p.volume),
-    duration: p.duration,
-    durationUnit: 'DAY',
-    location: p.country_code,
-    description: p.name,
-    activeType: 1,
-    speed: '4G',
-    smsStatus: 0,
-    dataType: 0,
-    favorite: false,
-    supportTopUpType: 0,
-  })).sort((a: ESIMPackageRaw, b: ESIMPackageRaw) => (a.sellingPrice ?? 0) - (b.sellingPrice ?? 0));
+  return (data.data || []).map((p: any) => {
+    const sellMinor = p.sell_price_minor ?? 0;
+    return {
+      packageCode: p.package_code,
+      slug: p.slug,
+      name: p.name,
+      price: 0,
+      sell_price_minor: sellMinor,
+      sellingPrice: sellMinor * 100, // convert cents to minor units for consistency
+      currencyCode: p.currency,
+      retailPrice: 0,
+      volume: parseInt(p.volume),
+      duration: p.duration,
+      durationUnit: 'DAY',
+      location: p.country_code,
+      description: p.name,
+      activeType: 1,
+      speed: '4G',
+      smsStatus: 0,
+      dataType: 0,
+      favorite: false,
+      supportTopUpType: 0,
+    };
+  }).sort((a: ESIMPackageRaw, b: ESIMPackageRaw) => (a.sell_price_minor ?? 0) - (b.sell_price_minor ?? 0));
 }
 
 /** Fetch all packages from backend */
