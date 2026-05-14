@@ -152,23 +152,24 @@ export default function CountryEsim() {
   const [, setLiveError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!activeCountryCode || staticPkg) return;
+    if (!activeCountryCode) return;
     setLiveLoading(true);
     setLiveError(null);
     fetchPublicPackagesForCountry(activeCountryCode)
       .then(pkgs => { setLivePkgs(pkgs); setLiveLoading(false); })
       .catch(err => { setLiveError(err.message); setLiveLoading(false); });
-  }, [activeCountryCode, staticPkg]);
+  }, [activeCountryCode]);
 
-  // Build pkg
-  const pkg = staticPkg || (livePkgs.length > 0 ? {
+  // Build pkg — prefer live API data, fall back to static only if no API data
+  const pkg = (livePkgs.length > 0 ? {
     country: getCountryName(activeCountryCode!),
     countryCode: activeCountryCode!,
     flag: countryCodeToFlag(activeCountryCode!),
     slug: slug!,
-    region: 'all',
-    plans: livePkgs.map((p: any) => {
+    region: 'all' as const,
+      plans: livePkgs.map((p: any) => {
       const currency = p.currencyCode || 'AZN';
+      // sellingPrice is in units (price * 10000), display as AZN from original sell_price
       const sellPrice = parseFloat(p.sell_price || '0');
       const priceDisplay = currency === 'AZN' ? `${sellPrice.toFixed(2)} ₼` : `$${sellPrice.toFixed(2)}`;
       return {
@@ -179,9 +180,9 @@ export default function CountryEsim() {
         id: p.slug,
       };
     }),
-  } as PackageData : undefined);
+  } : staticPkg) as PackageData | undefined;
 
-  if (!staticPkg && liveLoading) {
+  if (liveLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
@@ -193,7 +194,7 @@ export default function CountryEsim() {
     );
   }
 
-  if (!pkg) {
+  if (!pkg || pkg.plans.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Seo title="eSIM not found" canonicalPath={`/${slug || ''}`} />
@@ -201,8 +202,8 @@ export default function CountryEsim() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center px-4">
             <p className="text-6xl mb-4">😕</p>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Country not found</h2>
-            <p className="text-gray-500 mb-6">No eSIM packages available for "{slug}"</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No packages available</h2>
+            <p className="text-gray-500 mb-6">No eSIM packages found for "{slug}"</p>
             <Link to="/esim" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
               Browse All Countries
             </Link>
