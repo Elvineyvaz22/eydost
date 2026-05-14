@@ -235,7 +235,7 @@ export default function CountryEsim() {
 
   const [livePkgs, setLivePkgs] = useState<ESIMPackageRaw[]>([]);
   const [liveLoading, setLiveLoading] = useState(false);
-  const [, setLiveError] = useState<string | null>(null);
+  const [liveError, setLiveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!activeCountryCode) return;
@@ -243,7 +243,7 @@ export default function CountryEsim() {
     setLiveError(null);
     fetchPublicPackagesForCountry(activeCountryCode)
       .then(pkgs => { setLivePkgs(pkgs); setLiveLoading(false); })
-      .catch(err => { setLiveError(err.message); setLiveLoading(false); });
+      .catch(err => { setLiveError(err.message); setLiveLoading(false); setLivePkgs([]); });
   }, [activeCountryCode]);
 
   const countryName = getCountryName(activeCountryCode || '');
