@@ -22,7 +22,9 @@
   "rewrites": [
     {
       "source": "/api/esim-packages",
-      "destination": "https://bot.eydost.az/api/public/packages"
+      "has": [{ "type": "query", "key": "country_code", "value": "(?<country_code>.+)" }],
+      "destination": "https://bot.eydost.az/api/public/packages?country_code=:country_code",
+      "rewrite": true
     },
     {
       "source": "/((?!api/|telegram-mini-app/).*)",
