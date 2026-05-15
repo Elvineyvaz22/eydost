@@ -40,8 +40,10 @@ const SLUG_TO_CODE: Record<string, string> = {
   'montenegro-esim': 'ME',
 };
 
+const ALLOWED_GB = [1, 3, 5, 10, 20, 50, 100];
+
 interface LivePlan {
-  gb: string;
+  gb: number; // raw volume in bytes
   days: number;
   price: string;
   code: string;
@@ -79,9 +81,6 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
     }
   };
 
-  const gbNum = parseFloat(plan.gb);
-  const gbDisplay = gbNum >= 1 ? plan.gb : Math.round(gbNum * 1024) + ' MB';
-
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
       <div className="flex items-center justify-between mb-5">
@@ -100,7 +99,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wide">{t.countryEsim.data}</p>
-            <p className="text-sm font-bold text-gray-900">{gbDisplay}</p>
+            <p className="text-sm font-bold text-gray-900">{formatGB(plan.gb)} GB</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -252,26 +251,25 @@ export default function CountryEsim() {
 
   const limitedPlans: LivePlan[] = livePkgs
     .filter(p => !p.is_unlimited)
-    .map(p => {
-      const gbNum = Number(p.volume) / (1024 * 1024 * 1024);
-      const gbDisplay = gbNum < 1
-        ? Math.round(Number(p.volume)) + ' MB'
-        : gbNum.toFixed(1);
-      return {
-        gb: gbDisplay,
-        days: p.duration,
-        price: formatPrice(p.sell_price_minor, p.currencyCode),
-        code: p.packageCode,
-        id: p.slug,
-        isUnlimited: false,
-      };
+    .map(p => ({ ...p, bytes: p.volume as number }))
+    .filter(p => {
+      const gb = p.bytes / (1024 * 1024 * 1024);
+      return ALLOWED_GB.includes(gb);
     })
-    .sort((a, b) => parseFloat(a.gb) - parseFloat(b.gb));
+    .map(p => ({
+      gb: p.bytes,
+      days: p.duration,
+      price: formatPrice(p.sell_price_minor, p.currencyCode),
+      code: p.packageCode,
+      id: p.slug,
+      isUnlimited: false,
+    }))
+    .sort((a, b) => a.gb - b.gb);
 
   const unlimitedPlans: LivePlan[] = livePkgs
     .filter(p => p.is_unlimited)
     .map(p => ({
-      gb: '0',
+      gb: 0,
       days: p.duration,
       price: formatPrice(p.sell_price_minor, p.currencyCode),
       code: p.packageCode,
@@ -296,7 +294,7 @@ export default function CountryEsim() {
 
   // Build static fallback plans if API has no data
   const staticPlans: LivePlan[] = (staticPkg?.plans || []).map(p => ({
-    gb: p.gb >= 1 ? p.gb.toString() : (p.gb * 1024).toFixed(0),
+    gb: p.gb >= 1 ? p.gb * 1024 * 1024 * 1024 : p.gb * 1024 * 1024,
     days: p.days,
     price: typeof p.price === 'string' ? p.price : `$${(p.price as number).toFixed(2)}`,
     code: p.code || '',
