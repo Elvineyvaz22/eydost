@@ -21,7 +21,11 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api/|telegram-mini-app/|esim-packages/).*)",
+      "source": "/api/esim-packages",
+      "destination": "https://bot.eydost.az/api/public/packages"
+    },
+    {
+      "source": "/((?!api/|telegram-mini-app/).*)",
       "destination": "/index.html"
     }
   ],
