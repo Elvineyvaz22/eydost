@@ -65,6 +65,7 @@ interface LivePlan {
   code: string;
   id: string;
   isUnlimited: boolean;
+  countryCode: string;
 }
 
 function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: string }) {
@@ -76,7 +77,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
 
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: " + plan.code;
+    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: " + plan.countryCode + "\nCode: " + plan.code + "\nID: " + plan.id;
 
     if (isTelegramWebApp && tg) {
       tg.sendData(textMsg);
@@ -161,7 +162,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
 
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: " + plan.code;
+    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: " + plan.countryCode + "\nCode: " + plan.code + "\nID: " + plan.id;
 
     if (isTelegramWebApp && tg) {
       tg.sendData(textMsg);
@@ -275,6 +276,7 @@ export default function CountryEsim() {
       code: p.packageCode,
       id: p.slug,
       isUnlimited: false,
+      countryCode: activeCountryCode || '',
     }))
     .sort((a, b) => a.gb - b.gb);
 
@@ -287,6 +289,7 @@ export default function CountryEsim() {
       code: p.packageCode,
       id: p.slug,
       isUnlimited: true,
+      countryCode: activeCountryCode || '',
     }))
     .sort((a, b) => a.days - b.days);
 
@@ -312,6 +315,7 @@ export default function CountryEsim() {
     code: p.code || '',
     id: p.id || '',
     isUnlimited: false,
+    countryCode: activeCountryCode || '',
   }));
 
   const displayLimitedPlans = limitedPlans.length > 0 ? limitedPlans : staticPlans;
