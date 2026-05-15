@@ -80,7 +80,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
   };
 
   const gbNum = parseFloat(plan.gb);
-  const gbDisplay = gbNum >= 1 ? plan.gb + " GB" : Math.round(gbNum * 1024) + " MB";
+  const gbDisplay = gbNum >= 1 ? plan.gb : Math.round(gbNum * 1024) + ' MB';
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
@@ -256,7 +256,7 @@ export default function CountryEsim() {
       const gbNum = Number(p.volume) / (1024 * 1024 * 1024);
       const gbDisplay = gbNum < 1
         ? Math.round(Number(p.volume)) + ' MB'
-        : gbNum.toFixed(1) + ' GB';
+        : gbNum.toFixed(1);
       return {
         gb: gbDisplay,
         days: p.duration,

@@ -33,15 +33,12 @@ export function formatPrice(sellMinor: number, currency = 'AZN'): string {
 }
 
 export function formatGB(bytes: number): string {
-  // API sometimes stores volume in MB (e.g. 500 for 500MB) instead of bytes.
-  // Normalize: if volume < 1GB, treat it as MB and convert to bytes.
   const gb = bytes / (1024 * 1024 * 1024);
   if (gb < 1) {
-    // Likely stored in MB — convert back to MB
-    const mb = bytes;
+    const mb = bytes / (1024 * 1024);
     return Math.round(mb) + ' MB';
   }
-  return gb.toFixed(1) + ' GB';
+  return gb.toFixed(1);
 }
 
 // ── Country helpers ───────────────────────────────────────────────────────────
