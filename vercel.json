@@ -21,7 +21,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api/|telegram-mini-app/).*)",
+      "source": "/((?!api/|telegram-mini-app/|esim-packages/).*)",
       "destination": "/index.html"
     }
   ],
