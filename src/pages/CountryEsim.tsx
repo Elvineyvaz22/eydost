@@ -77,7 +77,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
 
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: " + plan.countryCode + "\nCode: " + plan.code + "\nID: " + plan.id;
+    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: " + plan.code + "\nID: " + plan.id;
 
     if (isTelegramWebApp && tg) {
       tg.sendData(textMsg);
@@ -162,7 +162,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
 
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCountry: " + plan.countryCode + "\nCode: " + plan.code + "\nID: " + plan.id;
+    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: " + plan.code + "\nID: " + plan.id;
 
     if (isTelegramWebApp && tg) {
       tg.sendData(textMsg);
