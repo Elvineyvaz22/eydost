@@ -254,7 +254,9 @@ export default function CountryEsim() {
     .filter(p => !p.is_unlimited)
     .map(p => {
       const gbNum = Number(p.volume) / (1024 * 1024 * 1024);
-      const gbDisplay = gbNum >= 1 ? gbNum.toFixed(1) : (gbNum * 1024).toFixed(0);
+      const gbDisplay = gbNum < 1
+        ? Math.round(Number(p.volume)) + ' MB'
+        : gbNum.toFixed(1) + ' GB';
       return {
         gb: gbDisplay,
         days: p.duration,
