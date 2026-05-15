@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { packages as initialPackages, regionalPackages as initialRegional, globalPackage as initialGlobal } from '../data/esimPackages';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import type { ESIMCountryGroup, ESIMPackageRaw } from '../services/esimApi';
-import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryName } from '../services/esimApi';
+import { countryCodeToFlag, getCountryName } from '../services/esimApi';
 
 interface PackagesContextType {
   // Legacy static packages (for admin editor compatibility)
@@ -76,4 +76,4 @@ export function usePackages() {
 }
 
 // Re-export for convenience
-export { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryName };
+export { countryCodeToFlag, getCountryName };

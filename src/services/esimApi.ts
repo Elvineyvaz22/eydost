@@ -1,8 +1,7 @@
 /**
  * eSIM Service Layer
  * ==================
- * Bütün məlumatlar artıq bot.eydost.az public API-dən gəlir.
- * (eSIM Access API artıq istifadə olunmur)
+ * Məlumatlar Supabase-dən gəlir (gündəlik bot sync ilə yenilənir).
  */
 
 import { supabase } from '../lib/supabase';
@@ -13,45 +12,31 @@ export interface ESIMPackageRaw {
   packageCode: string;
   slug: string;
   name: string;
-  price: number;
-  sellingPrice?: number;
-  sell_price_minor?: number;
+  sell_price_minor: number;
   currencyCode: string;
-  retailPrice: number;
-  volume: number;
-  duration: number;
-  durationUnit: string;
-  location: string;
-  description: string;
-  activeType: number;
+  volume: number;       // bytes
+  duration: number;    // days
   speed: string;
-  smsStatus: number;
-  dataType: number;
-  favorite: boolean;
-  supportTopUpType: number;
-  fupPolicy?: string;
-  locationNetworkList?: { locationName: string; locationLogo: string; operatorList?: { operatorName: string; networkType: string }[] }[];
-}
-
-export interface ESIMCountryGroup {
-  countryCode: string;
-  countryName: string;
-  flag: string;
-  packages: ESIMPackageRaw[];
+  description: string;
+  is_unlimited: boolean;
 }
 
 // ── Price helpers ─────────────────────────────────────────────────────────────
 
-export function formatPrice(units: number, markup = 1.75, sellingPrice?: number): string {
-  const usd = sellingPrice ? (sellingPrice / 10000) : (units / 10000) * markup;
-  return `$${usd.toFixed(2)}`;
+export function formatPrice(sellMinor: number, currency = 'AZN'): string {
+  // sell_price_minor is in minor units (10000 = 1 AZN or 1 USD depending on currency)
+  // Bot API returns AZN prices in AZN minor units
+  // Convert AZN → USD at 1.7 rate for display
+  const azn = currency === 'AZN' ? sellMinor / 10000 : sellMinor / 10000;
+  const usd = azn / 1.7;
+  return '$' + usd.toFixed(2);
 }
 
 export function formatGB(bytes: number): string {
   if (bytes >= 1024 * 1024 * 1024) {
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(0)}GB`;
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
   }
-  return `${(bytes / (1024 * 1024)).toFixed(0)}MB`;
+  return Math.round(bytes / (1024 * 1024)) + ' MB';
 }
 
 // ── Country helpers ───────────────────────────────────────────────────────────
@@ -98,63 +83,86 @@ export function getCountryName(code: string): string {
   return COUNTRY_NAMES[code?.toUpperCase()] || code;
 }
 
-// ── Pricing Rules (Supabase) ──────────────────────────────────────────────────
+// ── Supabase queries ──────────────────────────────────────────────────────────
 
-interface PricingRule {
-  target_type: 'global' | 'region' | 'country' | 'package';
-  target_id: string | null;
-  margin: number;
-  fixed_price: number | null;
-  is_active: boolean;
+interface DbPackage {
+  country_code: string;
+  package_code: string;
+  slug: string;
+  name: string;
+  volume_bytes: number;
+  duration_days: number;
+  sell_price_minor: number;
+  currency_code: string;
+  is_unlimited: boolean;
+  speed: string;
+  description: string;
 }
 
-async function fetchPricingRules(): Promise<PricingRule[]> {
-  const { data } = await supabase
-    .from('site_content')
-    .select('value')
-    .eq('key', 'esim_pricing_rules')
-    .maybeSingle();
-
-  if (!Array.isArray(data?.value)) return [];
-  return (data.value as PricingRule[]).filter(rule => rule.is_active !== false);
+function dbToRaw(p: DbPackage): ESIMPackageRaw {
+  return {
+    packageCode: p.package_code,
+    slug: p.slug || p.package_code,
+    name: p.name,
+    sell_price_minor: p.sell_price_minor,
+    currencyCode: p.currency_code || 'AZN',
+    volume: p.volume_bytes,
+    duration: p.duration_days,
+    speed: p.speed || '4G',
+    description: p.description || p.name,
+    is_unlimited: p.is_unlimited || false,
+  };
 }
-
-// ── Public API (bot.eydost.az) ─────────────────────────────────────────────────
 
 /**
- * Fetch packages for a specific country using the bot.eydost.az public API.
- * Returns packages sorted by price ascending.
+ * Fetch packages for a specific country from Supabase.
  */
 export async function fetchPublicPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
-  // Use Vercel serverless proxy to avoid CORS issues in production
-  const baseUrl = import.meta.env.DEV ? 'http://localhost:5173' : '';
-  const res = await fetch(`${baseUrl}/api/esim-packages?country_code=${countryCode}`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error?.message || 'API error');
+  const { data, error } = await supabase
+    .from('esim_packages')
+    .select('country_code, package_code, slug, name, volume_bytes, duration_days, sell_price_minor, currency_code, is_unlimited, speed, description')
+    .eq('country_code', countryCode.toUpperCase())
+    .eq('is_active', true)
+    .order('sell_price_minor', { ascending: true });
 
-  return (data.data || []).map((p: any) => {
-    const sellMinor = p.sell_price_minor ?? 0;
-    return {
-      packageCode: p.package_code,
-      slug: p.slug,
-      name: p.name,
-      price: 0,
-      sell_price_minor: sellMinor,
-      sellingPrice: sellMinor * 100,
-      currencyCode: p.currency,
-      retailPrice: 0,
-      volume: parseInt(p.volume),
-      duration: p.duration,
-      durationUnit: 'DAY',
-      location: p.country_code,
-      description: p.name,
-      activeType: 1,
-      speed: '4G',
-      smsStatus: 0,
-      dataType: 0,
-      favorite: false,
-      supportTopUpType: 0,
-    };
-  }).sort((a: ESIMPackageRaw, b: ESIMPackageRaw) => (a.sell_price_minor ?? 0) - (b.sell_price_minor ?? 0));
+  if (error) throw new Error(error.message);
+  return (data || []).map(dbToRaw);
+}
+
+/**
+ * Fetch all packages grouped by country from Supabase.
+ */
+export async function fetchAllCountriesPackages(): Promise<Record<string, ESIMPackageRaw[]>> {
+  const { data, error } = await supabase
+    .from('esim_packages')
+    .select('country_code, package_code, slug, name, volume_bytes, duration_days, sell_price_minor, currency_code, is_unlimited, speed, description')
+    .eq('is_active', true)
+    .order('sell_price_minor', { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  const result: Record<string, ESIMPackageRaw[]> = {};
+  for (const row of data || []) {
+    const cc = row.country_code;
+    if (!cc) continue;
+    if (!result[cc]) result[cc] = [];
+    result[cc].push(dbToRaw(row));
+  }
+  return result;
+}
+
+/**
+ * Get list of countries that have packages.
+ */
+export async function fetchCountriesList(): Promise<string[]> {
+  const { data } = await supabase
+    .from('esim_packages')
+    .select('country_code')
+    .eq('is_active', true);
+
+  const codes = new Set<string>();
+  for (const row of data || []) {
+    if (row.country_code) codes.add(row.country_code);
+  }
+  return Array.from(codes).sort();
 }

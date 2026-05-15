@@ -1,9 +1,7 @@
 # Ey Dost - Development Guide
 
-## Project Overview
-
 Azerbaijani travel companion platform (eydost.az) with two main services:
-- **eSIM Sales** — Global eSIM data packages for 150+ countries
+- **eSIM Sales** — Global eSIM data packages for 150+ countries (via bot.eydost.az)
 - **Taxi Booking** — 50+ ölkədə, 500+ şəhərdə aktiv taksi sifarişi (Google Maps əsaslı)
 
 Architecture: React/Vite frontend (root) + Python FastAPI backend (`/backend`).
@@ -17,18 +15,15 @@ Architecture: React/Vite frontend (root) + Python FastAPI backend (`/backend`).
 | Frontend (Vite) | `npm run dev` (from repo root) | 5173 |
 | Backend (FastAPI) | `uvicorn main:app --reload --port 8000` (from `backend/`) | 8000 |
 
-The frontend Vite config proxies `/api/esim` and `/webhooks` to `localhost:8000`.
-
 ### Running lint/typecheck/build
 
-- **Lint:** `npm run lint` — pre-existing warnings/errors (unused vars, type conflicts in `useTelegramWebApp.ts`)
+- **Lint:** `npm run lint` — pre-existing warnings/errors
 - **Typecheck:** `npm run typecheck` — has pre-existing TS errors; do NOT treat these as regressions unless your changes introduced them
 - **Build:** `npm run build` — runs sitemap generation then Vite production build
 
 ### Backend setup
 
 - Copy `backend/.env.example` to `backend/.env` for local dev
-- The backend starts fine with placeholder env vars; external API calls (eSIM Access) will fail without a real `ESIM_ACCESS_CODE`
 - Supabase URL/key are hardcoded as fallbacks in the frontend code; no local Supabase setup needed
 
 ### Key gotchas

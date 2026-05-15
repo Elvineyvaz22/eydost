@@ -22,11 +22,7 @@ export default defineConfig({
     host: true,
     allowedHosts: true,
     proxy: {
-      '/api/esim': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      },
-      '/webhooks': {
+      '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
       },

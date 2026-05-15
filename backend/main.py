@@ -1,23 +1,19 @@
 """
-eSIM Access Backend - Main FastAPI Application Entry Point
-============================================================
+EyDost Backend - Main FastAPI Application Entry Point
+=========================================================
 Run with:  uvicorn main:app --reload --port 8000
 """
 
 import os
 import logging
-from fastapi import FastAPI, HTTPException, Header
+import httpx
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
 # Load .env file at startup
-load_dotenv()
-
-from esim_access.api import router as esim_router
-from esim_access.webhooks import router as webhook_router
-from esim_access.whatsapp import router as whatsapp_router
-from esim_access.telegram_order import router as telegram_router
-from esim_access.telegram_mini_app import router as telegram_mini_app_router
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,33 +21,10 @@ logging.basicConfig(
 )
 
 app = FastAPI(
-    title="Eydost eSIM API",
-    description="Backend API for eSIM purchasing, management, and webhook handling via eSIM Access.",
+    title="Eydost API",
+    description="Backend API for eSIM purchasing, management, and webhook handling.",
     version="1.0.0",
 )
-
-@app.get("/api/test-whatsapp")
-async def test_whatsapp_connection(x_api_key: str | None = Header(None)):
-    """
-    Diagnostic endpoint to test WhatsApp API credentials.
-    """
-    from esim_access.whatsapp import send_whatsapp_message, get_whatsapp_config
-    expected_key = os.environ.get("APP_API_KEY", "").strip()
-    if not expected_key or x_api_key != expected_key:
-        raise HTTPException(status_code=404, detail="Not found")
-
-    config = get_whatsapp_config()
-    test_recipient = os.environ.get("WHATSAPP_TEST_RECIPIENT", "").strip()
-    if not test_recipient:
-        raise HTTPException(status_code=400, detail="WHATSAPP_TEST_RECIPIENT is not configured")
-
-    success = send_whatsapp_message(test_recipient, "EyDost Bot Diagnostic: WhatsApp API baglantisi ugurludur! ✅")
-    return {
-        "success": success,
-        "phone_number_id_used": config["phone_number_id"],
-        "note": "If success is false, check WHATSAPP_ACCESS_TOKEN in .env"
-    }
-
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
@@ -62,14 +35,82 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Mount Routers ─────────────────────────────────────────────────────────────
-app.include_router(esim_router, prefix="/api/esim", tags=["eSIM"])
-app.include_router(webhook_router, prefix="/api", tags=["Webhooks"])
-app.include_router(whatsapp_router, prefix="", tags=["WhatsApp"])
-app.include_router(telegram_router, prefix="", tags=["Telegram"])
-app.include_router(telegram_mini_app_router, prefix="", tags=["Telegram Mini App"])
+
+# ── Bot API proxy ──────────────────────────────────────────────────────────────
+@app.get("/api/packages", tags=["Packages"])
+async def get_packages(country_code: str | None = Query(None)):
+    """
+    Proxy to bot.eydost.az — bypasses CORS.
+    GET /api/packages              → all packages
+    GET /api/packages?country_code=TR → packages for Turkey
+    """
+    api_key = os.environ.get("BOT_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="BOT_API_KEY not configured")
+
+    params = {}
+    if country_code:
+        params["country_code"] = country_code.upper()
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        resp = await client.get(
+            os.environ.get("BOT_API_URL", "https://bot.eydost.az/api/public/packages"),
+            params=params,
+            headers={"x-api-key": api_key},
+        )
+
+    if not resp.ok:
+        raise HTTPException(status_code=resp.status_code, detail="Bot API error")
+
+    return resp.json()
+
+
+# ── Supabase package sync ─────────────────────────────────────────────────────
+@app.post("/api/sync/packages", tags=["Sync"])
+async def sync_packages():
+    """
+    Sync all packages from bot.eydost.az to Supabase.
+    Run this daily (e.g. via cron or Vercel cron).
+    """
+    import subprocess, sys
+
+    result = subprocess.run(
+        [sys.executable, os.path.join(os.path.dirname(__file__), "sync_packages.py")],
+        capture_output=True,
+        text=True,
+        cwd=os.path.dirname(__file__),
+        env={**os.environ},
+    )
+
+    if result.returncode != 0:
+        logger.error(f"Sync failed: {result.stderr}")
+        raise HTTPException(status_code=500, detail=f"Sync failed: {result.stderr}")
+
+    logger.info(f"Sync output: {result.stdout}")
+    return {"status": "synced", "output": result.stdout}
+
+
+@app.get("/api/sync/status", tags=["Sync"])
+async def sync_status():
+    """
+    Check last sync status from Supabase.
+    """
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_KEY")
+
+    if not supabase_url or not supabase_key:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    from supabase import create_client
+    client = create_client(supabase_url, supabase_key)
+
+    result = client.table("esim_packages").select(
+        "last_synced_at, country_code"
+    ).order("last_synced_at", desc=True).limit(10).execute()
+
+    return {"packages": result.data or []}
 
 
 @app.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok", "service": "eydost-esim-backend"}
+    return {"status": "ok", "service": "eydost-backend"}

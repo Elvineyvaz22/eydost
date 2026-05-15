@@ -10,7 +10,7 @@ import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
-import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryName, type ESIMPackageRaw } from '../services/esimApi';
+import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryName, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
 
 const WA_LINK = 'https://wa.me/994992010117';
 
@@ -46,6 +46,7 @@ interface LivePlan {
   price: string;
   code: string;
   id: string;
+  isUnlimited: boolean;
 }
 
 function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: string }) {
@@ -250,41 +251,31 @@ export default function CountryEsim() {
   const flag = countryCodeToFlag(activeCountryCode || '');
 
   const limitedPlans: LivePlan[] = livePkgs
-    .filter(p => Number(p.volume) > 0)
+    .filter(p => !p.is_unlimited)
     .map(p => {
-      const sellMinor = p.sell_price_minor ?? 0;
-      const currency = p.currencyCode || 'AZN';
-      const priceDisplay = currency === 'AZN'
-        ? (sellMinor / 100).toFixed(2) + " \u20BC"
-        : "$" + (sellMinor / 100).toFixed(2);
       const gbNum = Number(p.volume) / (1024 * 1024 * 1024);
       const gbDisplay = gbNum >= 1 ? gbNum.toFixed(1) : (gbNum * 1024).toFixed(0);
       return {
         gb: gbDisplay,
         days: p.duration,
-        price: priceDisplay,
+        price: formatPrice(p.sell_price_minor, p.currencyCode),
         code: p.packageCode,
         id: p.slug,
+        isUnlimited: false,
       };
     })
     .sort((a, b) => parseFloat(a.gb) - parseFloat(b.gb));
 
   const unlimitedPlans: LivePlan[] = livePkgs
-    .filter(p => Number(p.volume) === 0)
-    .map(p => {
-      const sellMinor = p.sell_price_minor ?? 0;
-      const currency = p.currencyCode || 'AZN';
-      const priceDisplay = currency === 'AZN'
-        ? (sellMinor / 100).toFixed(2) + " \u20BC"
-        : "$" + (sellMinor / 100).toFixed(2);
-      return {
-        gb: '0',
-        days: p.duration,
-        price: priceDisplay,
-        code: p.packageCode,
-        id: p.slug,
-      };
-    })
+    .filter(p => p.is_unlimited)
+    .map(p => ({
+      gb: '0',
+      days: p.duration,
+      price: formatPrice(p.sell_price_minor, p.currencyCode),
+      code: p.packageCode,
+      id: p.slug,
+      isUnlimited: true,
+    }))
     .sort((a, b) => a.days - b.days);
 
   const totalPlans = limitedPlans.length + unlimitedPlans.length;
@@ -301,7 +292,20 @@ export default function CountryEsim() {
     );
   }
 
-  if (livePkgs.length === 0 && !staticPkg) {
+  // Build static fallback plans if API has no data
+  const staticPlans: LivePlan[] = (staticPkg?.plans || []).map(p => ({
+    gb: p.gb >= 1 ? p.gb.toString() : (p.gb * 1024).toFixed(0),
+    days: p.days,
+    price: typeof p.price === 'string' ? p.price : `$${(p.price as number).toFixed(2)}`,
+    code: p.code || '',
+    id: p.id || '',
+    isUnlimited: false,
+  }));
+
+  const displayLimitedPlans = limitedPlans.length > 0 ? limitedPlans : staticPlans;
+  const showFallbackNote = limitedPlans.length === 0 && staticPlans.length > 0;
+
+  if (displayLimitedPlans.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Seo title="eSIM not found" canonicalPath={"/" + (slug || '')} />

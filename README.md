@@ -38,8 +38,6 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-The Vite dev server proxies `/api/esim` and `/webhooks` to the backend automatically.
-
 ## Scripts
 
 | Command | Description |
@@ -66,8 +64,7 @@ See [`.env.example`](.env.example) for frontend and [`backend/.env.example`](bac
 │   ├── data/           # Static eSIM package data
 │   └── utils/          # Analytics, helpers
 ├── backend/
-│   ├── main.py         # FastAPI entry point
-│   └── esim_access/    # eSIM API, webhooks, WhatsApp, Telegram
+│   └── main.py         # FastAPI entry point
 ├── public/
 │   └── telegram-mini-app/  # Telegram Mini App (static HTML)
 └── api/

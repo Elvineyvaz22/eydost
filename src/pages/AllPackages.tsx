@@ -9,6 +9,7 @@ import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import Seo from '../components/Seo';
+import { fetchAllCountriesPackages, countryCodeToFlag, getCountryName, formatPrice, type ESIMPackageRaw } from '../services/esimApi';
 
 function CountryCard({ pkg }: { pkg: PackageData }) {
   const { t } = useLanguage();
@@ -88,14 +89,15 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
 export default function AllPackages() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { 
-    packages: staticPackages, 
-    regionalPackages: staticRegional, 
+  const {
+    packages: staticPackages,
+    regionalPackages: staticRegional,
     globalPackage: staticGlobal,
-    liveCountryGroups,
-    liveRegionalPackages,
   } = usePackages();
-  
+
+  const [allPkgs, setAllPkgs] = useState<Record<string, ESIMPackageRaw[]>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'countries' | 'regional' | 'global'>('countries');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -105,7 +107,7 @@ export default function AllPackages() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    
+
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
@@ -115,46 +117,46 @@ export default function AllPackages() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Use live data if available, otherwise fallback to static
-  const activePackages = useMemo(() => {
-    if (liveCountryGroups && liveCountryGroups.length > 0) {
-      return liveCountryGroups.map(group => ({
-        country: group.countryName,
-        countryCode: group.countryCode,
-        flag: group.flag,
-        slug: `${group.countryName.toLowerCase().replace(/\s+/g, '-')}-esim`,
-        region: 'all',
-        plans: group.packages.map(p => ({
-          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
-          days: p.duration,
-          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
-          code: p.packageCode,
-          id: p.slug
-        }))
-      })) as PackageData[];
-    }
-    return staticPackages;
-  }, [liveCountryGroups, staticPackages]);
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetchAllCountriesPackages()
+      .then(pkgs => { setAllPkgs(pkgs); setLoading(false); })
+      .catch(err => { setError(err.message); setLoading(false); });
+  }, []);
 
-  const activeRegional = useMemo(() => {
-    if (liveRegionalPackages && liveRegionalPackages.length > 0) {
-      // Group regional packages by name if needed, but for now just show them
-      return liveRegionalPackages.map(p => ({
-        name: p.name,
-        slug: `${p.name.toLowerCase().replace(/\s+/g, '-')}-esim`,
-        flags: p.location.split(',').slice(0, 4).map(code => code.trim().toUpperCase()),
-        countryCount: p.location.split(',').length,
-        plans: [{
-          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
-          days: p.duration,
-          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
-          code: p.packageCode,
-          id: p.slug
-        }]
-      })) as unknown as RegionalPackage[]; // Simplified for the grid
-    }
-    return staticRegional;
-  }, [liveRegionalPackages, staticRegional]);
+  // Convert live packages to PackageData format
+  const liveCountryPackages: PackageData[] = useMemo(() => {
+    return Object.entries(allPkgs).map(([cc, pkgs]) => {
+      const cheapest = pkgs.reduce<ESIMPackageRaw | null>((best, p) => {
+        if (!best || p.sell_price_minor < best.sell_price_minor) return p;
+        return best;
+      }, null);
+
+      return {
+        country: getCountryName(cc) || cc,
+        countryCode: cc,
+        flag: countryCodeToFlag(cc),
+        slug: `${(getCountryName(cc) || cc).toLowerCase().replace(/\s+/g, '-')}-esim`,
+        region: 'all',
+        plans: cheapest ? [{
+          gb: cheapest.volume > 0
+            ? parseFloat((cheapest.volume / (1024 * 1024 * 1024)).toFixed(1))
+            : 999,
+          days: cheapest.duration,
+          price: formatPrice(cheapest.sell_price_minor, cheapest.currencyCode),
+          code: cheapest.packageCode,
+          id: cheapest.slug,
+        }] : [],
+      };
+    }).sort((a, b) => a.country.localeCompare(b.country));
+  }, [allPkgs]);
+
+  // Merge: use live if available, else static fallback
+  const activePackages = useMemo(() => {
+    if (liveCountryPackages.length > 0) return liveCountryPackages;
+    return staticPackages;
+  }, [liveCountryPackages, staticPackages]);
 
   const filteredCountries = useMemo(() => {
     return activePackages
@@ -163,10 +165,10 @@ export default function AllPackages() {
   }, [activePackages, search]);
 
   const filteredRegional = useMemo(() => {
-    return activeRegional.filter(p => 
+    return staticRegional.filter(p =>
       p.name.toLowerCase().includes(search.toLowerCase())
     );
-  }, [activeRegional, search]);
+  }, [staticRegional, search]);
 
   const suggestions = useMemo(() => {
     if (search.length === 0) return [];
@@ -177,9 +179,45 @@ export default function AllPackages() {
   const showGlobal = globalPackage.name.toLowerCase().includes(search.toLowerCase());
   const tabs: { id: 'countries' | 'regional' | 'global'; label: string; count: number }[] = [
     { id: 'countries', label: esimT.tabCountries, count: activePackages.length },
-    { id: 'regional', label: esimT.tabRegional, count: activeRegional.length },
+    { id: 'regional', label: esimT.tabRegional, count: staticRegional.length },
     { id: 'global', label: esimT.tabGlobal, count: 1 },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col font-sans">
+        <Seo title="eSIM Packages" canonicalPath="/esim" />
+        <Header />
+        <main className="flex-1 flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col font-sans">
+        <Seo title="eSIM Packages" canonicalPath="/esim" />
+        <Header />
+        <main className="flex-1 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center px-4">
+            <p className="text-6xl mb-4">⚠️</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Qiymətlər yüklənə bilmədi</h2>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <button
+              onClick={() => { setLoading(true); setError(null); fetchAllCountriesPackages().then(pkgs => { setAllPkgs(pkgs); setLoading(false); }).catch(err => { setError(err.message); setLoading(false); }); }}
+              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
+            >
+              Yenidən cəhd et
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">

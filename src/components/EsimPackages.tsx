@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Rocket, MapPin, Globe2, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -6,6 +6,7 @@ import { usePackages } from '../contexts/PackagesContext';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import FlagImage from './FlagImage';
 import { trackEvent, EVENTS } from '../utils/analytics';
+import { fetchAllCountriesPackages, countryCodeToFlag, getCountryName, formatPrice, type ESIMPackageRaw } from '../services/esimApi';
 
 /* ─── Country row card (Airalo style) ─── */
 function CountryCard({ pkg }: { pkg: PackageData }) {
@@ -59,59 +60,59 @@ type Tab = 'popular' | 'countries' | 'regional' | 'global';
 
 export default function EsimPackages() {
   const { t } = useLanguage();
-  const { 
-    packages: staticPackages, 
-    regionalPackages: staticRegional, 
+  const {
+    packages: staticPackages,
+    regionalPackages: staticRegional,
     globalPackage: staticGlobal,
-    liveCountryGroups,
-    liveRegionalPackages,
   } = usePackages();
   const [tab, setTab] = useState<Tab>('popular');
   const [search, setSearch] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [allPkgs, setAllPkgs] = useState<Record<string, ESIMPackageRaw[]>>({});
+  const [loading, setLoading] = useState(false);
 
   const esimT = t.esimPackages as Record<string, string>;
 
-  // Use live data if available
-  const activePackages = useMemo(() => {
-    if (liveCountryGroups && liveCountryGroups.length > 0) {
-      return liveCountryGroups.map(group => ({
-        country: group.countryName,
-        countryCode: group.countryCode,
-        flag: group.flag,
-        slug: `${group.countryName.toLowerCase().replace(/\s+/g, '-')}-esim`,
-        region: 'all',
-        featured: group.packages[0]?.favorite || false,
-        plans: group.packages.map(p => ({
-          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
-          days: p.duration,
-          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
-          code: p.packageCode,
-          id: p.slug,
-        }))
-      })) satisfies PackageData[];
-    }
-    return staticPackages;
-  }, [liveCountryGroups, staticPackages]);
+  useEffect(() => {
+    setLoading(true);
+    fetchAllCountriesPackages()
+      .then(pkgs => { setAllPkgs(pkgs); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
-  const activeRegional = useMemo(() => {
-    if (liveRegionalPackages && liveRegionalPackages.length > 0) {
-      return liveRegionalPackages.map(p => ({
-        name: p.name,
-        slug: `${p.name.toLowerCase().replace(/\s+/g, '-')}-esim`,
-        flags: p.location.split(',').slice(0, 4).map(code => code.trim().toUpperCase()),
-        countryCount: p.location.split(',').length,
-        plans: [{
-          gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
-          days: p.duration,
-          price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
-          code: p.packageCode,
-          id: p.slug,
-        }]
-      })) satisfies RegionalPackage[];
-    }
-    return staticRegional;
-  }, [liveRegionalPackages, staticRegional]);
+  // Convert live packages to PackageData
+  const liveCountryPackages: PackageData[] = useMemo(() => {
+    return Object.entries(allPkgs).map(([cc, pkgs]) => {
+      const cheapest = pkgs.reduce<ESIMPackageRaw | null>((best, p) => {
+        if (!best || (p.sell_price_minor ?? 0) < (best.sell_price_minor ?? 0)) return p;
+        return best;
+      }, null);
+
+      return {
+        country: getCountryName(cc) || cc,
+        countryCode: cc,
+        flag: countryCodeToFlag(cc),
+        slug: `${(getCountryName(cc) || cc).toLowerCase().replace(/\s+/g, '-')}-esim`,
+        region: 'all',
+        featured: false,
+        plans: cheapest ? [{
+          gb: cheapest.volume > 0
+            ? parseFloat((cheapest.volume / (1024 * 1024 * 1024)).toFixed(1))
+            : 999,
+          days: cheapest.duration,
+          price: formatPrice(cheapest.sell_price_minor, cheapest.currencyCode),
+          code: cheapest.packageCode,
+          id: cheapest.slug,
+        }] : [],
+      };
+    }).sort((a, b) => a.country.localeCompare(b.country));
+  }, [allPkgs]);
+
+  // Use live if available, else static fallback
+  const activePackages = useMemo(() => {
+    if (liveCountryPackages.length > 0) return liveCountryPackages;
+    return staticPackages;
+  }, [liveCountryPackages, staticPackages]);
 
   const featured = useMemo(() => {
     const marked = activePackages.filter(p => p.featured);
@@ -238,7 +239,7 @@ export default function EsimPackages() {
         {/* ── REGIONAL TAB ── */}
         {tab === 'regional' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {activeRegional.slice(0, 4).map((pkg, i) => (
+            {staticRegional.slice(0, 4).map((pkg, i) => (
               <RegionalCard key={i} pkg={pkg} />
             ))}
           </div>
