@@ -1,8 +1,8 @@
 /**
- * eSIM Access API — Frontend Service Layer
- * ==========================================
- * Fetches real package data from the Python backend (which calls eSIM Access API).
- * All requests go through Vite proxy: /api/esim → http://localhost:8000/api/esim
+ * eSIM Service Layer
+ * ==================
+ * Bütün məlumatlar artıq bot.eydost.az public API-dən gəlir.
+ * (eSIM Access API artıq istifadə olunmur)
  */
 
 import { supabase } from '../lib/supabase';
@@ -13,17 +13,17 @@ export interface ESIMPackageRaw {
   packageCode: string;
   slug: string;
   name: string;
-  price: number;          // in units (divide by 10000 for USD)
-  sellingPrice?: number;   // calculated price from backend
-  sell_price_minor?: number; // final sell price in minor units (cents)
+  price: number;
+  sellingPrice?: number;
+  sell_price_minor?: number;
   currencyCode: string;
   retailPrice: number;
-  volume: number;         // in bytes
+  volume: number;
   duration: number;
-  durationUnit: string;   // "DAY"
-  location: string;       // comma-separated ISO Alpha-2 codes e.g. "TR,AZ,GE"
+  durationUnit: string;
+  location: string;
   description: string;
-  activeType: number;     // 1 = auto-activate, 2 = manual
+  activeType: number;
   speed: string;
   smsStatus: number;
   dataType: number;
@@ -34,34 +34,14 @@ export interface ESIMPackageRaw {
 }
 
 export interface ESIMCountryGroup {
-  countryCode: string;    // ISO Alpha-2
+  countryCode: string;
   countryName: string;
-  flag: string;           // emoji flag
+  flag: string;
   packages: ESIMPackageRaw[];
 }
 
-interface PricingRule {
-  target_type: 'global' | 'region' | 'country' | 'package';
-  target_id: string | null;
-  margin: number;
-  fixed_price: number | null;
-  is_active: boolean;
-}
+// ── Price helpers ─────────────────────────────────────────────────────────────
 
-const REGION_CODES: Record<string, Set<string>> = {
-  EUROPE: new Set(['AL', 'AD', 'AT', 'BA', 'BE', 'BG', 'BY', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'TR', 'UA', 'VA', 'JE', 'IM', 'GI', 'GG', 'XK', 'FO', 'AX', 'SJ']),
-  ASIA: new Set(['AM', 'AZ', 'BD', 'BN', 'BT', 'CN', 'GE', 'HK', 'ID', 'IN', 'JP', 'KH', 'KR', 'KZ', 'LA', 'LK', 'MM', 'MN', 'MO', 'MY', 'NP', 'PH', 'PK', 'SG', 'TH', 'TW', 'UZ', 'VN']),
-  'MIDDLE EAST': new Set(['AE', 'BH', 'IL', 'IQ', 'JO', 'KW', 'LB', 'OM', 'QA', 'SA']),
-  AFRICA: new Set(['AO', 'BW', 'CI', 'CM', 'DZ', 'EG', 'ET', 'GH', 'KE', 'MA', 'ML', 'MZ', 'NG', 'SN', 'TN', 'TZ', 'UG', 'ZA', 'ZM', 'ZW', 'RE', 'SC', 'TD', 'CG', 'CF', 'LR', 'RW', 'MG', 'MW', 'NE', 'BF', 'BI', 'BJ', 'GA', 'GM', 'GN', 'GW', 'MR', 'MU', 'YT', 'NA', 'SL', 'SO', 'SD', 'SZ', 'TG', 'EH']),
-  'NORTH AMERICA': new Set(['CA', 'MX', 'US', 'PR', 'GL', 'PM']),
-  'SOUTH AMERICA': new Set(['AR', 'BO', 'BR', 'CL', 'CO', 'EC', 'GY', 'PY', 'PE', 'SR', 'UY', 'VE', 'FK']),
-  CARIBBEAN: new Set(['BS', 'BB', 'CU', 'DM', 'DO', 'GD', 'HT', 'JM', 'KN', 'LC', 'VC', 'TT', 'AG', 'AI', 'BM', 'VG', 'KY', 'MS', 'TC', 'CV', 'GP', 'MQ', 'BQ', 'CW', 'SX', 'MF', 'BL', 'AW']),
-  OCEANIA: new Set(['AU', 'FJ', 'NZ', 'PG', 'WS', 'SB', 'PW', 'KI', 'NR', 'TO', 'TV', 'VU', 'NC', 'PF', 'GU', 'AS']),
-};
-
-// ── Price helper ──────────────────────────────────────────────────────────────
-// eSIM Access prices are in units where 10000 = $1.00
-// We apply a 1.75x retail markup
 export function formatPrice(units: number, markup = 1.75, sellingPrice?: number): string {
   const usd = sellingPrice ? (sellingPrice / 10000) : (units / 10000) * markup;
   return `$${usd.toFixed(2)}`;
@@ -74,7 +54,8 @@ export function formatGB(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(0)}MB`;
 }
 
-// ── Country code → emoji flag ─────────────────────────────────────────────────
+// ── Country helpers ───────────────────────────────────────────────────────────
+
 export function countryCodeToFlag(code: string): string {
   if (!code || code.startsWith('!')) return '🌍';
   return code
@@ -84,7 +65,6 @@ export function countryCodeToFlag(code: string): string {
     .join('');
 }
 
-// Full country name map (ISO Alpha-2)
 const COUNTRY_NAMES: Record<string, string> = {
   AZ: 'Azerbaijan', TR: 'Turkey', RU: 'Russia', UA: 'Ukraine', GE: 'Georgia',
   DE: 'Germany', FR: 'France', GB: 'United Kingdom', IT: 'Italy', ES: 'Spain',
@@ -118,23 +98,14 @@ export function getCountryName(code: string): string {
   return COUNTRY_NAMES[code?.toUpperCase()] || code;
 }
 
-function normalizeTarget(value?: string | null): string {
-  return (value || '').trim().toUpperCase().replace(/[-_]/g, ' ');
-}
+// ── Pricing Rules (Supabase) ──────────────────────────────────────────────────
 
-function packageRegions(pkg: ESIMPackageRaw): Set<string> {
-  const codes = (pkg.location || '')
-    .split(',')
-    .map(code => normalizeTarget(code))
-    .filter(code => code && !code.startsWith('!'));
-
-  if (codes.includes('GL') || codes.includes('GLOBAL')) return new Set(['GLOBAL']);
-
-  return new Set(
-    Object.entries(REGION_CODES)
-      .filter(([, regionCodes]) => codes.length > 0 && codes.some(code => regionCodes.has(code)))
-      .map(([region]) => region),
-  );
+interface PricingRule {
+  target_type: 'global' | 'region' | 'country' | 'package';
+  target_id: string | null;
+  margin: number;
+  fixed_price: number | null;
+  is_active: boolean;
 }
 
 async function fetchPricingRules(): Promise<PricingRule[]> {
@@ -145,47 +116,19 @@ async function fetchPricingRules(): Promise<PricingRule[]> {
     .maybeSingle();
 
   if (!Array.isArray(data?.value)) return [];
-
-  // Treat missing `is_active` as active for backwards compatibility with older rows.
   return (data.value as PricingRule[]).filter(rule => rule.is_active !== false);
 }
 
-function applyRule(rule: PricingRule, apiPrice: number): number {
-  if (rule.fixed_price !== null && rule.fixed_price !== undefined) return rule.fixed_price;
-  return Math.round(apiPrice * (rule.margin || 1.75));
-}
-
-async function applyPricingRules(packages: ESIMPackageRaw[]): Promise<ESIMPackageRaw[]> {
-  const rules = await fetchPricingRules().catch(() => []);
-  if (rules.length === 0) return packages;
-
-  return packages.map(pkg => {
-    const locations = (pkg.location || '').split(',').map(code => normalizeTarget(code)).filter(Boolean);
-    const isSingleCountry = locations.length === 1;
-    const countryCode = isSingleCountry ? locations[0] : '';
-    const regions = packageRegions(pkg);
-
-    const rule =
-      rules.find(item => item.target_type === 'package' && normalizeTarget(item.target_id) === normalizeTarget(pkg.packageCode)) ||
-      (isSingleCountry ? rules.find(item => item.target_type === 'country' && normalizeTarget(item.target_id) === countryCode) : null) ||
-      (!isSingleCountry ? rules.find(item => item.target_type === 'region' && normalizeTarget(item.target_id) !== '' && regions.has(normalizeTarget(item.target_id))) : null) ||
-      rules.find(item => item.target_type === 'global');
-
-    return rule ? { ...pkg, sellingPrice: applyRule(rule, pkg.price) } : pkg;
-  });
-}
-
-// ── API Functions ─────────────────────────────────────────────────────────────
+// ── Public API (bot.eydost.az) ─────────────────────────────────────────────────
 
 /**
- * Fetch packages for a specific country using the public API endpoint.
- * Returns packages with sell prices already including markup, sorted by price ascending.
- * Uses sell_price_minor (in minor currency units, e.g. cents) for accurate pricing.
+ * Fetch packages for a specific country using the bot.eydost.az public API.
+ * Returns packages sorted by price ascending.
  */
 export async function fetchPublicPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
-  const res = await fetch(`https://bot.eydost.az/api/public/packages?country_code=${countryCode}`, {
-    headers: { 'x-api-key': '0283e222ea829a8300d3f2ce4b42855d' },
-  });
+  // Use Vercel serverless proxy to avoid CORS issues in production
+  const baseUrl = import.meta.env.DEV ? 'http://localhost:5173' : '';
+  const res = await fetch(`${baseUrl}/api/esim-packages?country_code=${countryCode}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = await res.json();
   if (!data.success) throw new Error(data.error?.message || 'API error');
@@ -198,7 +141,7 @@ export async function fetchPublicPackagesForCountry(countryCode: string): Promis
       name: p.name,
       price: 0,
       sell_price_minor: sellMinor,
-      sellingPrice: sellMinor * 100, // convert cents to minor units for consistency
+      sellingPrice: sellMinor * 100,
       currencyCode: p.currency,
       retailPrice: 0,
       volume: parseInt(p.volume),
@@ -214,110 +157,4 @@ export async function fetchPublicPackagesForCountry(countryCode: string): Promis
       supportTopUpType: 0,
     };
   }).sort((a: ESIMPackageRaw, b: ESIMPackageRaw) => (a.sell_price_minor ?? 0) - (b.sell_price_minor ?? 0));
-}
-
-/** Fetch all packages from backend */
-async function fetchAllPackages(): Promise<ESIMPackageRaw[]> {
-  const res = await fetch('/api/esim/packages?package_type=BASE', {
-    headers: { 'Content-Type': 'application/json' },
-  });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  const data = await res.json();
-  return applyPricingRules(data.packages || []);
-}
-
-/** Fetch packages for a specific country */
-export async function fetchPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
-  const res = await fetch(`/api/esim/packages?location_code=${countryCode}&package_type=BASE`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  const data = await res.json();
-  const packages = await applyPricingRules(data.packages || []);
-  // Filter to packages that only serve this exact country (not regional)
-  return packages.filter((p: ESIMPackageRaw) => {
-    const locs = p.location.split(',');
-    return locs.length === 1 && locs[0].toUpperCase() === countryCode.toUpperCase();
-  });
-}
-
-/** Fetch packages for a country (includes regional ones that cover it) */
-export async function fetchAllPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
-  const res = await fetch(`/api/esim/packages?location_code=${countryCode}&package_type=BASE`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  const data = await res.json();
-  return applyPricingRules(data.packages || []);
-}
-
-/**
- * Fetch all packages and group them by individual country.
- * Single-country packages → go to that country.
- * Multi-country (regional) → grouped separately.
- */
-export async function fetchCountryGroups(): Promise<{
-  countryGroups: ESIMCountryGroup[];
-  regionalPackages: ESIMPackageRaw[];
-}> {
-  const packages = await fetchAllPackages();
-
-  const countryMap = new Map<string, ESIMPackageRaw[]>();
-  const regionalPackages: ESIMPackageRaw[] = [];
-
-  for (const pkg of packages) {
-    const locations = (pkg.location || '').split(',').map(l => l.trim()).filter(Boolean);
-    if (locations.length === 1 && !locations[0].startsWith('!')) {
-      const code = locations[0].toUpperCase();
-      if (!countryMap.has(code)) countryMap.set(code, []);
-      countryMap.get(code)!.push(pkg);
-    } else {
-      regionalPackages.push(pkg);
-    }
-  }
-
-  const countryGroups: ESIMCountryGroup[] = Array.from(countryMap.entries())
-    .map(([code, pkgs]) => ({
-      countryCode: code,
-      countryName: getCountryName(code),
-      flag: countryCodeToFlag(code),
-      packages: pkgs.sort((a, b) => a.price - b.price),
-    }))
-    .sort((a, b) => a.countryName.localeCompare(b.countryName));
-
-  return { countryGroups, regionalPackages };
-}
-
-/** Fetch current account balance */
-export async function fetchBalance(): Promise<{ balance: number; currencyCode?: string }> {
-  const res = await fetch('/api/esim/balance');
-  if (!res.ok) throw new Error(`Balance API error: ${res.status}`);
-  return res.json();
-}
-
-/** Place an eSIM order */
-export async function placeOrder(params: {
-  packageCode: string;
-  count?: number;
-  transactionId?: string;
-}): Promise<{ orderNo: string; transactionId: string }> {
-  const res = await fetch('/api/esim/order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      package_code: params.packageCode,
-      count: params.count || 1,
-      transaction_id: params.transactionId,
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail?.message || `Order failed: ${res.status}`);
-  }
-  return res.json();
-}
-
-/** Poll for eSIM QR code after ordering */
-export async function getESIMByOrder(orderNo: string): Promise<any[]> {
-  const res = await fetch(`/api/esim/esim/${orderNo}`);
-  if (res.status === 202) throw new Error('PENDING'); // still allocating
-  if (!res.ok) throw new Error(`Query failed: ${res.status}`);
-  const data = await res.json();
-  return data.esims || [];
 }
