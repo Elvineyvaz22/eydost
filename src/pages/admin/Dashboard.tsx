@@ -1,35 +1,14 @@
-import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Layout, Sparkles, FileText, Rocket, Activity, Wallet, RefreshCw } from 'lucide-react';
+import { Layout, Sparkles, FileText, Rocket, Activity, Wallet } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { fetchBalance } from '../../services/esimApi';
 
 export default function Dashboard() {
-  const [balance, setBalance] = useState<{ balance: number; currencyCode?: string } | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   const stats = [
     { label: 'eSIM Paketləri', count: '150+', icon: Layout, path: '/admin/esim', color: 'bg-blue-500' },
     { label: 'Taksi Sinifləri', count: '4', icon: Sparkles, path: '/admin/taxi', color: 'bg-green-500' },
     { label: 'Sual-Cavablar', count: '20+', icon: FileText, path: '/admin/faq', color: 'bg-orange-500' },
     { label: 'Girişlər (Bugün)', count: 'Canlı', icon: Activity, path: '/admin/analytics', color: 'bg-purple-500' },
   ];
-
-  const getBalance = async () => {
-    setIsRefreshing(true);
-    try {
-      const data = await fetchBalance();
-      setBalance(data);
-    } catch (error) {
-      console.error('Error fetching balance:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    getBalance();
-  }, []);
 
   return (
     <AdminLayout>
@@ -46,18 +25,11 @@ export default function Dashboard() {
               <Wallet className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">API Balansı</p>
+              <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Paket API</p>
               <p className="text-xl font-black text-gray-900">
-                {balance ? `${(balance.balance / 10000).toFixed(2)} ${balance.currencyCode || 'USD'}` : '...'}
+                Bot API
               </p>
             </div>
-            <button 
-              onClick={getBalance}
-              disabled={isRefreshing}
-              className={`p-2 hover:bg-gray-50 rounded-lg transition-colors ${isRefreshing ? 'animate-spin' : ''}`}
-            >
-              <RefreshCw className="w-4 h-4 text-gray-400" />
-            </button>
           </div>
         </header>
 
