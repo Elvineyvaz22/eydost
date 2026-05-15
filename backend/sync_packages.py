@@ -22,6 +22,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Only these fixed GB tiers are shown on the site
+ALLOWED_GB = [1, 3, 5, 10, 20, 50, 100]
+
 ALL_COUNTRY_CODES = [
     'TR', 'US', 'DE', 'FR', 'GB', 'IT', 'ES', 'NL', 'BE', 'CH',
     'AT', 'PL', 'PT', 'SE', 'NO', 'DK', 'FI', 'CZ', 'HU', 'RO',
@@ -33,6 +36,15 @@ ALL_COUNTRY_CODES = [
     'ZA', 'NG', 'KE', 'GH', 'TZ', 'ET', 'MA', 'TN', 'DZ', 'UG',
     'IS', 'AL', 'BA', 'MK', 'RS', 'MD',
 ]
+
+
+def _gb_value(volume_bytes: int) -> float:
+    """Convert volume to GB. Volume may be in bytes or in MB (for < 1 GB)."""
+    gb = volume_bytes / (1024 * 1024 * 1024)
+    if gb < 1:
+        # Treat as MB
+        return volume_bytes / 1024
+    return gb
 
 
 def get_packages_for_country(country_code: str) -> list[dict]:
@@ -55,29 +67,50 @@ def get_packages_for_country(country_code: str) -> list[dict]:
 
     logger.info(f"[{country_code}] → {len(raw)} packages")
 
-    return [
-        {
+    synced = []
+    skipped = 0
+    for p in raw:
+        volume = int(p.get("volume") or 0)
+
+        # Skip unlimited packages
+        if volume == 0:
+            skipped += 1
+            continue
+
+        # Only keep packages that match an allowed fixed GB tier
+        gb_val = _gb_value(volume)
+        if gb_val not in ALLOWED_GB:
+            skipped += 1
+            continue
+
+        synced.append({
             "country_code": p.get("country_code") or country_code.upper(),
             "package_code": p.get("package_code") or "",
             "slug": p.get("slug") or p.get("package_code") or "",
             "name": p.get("name") or "",
-            "volume_bytes": int(p.get("volume") or 0),
+            "volume_bytes": volume,
             "duration_days": int(p.get("duration") or 1),
             "sell_price_minor": int(p.get("sell_price_minor") or 0),
             "currency_code": p.get("currency") or "AZN",
-            "is_unlimited": int(p.get("volume") or 0) == 0,
+            "is_unlimited": False,
             "speed": p.get("speed") or "4G",
             "description": p.get("description") or "",
             "is_active": True,
-        }
-        for p in raw
-    ]
+        })
+
+    if skipped:
+        logger.info(f"[{country_code}] skipped {skipped} non-allowed packages, syncing {len(synced)}")
+
+    return synced
 
 
 def sync_country(supabase, country_code: str) -> int:
     records = get_packages_for_country(country_code)
     if not records:
         return 0
+
+    # Deactivate all existing packages for this country
+    supabase.table("esim_packages").update({"is_active": False}).eq("country_code", country_code).execute()
 
     for record in records:
         result = supabase.table("esim_packages").upsert(
