@@ -42,6 +42,22 @@ const SLUG_TO_CODE: Record<string, string> = {
 
 const ALLOWED_GB = [1, 3, 5, 10, 20, 50, 100];
 
+function isAllowedGB(volumeBytes: number): boolean {
+  if (volumeBytes === 0) return false;
+  const gb = volumeBytes / (1024 ** 3);
+  if (gb >= 1) {
+    return ALLOWED_GB.includes(Math.round(gb)) && Math.abs(gb - Math.round(gb)) < 0.01;
+  }
+  // Stored in MB (e.g. 500 for 500 MB)
+  const mb = volumeBytes / 1024;
+  return ALLOWED_GB.includes(Math.round(mb)) && Math.abs(mb - Math.round(mb)) < 0.01;
+}
+
+function isUnlimitedPlan(name: string): boolean {
+  // "GB/Day" and "GB/Day FUP" packages are daily-fenced unlimited — treat as unlimited
+  return /GB\/Day/i.test(name);
+}
+
 interface LivePlan {
   gb: number; // raw volume in bytes
   days: number;
@@ -250,14 +266,10 @@ export default function CountryEsim() {
   const flag = countryCodeToFlag(activeCountryCode || '');
 
   const limitedPlans: LivePlan[] = livePkgs
-    .filter(p => !p.is_unlimited)
-    .map(p => ({ ...p, bytes: p.volume as number }))
-    .filter(p => {
-      const gb = p.bytes / (1024 * 1024 * 1024);
-      return ALLOWED_GB.includes(gb);
-    })
+    .filter(p => !p.is_unlimited && !isUnlimitedPlan(p.name))
+    .filter(p => isAllowedGB(p.volume as number))
     .map(p => ({
-      gb: p.bytes,
+      gb: p.volume as number,
       days: p.duration,
       price: formatPrice(p.sell_price_minor, p.currencyCode),
       code: p.packageCode,

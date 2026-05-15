@@ -25,6 +25,24 @@ logger = logging.getLogger(__name__)
 # Only these fixed GB tiers are shown on the site
 ALLOWED_GB = [1, 3, 5, 10, 20, 50, 100]
 
+
+def _is_allowed_gb(volume_bytes: int) -> bool:
+    """Check if volume matches an allowed fixed GB tier.
+    Volume may be stored in bytes or directly as MB (for < 1 GB values).
+    """
+    if volume_bytes == 0:
+        return False  # unlimited
+
+    gb = volume_bytes / (1024 ** 3)
+
+    if gb >= 1:
+        # Stored in bytes — check if it's a whole GB number in our allowlist
+        return round(gb) in ALLOWED_GB and abs(gb - round(gb)) < 0.01
+
+    # Stored directly in MB (e.g. 500 for 500 MB)
+    mb = volume_bytes / 1024
+    return round(mb) in ALLOWED_GB and abs(mb - round(mb)) < 0.01
+
 ALL_COUNTRY_CODES = [
     'TR', 'US', 'DE', 'FR', 'GB', 'IT', 'ES', 'NL', 'BE', 'CH',
     'AT', 'PL', 'PT', 'SE', 'NO', 'DK', 'FI', 'CZ', 'HU', 'RO',
@@ -39,12 +57,7 @@ ALL_COUNTRY_CODES = [
 
 
 def _gb_value(volume_bytes: int) -> float:
-    """Convert volume to GB. Volume may be in bytes or in MB (for < 1 GB)."""
-    gb = volume_bytes / (1024 * 1024 * 1024)
-    if gb < 1:
-        # Treat as MB
-        return volume_bytes / 1024
-    return gb
+    return _is_allowed_gb(volume_bytes)
 
 
 def get_packages_for_country(country_code: str) -> list[dict]:
@@ -70,16 +83,15 @@ def get_packages_for_country(country_code: str) -> list[dict]:
     synced = []
     skipped = 0
     for p in raw:
-        volume = int(p.get("volume") or 0)
+        name = p.get("name") or ""
 
-        # Skip unlimited packages
-        if volume == 0:
+        # GB/Day packages are daily-fenced unlimited — skip them
+        if "GB/Day" in name:
             skipped += 1
             continue
 
-        # Only keep packages that match an allowed fixed GB tier
-        gb_val = _gb_value(volume)
-        if gb_val not in ALLOWED_GB:
+        volume = int(p.get("volume") or 0)
+        if not _is_allowed_gb(volume):
             skipped += 1
             continue
 
