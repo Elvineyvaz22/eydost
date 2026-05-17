@@ -73,6 +73,40 @@ async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
   return data.data as BotPackage[];
 }
 
+async function deactivateStalePackagesForCountry(
+  supabaseAdmin: any,
+  countryCode: string,
+  currentPackageCodes: Set<string>
+): Promise<number> {
+  const { data, error } = await supabaseAdmin
+    .from('esim_packages')
+    .select('package_code')
+    .eq('country_code', countryCode)
+    .eq('is_active', true);
+
+  if (error) {
+    throw new Error(`Could not load active packages for ${countryCode}: ${error.message}`);
+  }
+
+  const staleCodes = (data || [])
+    .map((row: { package_code?: string }) => row.package_code)
+    .filter((code: string | undefined): code is string => Boolean(code) && !currentPackageCodes.has(code));
+
+  for (const packageCode of staleCodes) {
+    const { error: updateError } = await supabaseAdmin
+      .from('esim_packages')
+      .update({ is_active: false } as any)
+      .eq('country_code', countryCode)
+      .eq('package_code', packageCode);
+
+    if (updateError) {
+      throw new Error(`Could not deactivate stale package ${countryCode}/${packageCode}: ${updateError.message}`);
+    }
+  }
+
+  return staleCodes.length;
+}
+
 // ── Upsert single country packages ────────────────────────────────────────────
 async function upsertPackagesForCountry(
   supabaseAdmin: any,
@@ -82,15 +116,8 @@ async function upsertPackagesForCountry(
   let upserted = 0;
   let errors = 0;
 
-  // Mark all existing packages for this country as potentially inactive
-  await supabaseAdmin
-    .from('esim_packages')
-    .update({ is_active: false } as any)
-    .eq('country_code', countryCode)
-    .eq('is_active', true);
-
   if (packages.length === 0) {
-    console.log(`  ${countryCode}: no packages, marked all inactive`);
+    console.log(`  ${countryCode}: no packages returned, keeping existing active packages`);
     return { upserted: 0, errors: 0 };
   }
 
@@ -128,6 +155,17 @@ async function upsertPackagesForCountry(
     } else {
       upserted++;
     }
+  }
+
+  if (errors > 0) {
+    console.warn(`  ${countryCode}: skipped stale-package deactivation because ${errors} upsert(s) failed`);
+    return { upserted, errors };
+  }
+
+  const currentPackageCodes = new Set(packages.map(pkg => pkg.package_code).filter(Boolean));
+  const deactivated = await deactivateStalePackagesForCountry(supabaseAdmin, countryCode, currentPackageCodes);
+  if (deactivated > 0) {
+    console.log(`  ${countryCode}: deactivated ${deactivated} stale packages`);
   }
 
   return { upserted, errors };
