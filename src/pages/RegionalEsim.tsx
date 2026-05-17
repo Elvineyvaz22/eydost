@@ -6,7 +6,6 @@ import { usePackages } from '../contexts/PackagesContext';
 import type { RegionalPackage } from '../data/esimPackages';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
@@ -257,7 +256,6 @@ export default function RegionalEsim() {
       </main>
 
       <Footer />
-      <FloatingWhatsApp />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation } from 'react-router-dom';
+import { isEsimRoute } from '../utils/routes';
 
 const WA_LINK = 'https://wa.me/994992000444';
 
@@ -15,6 +16,7 @@ export default function Header() {
 
   const isTaxiPage = location.pathname === '/taxi';
   const isPackagesPage = location.pathname === '/esim';
+  const isEsimPage = isEsimRoute(location.pathname);
 
   const blogLabel = { en: 'Blog', az: 'Blog', ru: 'Блог' }[language as 'en'|'az'|'ru'] ?? 'Blog';
 
@@ -91,15 +93,17 @@ export default function Header() {
               ))}
             </div>
 
-            <a
-              href={WA_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-2 bg-[#25D366] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#20bd5a] transition-colors"
-            >
-              <MessageCircle className="w-4 h-4" />
-              WhatsApp
-            </a>
+            {!isEsimPage && (
+              <a
+                href={WA_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-2 bg-[#25D366] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#20bd5a] transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
+              </a>
+            )}
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -125,15 +129,17 @@ export default function Header() {
                 {link.label}
               </a>
             ))}
-            <a
-              href={WA_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-3 bg-[#25D366] text-white rounded-lg font-semibold mt-2"
-            >
-              <MessageCircle className="w-4 h-4" />
-              WhatsApp
-            </a>
+            {!isEsimPage && (
+              <a
+                href={WA_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-3 bg-[#25D366] text-white rounded-lg font-semibold mt-2"
+              >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
+              </a>
+            )}
           </nav>
         </div>
       )}

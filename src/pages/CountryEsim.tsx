@@ -3,7 +3,6 @@ import { MessageCircle, ArrowLeft, Wifi, Clock, Globe, ChevronRight, Zap, Shield
 import { useLanguage } from '../contexts/LanguageContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { getPackageBySlug } from '../data/esimPackages';
 import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
@@ -408,7 +407,6 @@ export default function CountryEsim() {
         </div>
       </main>
       <Footer />
-      <FloatingWhatsApp />
     </div>
   );
 }

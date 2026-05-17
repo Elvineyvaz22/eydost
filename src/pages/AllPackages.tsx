@@ -5,7 +5,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { usePackages } from '../contexts/PackagesContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import FlagImage from '../components/FlagImage';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import Seo from '../components/Seo';
@@ -374,7 +373,6 @@ export default function AllPackages() {
       </main>
 
       <Footer />
-      <FloatingWhatsApp />
     </div>
   );
 }

@@ -3,9 +3,14 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { isEsimRoute } from '../utils/routes';
 
 export default function FloatingWhatsApp() {
+  const { pathname } = useLocation();
   const { t } = useLanguage();
+
+  if (isEsimRoute(pathname)) return null;
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
 
