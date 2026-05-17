@@ -121,14 +121,33 @@ def sync_country(supabase, country_code: str) -> int:
     if not records:
         return 0
 
-    # Deactivate all existing packages for this country
-    supabase.table("esim_packages").update({"is_active": False}).eq("country_code", country_code).execute()
-
     for record in records:
         result = supabase.table("esim_packages").upsert(
             record,
-            on_conflict="package_code",
+            on_conflict="country_code,package_code",
         ).execute()
+
+    current_codes = {record["package_code"] for record in records if record.get("package_code")}
+    existing = supabase.table("esim_packages") \
+        .select("package_code") \
+        .eq("country_code", country_code) \
+        .eq("is_active", True) \
+        .execute()
+
+    stale_codes = [
+        row.get("package_code")
+        for row in (existing.data or [])
+        if row.get("package_code") and row.get("package_code") not in current_codes
+    ]
+    for package_code in stale_codes:
+        supabase.table("esim_packages") \
+            .update({"is_active": False}) \
+            .eq("country_code", country_code) \
+            .eq("package_code", package_code) \
+            .execute()
+
+    if stale_codes:
+        logger.info(f"[{country_code}] deactivated {len(stale_codes)} stale packages")
 
     return len(records)
 
