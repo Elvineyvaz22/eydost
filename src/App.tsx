@@ -12,6 +12,7 @@ import FAQ from './components/FAQ';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
+import CookieConsent from './components/CookieConsent';
 import CountryEsim from './pages/CountryEsim';
 import RegionalEsim from './pages/RegionalEsim';
 import Taxi from './pages/Taxi';
@@ -158,6 +159,7 @@ function App() {
       <AdminProvider>
         <PackagesProvider>
           <LanguageProvider>
+            <CookieConsent />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/privacy" element={<Privacy />} />

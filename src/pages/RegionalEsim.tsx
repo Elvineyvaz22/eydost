@@ -11,8 +11,37 @@ import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
+import { trackEvent, EVENTS } from '../utils/analytics';
+import EuropeCoverageNetworks from '../components/EuropeCoverageNetworks';
+import { EUROPE_COVERAGE_COUNT } from '../data/europeCoverage';
 
 const WA_LINK = 'https://wa.me/994992010117';
+const ALLOWED_GB = [1, 3, 5, 10, 20, 50, 100];
+
+/** One plan per allowed GB tier — prefer 30-day validity, then lowest price. */
+function filterPlansForAds(plans: RegionalPackage['plans']): RegionalPackage['plans'] {
+  const picked: RegionalPackage['plans'] = [];
+  for (const gb of ALLOWED_GB) {
+    const matches = plans.filter(p => Math.round(p.gb) === gb);
+    if (!matches.length) continue;
+    const best =
+      matches.find(p => p.days === 30) ??
+      matches.reduce((a, b) => {
+        const pa = parseFloat(a.price.replace(/[^0-9.]/g, '')) || 999;
+        const pb = parseFloat(b.price.replace(/[^0-9.]/g, '')) || 999;
+        return pb < pa ? b : a;
+      });
+    picked.push(best);
+  }
+  return picked;
+}
+
+function buildOrderMessage(plan: RegionalPackage['plans'][number], regionName: string): string {
+  if (plan.code && plan.id) {
+    return `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`;
+  }
+  return `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${regionName}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+}
 
 function getRegionalBySlug(slug: string): RegionalPackage | undefined {
   if (globalPackage.slug === slug) return globalPackage;
@@ -44,7 +73,11 @@ export default function RegionalEsim() {
     } satisfies RegionalPackage;
   }, [liveRegionalPackages, slug]);
 
-  const pkg = livePkg || (slug ? getRegionalBySlug(slug) : undefined);
+  const rawPkg = livePkg || (slug ? getRegionalBySlug(slug) : undefined);
+  const pkg = useMemo(() => {
+    if (!rawPkg) return undefined;
+    return { ...rawPkg, plans: filterPlansForAds(rawPkg.plans) };
+  }, [rawPkg]);
 
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
@@ -60,14 +93,17 @@ export default function RegionalEsim() {
       const tg = window.Telegram?.WebApp;
       if (!tg) return;
 
-      const textMsg = plan.code
-        ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
-        : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
-
-      tg.sendData(textMsg);
+      tg.sendData(buildOrderMessage(plan, pkg.name));
       tg.close();
       return;
     }
+
+    trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, {
+      source: 'regional_esim',
+      region: pkg.name,
+      package_code: plan.code,
+      package_id: plan.id,
+    });
 
     if (waId) {
       e.preventDefault();
@@ -76,8 +112,8 @@ export default function RegionalEsim() {
         await createOrder({
           wa_id: waId,
           type: 'esim',
-          code: pkg.name.toUpperCase(),
-          id: plan.gb + 'GB',
+          code: plan.code || pkg.name.toUpperCase(),
+          id: plan.id || `${plan.gb}GB`,
         });
         alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
       } finally {
@@ -91,8 +127,12 @@ export default function RegionalEsim() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Seo
-        title={`${pkg.name} eSIM`}
-        description={`Buy ${pkg.name} regional eSIM plans. Instant delivery via WhatsApp.`}
+        title={pkg.slug === 'europe-esim' ? 'Europe eSIM — 35+ Countries' : `${pkg.name} eSIM`}
+        description={
+          pkg.slug === 'europe-esim'
+            ? 'Europe eSIM (EU-35) for 35 countries. Vodafone, Orange, O2, TIM & more — 4G/5G. Plans from $1.09. Instant delivery via WhatsApp.'
+            : `Buy ${pkg.name} regional eSIM plans. Instant delivery via WhatsApp.`
+        }
         canonicalPath={`/${pkg.slug}`}
       />
       <Header />
@@ -135,11 +175,19 @@ export default function RegionalEsim() {
                   {pkg.name} eSIM
                 </h1>
                 <p className="text-gray-500 text-lg">
-                  {pkg.countryCount} {t.esimPackages.countriesLabel} - {t.countryEsim.subtitle}
+                  {pkg.slug === 'europe-esim' ? EUROPE_COVERAGE_COUNT : pkg.countryCount}{' '}
+                  {t.esimPackages.countriesLabel} · {t.countryEsim.subtitle}
                 </p>
+                {pkg.slug === 'europe-esim' && (
+                  <p className="text-sm text-blue-600 font-medium mt-2">
+                    Code EU-35 · Vodafone, Orange, O2, TIM & more
+                  </p>
+                )}
               </div>
             </div>
           </div>
+
+          {pkg.slug === 'europe-esim' && <EuropeCoverageNetworks />}
 
           <div>
             <h2 className="text-2xl font-black text-gray-900 mb-8 uppercase tracking-wide">
@@ -190,10 +238,7 @@ export default function RegionalEsim() {
                     {/* Action Button */}
                     <button
                       onClick={(e) => {
-                        const textMsg = plan.code
-                          ? `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`
-                          : `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${pkg.name}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
-                        handleBuyClick(e as any, textMsg, plan);
+                        handleBuyClick(e as any, buildOrderMessage(plan, pkg.name), plan);
                       }}
                       className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${isTelegramWebApp
                           ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]'

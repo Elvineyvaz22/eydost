@@ -171,6 +171,14 @@ export const translations = {
       copyright: 'Ey Dost. All rights reserved.',
     },
     whatsappButton: 'Chat with us',
+    cookieConsent: {
+      title: 'Cookies & privacy',
+      description:
+        'We use cookies for analytics and ads measurement (Google). In the EU you can choose which cookies we set. See our',
+      privacyLink: 'Privacy Policy',
+      accept: 'Accept all',
+      reject: 'Essential only',
+    },
     countryEsim: {
       home: 'Home',
       backToAll: 'All countries',
@@ -357,6 +365,14 @@ export const translations = {
       copyright: 'Ey Dost. B\u00fct\u00fcn h\u00fcquqlar qorunur.',
     },
     whatsappButton: 'Biz\u0259 yaz\u0131n',
+    cookieConsent: {
+      title: 'Kukilər və məxfilik',
+      description:
+        'Analitika və reklam ölçümü (Google) üçün kukilər istifadə edirik. AB-də hansı kukilərin qoyulacağını seçə bilərsiniz. Baxın:',
+      privacyLink: 'Gizlilik Siyasəti',
+      accept: 'Hamısını qəbul et',
+      reject: 'Yalnız zəruri',
+    },
     countryEsim: {
       home: 'Ana s\u0259hif\u0259',
       backToAll: 'B\u00fct\u00fcn \u00f6lk\u0259l\u0259r',
@@ -543,6 +559,14 @@ export const translations = {
       copyright: 'Ey Dost. \u0412\u0441\u0435 \u043f\u0440\u0430\u0432\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u044b.',
     },
     whatsappButton: '\u041d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u043d\u0430\u043c',
+    cookieConsent: {
+      title: 'Файлы cookie и конфиденциальность',
+      description:
+        'Мы используем cookie для аналитики и рекламы (Google). В ЕС вы можете выбрать, какие cookie разрешить. См.',
+      privacyLink: 'Политику конфиденциальности',
+      accept: 'Принять все',
+      reject: 'Только необходимые',
+    },
     countryEsim: {
       home: '\u0413\u043b\u0430\u0432\u043d\u0430\u044f',
       backToAll: '\u0412\u0441\u0435 \u0441\u0442\u0440\u0430\u043d\u044b',

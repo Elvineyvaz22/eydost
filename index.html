@@ -34,11 +34,23 @@
     <!-- Impact verification -->
     <meta name="impact-site-verification" content="f6d191a4-c211-495c-8071-65433a365d99" />
 
-    <!-- Google Analytics (GA4) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P2J6KQJ74T"></script>
+    <!-- Google Consent Mode v2 (EU / Google Ads) — default denied until user accepts -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        functionality_storage: 'granted',
+        security_storage: 'granted',
+        wait_for_update: 500
+      });
+    </script>
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P2J6KQJ74T"></script>
+    <script>
       gtag('js', new Date());
       gtag('config', 'G-P2J6KQJ74T');
     </script>

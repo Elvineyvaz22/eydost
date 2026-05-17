@@ -1,13 +1,16 @@
 /**
  * Global analytics utility for tracking user events.
- * This wrapper ensures that gtag is called only if it's available.
+ * Respects GDPR consent (analytics only when user accepted all cookies).
  */
 
-export const trackEvent = (eventName: string, params: Record<string, any> = {}) => {
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', eventName, params);
-    console.log(`[Analytics] Tracked: ${eventName}`, params);
-  }
+import { getStoredConsent } from './cookieConsent';
+
+export const trackEvent = (eventName: string, params: Record<string, unknown> = {}) => {
+  if (typeof window === 'undefined') return;
+  if (getStoredConsent() !== 'all') return;
+  const gtag = (window as { gtag?: (...args: unknown[]) => void }).gtag;
+  if (!gtag) return;
+  gtag('event', eventName, params);
 };
 
 // Common event names for the Super App
