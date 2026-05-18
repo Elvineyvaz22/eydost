@@ -280,7 +280,7 @@ export default function CountryEsim() {
     .sort((a, b) => a.gb - b.gb);
 
   const unlimitedPlans: LivePlan[] = livePkgs
-    .filter(p => p.is_unlimited)
+    .filter(p => p.is_unlimited || isUnlimitedPlan(p.name))
     .map(p => ({
       gb: 0,
       days: p.duration,
@@ -320,7 +320,7 @@ export default function CountryEsim() {
   const displayLimitedPlans = limitedPlans.length > 0 ? limitedPlans : staticPlans;
   const showFallbackNote = limitedPlans.length === 0 && staticPlans.length > 0;
 
-  if (displayLimitedPlans.length === 0) {
+  if (displayLimitedPlans.length === 0 && unlimitedPlans.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Seo title="eSIM not found" canonicalPath={"/" + (slug || '')} />
