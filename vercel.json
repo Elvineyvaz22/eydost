@@ -2,77 +2,37 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "eydost.az"
-        }
-      ],
+      "has": [{ "type": "host", "value": "eydost.az" }],
       "destination": "https://eydost.com/$1",
       "permanent": true
     },
     {
       "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.eydost.az"
-        }
-      ],
+      "has": [{ "type": "host", "value": "www.eydost.az" }],
       "destination": "https://eydost.com/$1",
       "permanent": true
     },
     {
       "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.eydost.com"
-        }
-      ],
+      "has": [{ "type": "host", "value": "www.eydost.com" }],
       "destination": "https://eydost.com/$1",
       "permanent": true
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/esim-packages",
-      "destination": "https://bot.eydost.az/api/public/packages"
-    },
-    {
-      "source": "/((?!api).*)",
-      "destination": "/index.html"
     }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ],
@@ -81,5 +41,23 @@
       "path": "/api/sync-esim-packages",
       "schedule": "0 6 * * *"
     }
+  ],
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    { "src": "api/**/*.ts", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/taxi-webhook", "dest": "/api/taxi-webhook.ts" },
+    { "src": "/api/sync-esim-packages", "dest": "/api/sync-esim-packages.ts" },
+    {
+      "src": "/api/esim-packages",
+      "dest": "https://bot.eydost.az/api/public/packages"
+    },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

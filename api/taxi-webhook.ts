@@ -8,6 +8,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[VERCEL_taxi-webhook] method:', req.method);
   console.log('[VERCEL_taxi-webhook] body:', JSON.stringify(req.body, null, 2));
 
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

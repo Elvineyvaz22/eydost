@@ -8,6 +8,7 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "prebuild": "npm run sitemap",
     "build": "vite build",
+    "vercel-build": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
@@ -25,6 +26,7 @@
     "@eslint/js": "^9.9.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@vercel/node": "^5.8.2",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
     "eslint": "^9.9.1",
