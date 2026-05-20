@@ -82,17 +82,12 @@ async function upsertPackagesForCountry(
   let upserted = 0;
   let errors = 0;
 
-  // Mark all existing packages for this country as potentially inactive
-  await supabaseAdmin
-    .from('esim_packages')
-    .update({ is_active: false } as any)
-    .eq('country_code', countryCode)
-    .eq('is_active', true);
-
   if (packages.length === 0) {
-    console.log(`  ${countryCode}: no packages, marked all inactive`);
+    console.log(`  ${countryCode}: no packages returned, keeping existing active rows`);
     return { upserted: 0, errors: 0 };
   }
+
+  const syncedCodes = new Set(packages.map(pkg => pkg.package_code).filter(Boolean));
 
   // Upsert each package
   for (const pkg of packages) {
@@ -127,6 +122,37 @@ async function upsertPackagesForCountry(
       errors++;
     } else {
       upserted++;
+    }
+  }
+
+  if (errors > 0) {
+    console.log(`  ${countryCode}: skipped stale deactivation because ${errors} package writes failed`);
+    return { upserted, errors };
+  }
+
+  const { data: activeRows, error: selectError } = await supabaseAdmin
+    .from('esim_packages')
+    .select('package_code')
+    .eq('country_code', countryCode)
+    .eq('is_active', true);
+
+  if (selectError) {
+    console.error(`  ✗ ${countryCode}: failed to load active packages for cleanup: ${selectError.message}`);
+    return { upserted, errors: errors + 1 };
+  }
+
+  for (const row of activeRows || []) {
+    if (!row.package_code || syncedCodes.has(row.package_code)) continue;
+
+    const { error } = await supabaseAdmin
+      .from('esim_packages')
+      .update({ is_active: false } as any)
+      .eq('country_code', countryCode)
+      .eq('package_code', row.package_code);
+
+    if (error) {
+      console.error(`  ✗ ${countryCode}/${row.package_code}: failed to deactivate stale package: ${error.message}`);
+      errors++;
     }
   }
 

@@ -17,13 +17,25 @@ export const getWaId = (): string | null => {
   return sessionStorage.getItem('eydost_wa_id');
 };
 
+export type CreateOrderResult = {
+  status?: string;
+  success?: boolean;
+  message?: string;
+  error?: string;
+  [key: string]: unknown;
+};
+
+export function orderSucceeded(result: CreateOrderResult): boolean {
+  return result.status !== 'error' && result.success !== false && !result.error;
+}
+
 export const createOrder = async (data: {
   wa_id: string;
   type: 'esim' | 'taxi';
   code?: string;
   id?: string;
   details?: string;
-}) => {
+}): Promise<CreateOrderResult> => {
   try {
     const response = await fetch('/api/whatsapp/order', {
       method: 'POST',
@@ -32,7 +44,31 @@ export const createOrder = async (data: {
       },
       body: JSON.stringify(data),
     });
-    return await response.json();
+
+    const contentType = response.headers.get('content-type') || '';
+    const payload = contentType.includes('application/json')
+      ? await response.json() as CreateOrderResult
+      : null;
+
+    if (!response.ok) {
+      return {
+        status: 'error',
+        message: payload?.message || payload?.error || `Order API failed with ${response.status}`,
+      };
+    }
+
+    if (!payload) {
+      return { status: 'error', message: 'Order API returned an invalid response' };
+    }
+
+    if (!orderSucceeded(payload)) {
+      return {
+        status: 'error',
+        message: payload.message || payload.error || 'Order API rejected the request',
+      };
+    }
+
+    return payload;
   } catch (error) {
     console.error('Failed to create order:', error);
     return { status: 'error', message: 'Connection failed' };

@@ -7,7 +7,7 @@ import type { RegionalPackage } from '../data/esimPackages';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { getWaId, createOrder, orderSucceeded } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 import { trackEvent, EVENTS } from '../utils/analytics';
@@ -108,13 +108,17 @@ export default function RegionalEsim() {
       e.preventDefault();
       setIsOrdering(true);
       try {
-        await createOrder({
+        const result = await createOrder({
           wa_id: waId,
           type: 'esim',
           code: plan.code || pkg.name.toUpperCase(),
           id: plan.id || `${plan.gb}GB`,
         });
-        alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
+        if (orderSucceeded(result)) {
+          alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
+        } else {
+          window.location.href = `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`;
+        }
       } finally {
         setIsOrdering(false);
       }
