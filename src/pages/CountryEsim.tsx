@@ -5,13 +5,17 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getPackageBySlug } from '../data/esimPackages';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { getWaId, createOrder, orderSucceeded } from '../utils/whatsapp';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
 import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryName, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
 
 const WA_LINK = 'https://wa.me/994992010117';
+
+function openWhatsAppOrder(message: string) {
+  window.location.href = WA_LINK + "?text=" + encodeURIComponent(message);
+}
 
 const SLUG_TO_CODE: Record<string, string> = {
   'turkey-esim': 'TR', 'united-states-esim': 'US', 'germany-esim': 'DE',
@@ -87,13 +91,17 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
-        showToast('Sifarisiniz WhatsApp-a gonderildi! Zehmet olmasa cat bolmesine qayidin.');
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code, id: plan.id });
+        if (orderSucceeded(result)) {
+          showToast('Sifarisiniz WhatsApp-a gonderildi! Zehmet olmasa cat bolmesine qayidin.');
+        } else {
+          openWhatsAppOrder(textMsg);
+        }
       } finally {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      openWhatsAppOrder(textMsg);
     }
   };
 
@@ -172,13 +180,17 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
-        showToast('Sifarisiniz WhatsApp-a gonderildi! Zehmet olmasa cat bolmesine qayidin.');
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code, id: plan.id });
+        if (orderSucceeded(result)) {
+          showToast('Sifarisiniz WhatsApp-a gonderildi! Zehmet olmasa cat bolmesine qayidin.');
+        } else {
+          openWhatsAppOrder(textMsg);
+        }
       } finally {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      openWhatsAppOrder(textMsg);
     }
   };
 
@@ -280,7 +292,7 @@ export default function CountryEsim() {
     .sort((a, b) => a.gb - b.gb);
 
   const unlimitedPlans: LivePlan[] = livePkgs
-    .filter(p => p.is_unlimited)
+    .filter(p => p.is_unlimited || isUnlimitedPlan(p.name))
     .map(p => ({
       gb: 0,
       days: p.duration,
@@ -291,8 +303,6 @@ export default function CountryEsim() {
       countryCode: activeCountryCode || '',
     }))
     .sort((a, b) => a.days - b.days);
-
-  const totalPlans = limitedPlans.length + unlimitedPlans.length;
 
   if (liveLoading) {
     return (
@@ -319,8 +329,9 @@ export default function CountryEsim() {
 
   const displayLimitedPlans = limitedPlans.length > 0 ? limitedPlans : staticPlans;
   const showFallbackNote = limitedPlans.length === 0 && staticPlans.length > 0;
+  const displayTotalPlans = displayLimitedPlans.length + unlimitedPlans.length;
 
-  if (displayLimitedPlans.length === 0) {
+  if (displayTotalPlans === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Seo title="eSIM not found" canonicalPath={"/" + (slug || '')} />
@@ -360,7 +371,7 @@ export default function CountryEsim() {
               <p className="text-gray-400 text-lg">{t.countryEsim.subtitle}</p>
               <div className="flex flex-wrap items-center gap-4 mt-3">
                 <span className="flex items-center gap-1.5 text-green-400 text-sm font-medium">
-                  <Zap className="w-4 h-4" /> {totalPlans} plans available
+                  <Zap className="w-4 h-4" /> {displayTotalPlans} plans available
                 </span>
                 <span className="flex items-center gap-1.5 text-blue-400 text-sm font-medium">
                   <Shield className="w-4 h-4" /> Instant delivery via WhatsApp
@@ -377,14 +388,20 @@ export default function CountryEsim() {
             {t.countryEsim.backToAll}
           </Link>
 
-          {limitedPlans.length > 0 && (
+          {showFallbackNote && (
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Live packages are temporarily unavailable, so backup package data is shown.
+            </div>
+          )}
+
+          {displayLimitedPlans.length > 0 && (
             <div className="mb-10">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <Wifi className="w-5 h-5 text-blue-600" />
-                {t.countryEsim.availablePlans || 'Available Plans'} ({limitedPlans.length})
+                {t.countryEsim.availablePlans || 'Available Plans'} ({displayLimitedPlans.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {limitedPlans.map((plan, i) => (
+                {displayLimitedPlans.map((plan) => (
                   <LimitedPlanCard key={plan.code} plan={plan} countryName={countryName} />
                 ))}
               </div>

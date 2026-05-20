@@ -198,6 +198,10 @@ export default function Taxi() {
         alert(language === 'az' ? "Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin." : (language === 'ru' ? "Пожалуйста, выберите пункты отправления и назначения." : "Please select both pickup and drop-off locations."));
         return;
       }
+      if (!pickupCoords || !dropoffCoords) {
+        alert(language === 'az' ? "Zəhmət olmasa ünvanları siyahıdan seçin ki, xəritə koordinatları göndərilsin." : (language === 'ru' ? "Пожалуйста, выберите адреса из списка, чтобы отправить координаты на карте." : "Please select both addresses from the suggestions so map coordinates can be sent."));
+        return;
+      }
       const car = CAR_CLASSES.find(c => c.id === selectedCar);
       let priceText = "";
       
@@ -241,14 +245,14 @@ export default function Taxi() {
             pickup: {
               display_name: pickupAddress.split(',')[0] || pickupAddress,
               formatted_address: pickupAddress,
-              lat: pickupCoords?.lat ?? 0,
-              lng: pickupCoords?.lng ?? 0,
+              lat: pickupCoords.lat,
+              lng: pickupCoords.lng,
             },
             destination: {
               display_name: dropoffAddress.split(',')[0] || dropoffAddress,
               formatted_address: dropoffAddress,
-              lat: dropoffCoords?.lat ?? 0,
-              lng: dropoffCoords?.lng ?? 0,
+              lat: dropoffCoords.lat,
+              lng: dropoffCoords.lng,
             },
             confirmed_at: new Date().toISOString(),
           }),
@@ -257,9 +261,13 @@ export default function Taxi() {
         if (!res.ok) {
           const body = await res.text();
           console.warn('[TAXI_WEBHOOK] error body:', body);
+          alert(language === 'az' ? "Taksi sifarişini xəritəyə göndərmək mümkün olmadı. Zəhmət olmasa yenidən cəhd edin." : (language === 'ru' ? "Не удалось отправить заказ такси на карту. Пожалуйста, попробуйте еще раз." : "Could not send the taxi booking to the map. Please try again."));
+          return;
         }
       } catch (e) {
         console.warn('Taxi webhook failed:', e);
+        alert(language === 'az' ? "Taksi sifarişini xəritəyə göndərmək mümkün olmadı. Zəhmət olmasa yenidən cəhd edin." : (language === 'ru' ? "Не удалось отправить заказ такси на карту. Пожалуйста, попробуйте еще раз." : "Could not send the taxi booking to the map. Please try again."));
+        return;
       }
 
       setIsSuccess(true);
