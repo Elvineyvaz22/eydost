@@ -50,6 +50,23 @@ interface BotPackage {
   description?: string;
 }
 
+interface PackageRecord {
+  country_code: string;
+  package_code: string;
+  slug: string | null;
+  name: string;
+  volume_bytes: number;
+  duration_days: number;
+  sell_price_minor: number;
+  currency_code: string;
+  is_unlimited: boolean;
+  speed: string;
+  network_type: null;
+  description: string;
+  is_active: boolean;
+  last_synced_at: string;
+}
+
 // ── Fetch from bot API ─────────────────────────────────────────────────────────
 async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
   const url = `${BOT_API}?country_code=${encodeURIComponent(countryCode)}`;
@@ -74,63 +91,93 @@ async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
 }
 
 // ── Upsert single country packages ────────────────────────────────────────────
+function toPackageRecord(countryCode: string, pkg: BotPackage): PackageRecord {
+  const isUnlimited = Number(pkg.volume) === 0;
+
+  return {
+    country_code: countryCode,
+    package_code: pkg.package_code,
+    slug: pkg.slug || null,
+    name: pkg.name,
+    volume_bytes: Number(pkg.volume) || 0,
+    duration_days: Number(pkg.duration) || 1,
+    sell_price_minor: Number(pkg.sell_price_minor) || 0,
+    currency_code: pkg.currency || 'USD',
+    is_unlimited: isUnlimited,
+    speed: pkg.speed || '4G',
+    network_type: null,
+    description: pkg.description || pkg.name,
+    is_active: true,
+    last_synced_at: new Date().toISOString(),
+  };
+}
+
+function formatPostgrestIn(values: string[]): string {
+  return `(${values
+    .map(value => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`)
+    .join(',')})`;
+}
+
 async function upsertPackagesForCountry(
   supabaseAdmin: any,
   countryCode: string,
   packages: BotPackage[]
 ): Promise<{ upserted: number; errors: number }> {
-  let upserted = 0;
-  let errors = 0;
-
-  // Mark all existing packages for this country as potentially inactive
-  await supabaseAdmin
-    .from('esim_packages')
-    .update({ is_active: false } as any)
-    .eq('country_code', countryCode)
-    .eq('is_active', true);
-
   if (packages.length === 0) {
-    console.log(`  ${countryCode}: no packages, marked all inactive`);
+    console.log(`  ${countryCode}: no packages returned; keeping existing active packages`);
     return { upserted: 0, errors: 0 };
   }
 
-  // Upsert each package
+  let invalidPackages = 0;
+  const recordsByCode = new Map<string, PackageRecord>();
   for (const pkg of packages) {
-    const isUnlimited = Number(pkg.volume) === 0;
-    
-    const record = {
-      country_code: countryCode,
-      package_code: pkg.package_code,
-      slug: pkg.slug || null,
-      name: pkg.name,
-      volume_bytes: Number(pkg.volume) || 0,
-      duration_days: Number(pkg.duration) || 1,
-      sell_price_minor: Number(pkg.sell_price_minor) || 0,
-      currency_code: pkg.currency || 'USD',
-      is_unlimited: isUnlimited,
-      speed: pkg.speed || '4G',
-      network_type: null,
-      description: pkg.description || pkg.name,
-      is_active: true,
-      last_synced_at: new Date().toISOString(),
-    };
-
-    const { error } = await supabaseAdmin
-      .from('esim_packages')
-      .upsert(record as any, {
-        onConflict: 'country_code,package_code',
-        ignoreDuplicates: false,
-      });
-
-    if (error) {
-      console.error(`  ✗ ${countryCode}/${pkg.package_code}: ${error.message}`);
-      errors++;
-    } else {
-      upserted++;
+    const packageCode = pkg.package_code?.trim();
+    if (!packageCode) {
+      invalidPackages++;
+      continue;
     }
+
+    recordsByCode.set(packageCode, toPackageRecord(countryCode, {
+      ...pkg,
+      package_code: packageCode,
+    }));
   }
 
-  return { upserted, errors };
+  const records = Array.from(recordsByCode.values());
+  if (records.length === 0) {
+    console.error(`  ✗ ${countryCode}: no packages had package_code; keeping existing active packages`);
+    return { upserted: 0, errors: packages.length };
+  }
+
+  const packageCodes = Array.from(new Set(records.map(record => record.package_code)));
+
+  // Write fresh data before deactivating stale rows. If the upsert fails or times out,
+  // existing active packages remain visible instead of wiping the public catalog.
+  const { error: upsertError } = await supabaseAdmin
+    .from('esim_packages')
+    .upsert(records as any, {
+      onConflict: 'country_code,package_code',
+      ignoreDuplicates: false,
+    });
+
+  if (upsertError) {
+    console.error(`  ✗ ${countryCode}: upsert failed: ${upsertError.message}`);
+    return { upserted: 0, errors: packages.length };
+  }
+
+  const { error: deactivateError } = await supabaseAdmin
+    .from('esim_packages')
+    .update({ is_active: false } as any)
+    .eq('country_code', countryCode)
+    .eq('is_active', true)
+    .not('package_code', 'in', formatPostgrestIn(packageCodes));
+
+  if (deactivateError) {
+    console.error(`  ✗ ${countryCode}: stale package deactivation failed: ${deactivateError.message}`);
+    return { upserted: records.length, errors: invalidPackages + 1 };
+  }
+
+  return { upserted: records.length, errors: invalidPackages };
 }
 
 // ── Main sync function ─────────────────────────────────────────────────────────
@@ -196,9 +243,17 @@ async function syncAllPackages(): Promise<{
 
 // ── Vercel Cron Handler ───────────────────────────────────────────────────────
 export default async function handler(req: any, res: any) {
-  // Only allow cron (or local dev)
-  if (process.env.NODE_ENV === 'production' && req.headers['x-vercel-cron'] !== '1') {
-    return res.status(403).json({ error: 'Forbidden — cron only' });
+  // Only allow authenticated cron calls in production. Vercel sends this bearer
+  // token automatically when CRON_SECRET is configured for the project.
+  if (process.env.NODE_ENV === 'production') {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) {
+      return res.status(500).json({ error: 'CRON_SECRET is not configured' });
+    }
+
+    if (req.headers.authorization !== `Bearer ${cronSecret}`) {
+      return res.status(403).json({ error: 'Forbidden — cron only' });
+    }
   }
 
   try {
