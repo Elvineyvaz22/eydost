@@ -10,7 +10,7 @@ import FlagImage from '../components/FlagImage';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
-import { trackEvent, EVENTS } from '../utils/analytics';
+import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
 import EuropeCoverageNetworks from '../components/EuropeCoverageNetworks';
 import { EUROPE_COVERAGE_COUNT } from '../data/europeCoverage';
 
@@ -87,6 +87,17 @@ export default function RegionalEsim() {
   if (!pkg) return <Navigate to="/" replace />;
 
   const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string, plan: RegionalPackage['plans'][number]) => {
+    trackGoogleAdsEsimPurchase({
+      transactionId: plan.id || plan.code,
+      value: parseUsdPrice(plan.price),
+    });
+    trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, {
+      source: 'regional_esim',
+      region: pkg.name,
+      package_code: plan.code,
+      package_id: plan.id,
+    });
+
     if (isTelegramWebApp) {
       e.preventDefault();
       const tg = window.Telegram?.WebApp;
@@ -96,13 +107,6 @@ export default function RegionalEsim() {
       tg.close();
       return;
     }
-
-    trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, {
-      source: 'regional_esim',
-      region: pkg.name,
-      package_code: plan.code,
-      package_id: plan.id,
-    });
 
     if (waId) {
       e.preventDefault();

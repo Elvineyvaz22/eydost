@@ -48,13 +48,14 @@
         wait_for_update: 500
       });
     </script>
-    <!-- Google tag (GA4 + Google Ads) — single gtag.js load -->
+    <!-- Google tag (gtag.js) — GA4 + Google Ads (SPA: this index.html loads on every page) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P2J6KQJ74T"></script>
     <script>
       gtag('js', new Date());
       gtag('config', 'G-P2J6KQJ74T');
       gtag('config', 'AW-18089479742');
     </script>
+    <!-- Satın alma conversion (AW-18089479742/ZexsCOHBw64cEL6c3rFD): not in head — fired on eSIM "Buy on WhatsApp" with dynamic value, currency, transaction_id -->
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

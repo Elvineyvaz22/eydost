@@ -9,6 +9,7 @@ import { getWaId, createOrder } from '../utils/whatsapp';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
+import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
 import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryName, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
 
 const WA_LINK = 'https://wa.me/994992010117';
@@ -77,6 +78,12 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: " + plan.code + "\nID: " + plan.id;
+
+    trackGoogleAdsEsimPurchase({
+      transactionId: plan.id || plan.code,
+      value: parseUsdPrice(plan.price),
+    });
+    trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
 
     if (isTelegramWebApp && tg) {
       tg.sendData(textMsg);
@@ -162,6 +169,12 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: " + plan.code + "\nID: " + plan.id;
+
+    trackGoogleAdsEsimPurchase({
+      transactionId: plan.id || plan.code,
+      value: parseUsdPrice(plan.price),
+    });
+    trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
 
     if (isTelegramWebApp && tg) {
       tg.sendData(textMsg);
