@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import { createPortal } from 'react-dom';
 import { isInPickupCountry } from '../utils/addressFormat';
+
+export type PlaceSearchInputHandle = {
+  focus: () => void;
+  blur: () => void;
+};
 
 type Props = {
   value: string;
@@ -14,40 +20,36 @@ type Props = {
   disabled?: boolean;
   variant?: 'light' | 'dark';
   onFocusChange?: (focused: boolean) => void;
+  /** Suggestions fill space between top search bar and keyboard */
+  suggestionsPlacement?: 'below-input' | 'above-keyboard';
+  /** px from viewport top where suggestion list starts (above-keyboard mode) */
+  listTop?: number;
+  onPredictionsOpenChange?: (open: boolean) => void;
 };
 
-function useIsMobile() {
-  const [mobile, setMobile] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth < 1024
-  );
-  useEffect(() => {
-    const onResize = () => setMobile(window.innerWidth < 1024);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  return mobile;
-}
-
-export default function PlaceSearchInput({
-  value,
-  onChange,
-  onPlaceSelect,
-  placeholder,
-  className = '',
-  inputClassName = '',
-  restrictCountryCode = null,
-  restrictCountryName = null,
-  locationBias = null,
-  disabled = false,
-  variant = 'light',
-  onFocusChange,
-}: Props) {
-  const isMobile = useIsMobile();
+const PlaceSearchInput = forwardRef<PlaceSearchInputHandle, Props>(function PlaceSearchInput(
+  {
+    value,
+    onChange,
+    onPlaceSelect,
+    placeholder,
+    className = '',
+    inputClassName = '',
+    restrictCountryCode = null,
+    restrictCountryName = null,
+    locationBias = null,
+    disabled = false,
+    variant = 'light',
+    onFocusChange,
+    suggestionsPlacement = 'below-input',
+    listTop = 120,
+    onPredictionsOpenChange,
+  },
+  ref
+) {
   const dropdownClass =
-    variant === 'dark'
-      ? 'bg-[#1a1a1a] border-gray-600'
-      : 'bg-white border-gray-200';
-  const itemHover = variant === 'dark' ? 'hover:bg-gray-800 active:bg-gray-800' : 'hover:bg-gray-50 active:bg-gray-50';
+    variant === 'dark' ? 'bg-[#1a1a1a] border-gray-600' : 'bg-white border-gray-200';
+  const itemHover = variant === 'dark' ? 'hover:bg-gray-50/10' : 'hover:bg-gray-50';
   const itemActive = variant === 'dark' ? 'bg-gray-800' : 'bg-blue-50';
   const mainText = variant === 'dark' ? 'text-white' : 'text-gray-900';
   const subText = variant === 'dark' ? 'text-gray-400' : 'text-gray-500';
@@ -55,6 +57,7 @@ export default function PlaceSearchInput({
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [keyboardBottom, setKeyboardBottom] = useState(0);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -62,12 +65,43 @@ export default function PlaceSearchInput({
   const placesRef = useRef<google.maps.places.PlacesService | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+    blur: () => inputRef.current?.blur(),
+  }));
+
+  useEffect(() => {
+    onPredictionsOpenChange?.(open && predictions.length > 0);
+  }, [open, predictions.length, onPredictionsOpenChange]);
+
   useEffect(() => {
     if (typeof google !== 'undefined' && google.maps?.places) {
       serviceRef.current = new google.maps.places.AutocompleteService();
       placesRef.current = new google.maps.places.PlacesService(document.createElement('div'));
     }
   }, []);
+
+  useEffect(() => {
+    if (suggestionsPlacement !== 'above-keyboard' || !open) return;
+
+    const updateKeyboard = () => {
+      const vv = window.visualViewport;
+      if (!vv) {
+        setKeyboardBottom(0);
+        return;
+      }
+      const kb = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboardBottom(Math.max(0, kb));
+    };
+
+    updateKeyboard();
+    window.visualViewport?.addEventListener('resize', updateKeyboard);
+    window.visualViewport?.addEventListener('scroll', updateKeyboard);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateKeyboard);
+      window.visualViewport?.removeEventListener('scroll', updateKeyboard);
+    };
+  }, [suggestionsPlacement, open]);
 
   const fetchPredictions = useCallback(
     (input: string) => {
@@ -129,7 +163,9 @@ export default function PlaceSearchInput({
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
-      if (wrapperRef.current?.contains(e.target as Node)) return;
+      const t = e.target as Node;
+      if (wrapperRef.current?.contains(t)) return;
+      if ((t as Element).closest?.('.place-search-suggestions-panel')) return;
       setOpen(false);
     };
     document.addEventListener('mousedown', onDocClick);
@@ -144,16 +180,11 @@ export default function PlaceSearchInput({
 
   const onInputFocus = () => {
     onFocusChange?.(true);
-    if (isMobile) {
-      setTimeout(() => {
-        inputRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      }, 350);
-    }
     if (value.trim().length >= 2 && predictions.length > 0) setOpen(true);
   };
 
   const onInputBlur = () => {
-    setTimeout(() => onFocusChange?.(false), 150);
+    setTimeout(() => onFocusChange?.(false), 200);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -173,62 +204,84 @@ export default function PlaceSearchInput({
     }
   };
 
-  return (
-    <div ref={wrapperRef} className={`relative z-30 ${className}`}>
-      {open && predictions.length > 0 && (
-        <ul
-          className={`place-search-dropdown absolute left-0 right-0 z-50 overflow-y-auto overscroll-contain rounded-xl border shadow-lg py-1 ${dropdownClass} ${
-            isMobile
-              ? 'bottom-full mb-2 max-h-[180px]'
-              : 'top-full mt-2 max-h-56'
-          }`}
-          role="listbox"
-        >
-          {predictions.map((p, i) => (
-            <li
-              key={p.place_id}
-              role="option"
-              aria-selected={i === activeIndex}
-              className={`cursor-pointer px-4 py-3 border-b border-gray-100/10 last:border-0 ${
-                i === activeIndex ? itemActive : itemHover
-              }`}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                selectPrediction(p);
-              }}
-              onTouchStart={(e) => e.preventDefault()}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                selectPrediction(p);
-              }}
-            >
-              <span className={`font-semibold block truncate text-[15px] leading-tight ${mainText}`}>
-                {p.structured_formatting.main_text}
-              </span>
-              {p.structured_formatting.secondary_text && (
-                <span className={`text-xs truncate block mt-0.5 ${subText}`}>
-                  {p.structured_formatting.secondary_text}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+  const suggestionItems = predictions.map((p, i) => (
+    <li
+      key={p.place_id}
+      role="option"
+      aria-selected={i === activeIndex}
+      className={`cursor-pointer px-4 py-3.5 border-b border-gray-100 last:border-0 ${
+        i === activeIndex ? itemActive : itemHover
+      }`}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        selectPrediction(p);
+      }}
+      onTouchStart={(e) => e.preventDefault()}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        selectPrediction(p);
+      }}
+    >
+      <span className={`font-semibold block truncate text-[15px] ${mainText}`}>
+        {p.structured_formatting.main_text}
+      </span>
+      {p.structured_formatting.secondary_text && (
+        <span className={`text-xs truncate block mt-0.5 ${subText}`}>
+          {p.structured_formatting.secondary_text}
+        </span>
       )}
+    </li>
+  ));
 
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        disabled={disabled || !restrictCountryCode}
-        onChange={(e) => onInputChange(e.target.value)}
-        onFocus={onInputFocus}
-        onBlur={onInputBlur}
-        onKeyDown={onKeyDown}
-        placeholder={placeholder}
-        className={`relative z-10 ${inputClassName}`}
-        autoComplete="off"
-        enterKeyHint="search"
-      />
-    </div>
+  const inlineDropdown =
+    suggestionsPlacement === 'below-input' && open && predictions.length > 0 ? (
+      <ul
+        className={`place-search-dropdown absolute left-0 right-0 top-full z-50 mt-2 max-h-56 overflow-y-auto overscroll-contain rounded-xl border shadow-lg py-1 ${dropdownClass}`}
+        role="listbox"
+      >
+        {suggestionItems}
+      </ul>
+    ) : null;
+
+  const keyboardPanel =
+    suggestionsPlacement === 'above-keyboard' && open && predictions.length > 0
+      ? createPortal(
+          <ul
+            className={`place-search-suggestions-panel fixed left-0 right-0 z-[10040] overflow-y-auto overscroll-contain border-t shadow-[0_-4px_24px_rgba(0,0,0,0.08)] py-1 ${dropdownClass}`}
+            style={{
+              top: listTop,
+              bottom: keyboardBottom,
+            }}
+            role="listbox"
+          >
+            {suggestionItems}
+          </ul>,
+          document.body
+        )
+      : null;
+
+  return (
+    <>
+      <div ref={wrapperRef} className={`relative flex-1 min-w-0 ${className}`}>
+        {inlineDropdown}
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          disabled={disabled || !restrictCountryCode}
+          onChange={(e) => onInputChange(e.target.value)}
+          onFocus={onInputFocus}
+          onBlur={onInputBlur}
+          onKeyDown={onKeyDown}
+          placeholder={placeholder}
+          className={inputClassName}
+          autoComplete="off"
+          enterKeyHint="search"
+        />
+      </div>
+      {keyboardPanel}
+    </>
   );
-}
+});
+
+export default PlaceSearchInput;

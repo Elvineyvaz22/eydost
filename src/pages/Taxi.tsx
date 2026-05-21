@@ -9,7 +9,7 @@ import { trackEvent, EVENTS } from '../utils/analytics';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
 import { formatGeocoderResult, formatPlaceAddress, extractCountry, isSameCountry } from '../utils/addressFormat';
-import PlaceSearchInput from '../components/PlaceSearchInput';
+import PlaceSearchInput, { type PlaceSearchInputHandle } from '../components/PlaceSearchInput';
 
 const WA_LINK = 'https://wa.me/994992000444';
 
@@ -63,10 +63,11 @@ export default function Taxi() {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 
   const [pickupAutocomplete, setPickupAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-  const [dropoffInputFocused, setDropoffInputFocused] = useState(false);
-  const [sheetLift, setSheetLift] = useState(0);
+  const [dropoffListTop, setDropoffListTop] = useState(112);
 
   const mapRef = useRef<google.maps.Map | null>(null);
+  const dropoffTopBarRef = useRef<HTMLDivElement>(null);
+  const dropoffSearchRef = useRef<PlaceSearchInputHandle>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
   const locateUser = useCallback((map?: google.maps.Map) => {
@@ -338,31 +339,26 @@ export default function Taxi() {
   };
 
   useEffect(() => {
-    if (mobileStep !== 'select_dropoff') {
-      setDropoffInputFocused(false);
-      setSheetLift(0);
-    }
-  }, [mobileStep]);
+    if (mobileStep !== 'select_dropoff') return;
 
-  useEffect(() => {
-    if (!dropoffInputFocused) {
-      setSheetLift(0);
-      return;
-    }
-    const vv = window.visualViewport;
-    const update = () => {
-      if (!vv) return;
-      const keyboardH = window.innerHeight - vv.height - vv.offsetTop;
-      setSheetLift(Math.max(0, keyboardH));
+    const updateListTop = () => {
+      if (dropoffTopBarRef.current) {
+        setDropoffListTop(dropoffTopBarRef.current.getBoundingClientRect().bottom);
+      }
     };
-    update();
-    vv?.addEventListener('resize', update);
-    vv?.addEventListener('scroll', update);
+
+    updateListTop();
+    const t = setTimeout(() => {
+      updateListTop();
+      dropoffSearchRef.current?.focus();
+    }, 350);
+
+    window.addEventListener('resize', updateListTop);
     return () => {
-      vv?.removeEventListener('resize', update);
-      vv?.removeEventListener('scroll', update);
+      clearTimeout(t);
+      window.removeEventListener('resize', updateListTop);
     };
-  }, [dropoffInputFocused]);
+  }, [mobileStep]);
 
   const handleMobileBack = () => {
     if (mobileStep === 'select_dropoff') {
@@ -627,14 +623,52 @@ export default function Taxi() {
     );
   }
 
+  const isDropoffSearch = mobileStep === 'select_dropoff';
+
   return (
     <div className="h-[100dvh] w-full flex flex-col bg-gray-100 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full z-50">
-         <Header />
-      </div>
+      {!isDropoffSearch && (
+        <div className="absolute top-0 left-0 w-full z-50">
+          <Header />
+        </div>
+      )}
+
+      {isDropoffSearch && (
+        <div
+          ref={dropoffTopBarRef}
+          className="absolute top-0 left-0 right-0 z-40 flex items-center gap-2 px-3 pt-3 pb-3 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm"
+        >
+          <button
+            type="button"
+            onClick={handleMobileBack}
+            className="shrink-0 p-2.5 rounded-full bg-gray-100 text-gray-800"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1 flex items-center gap-2 bg-red-50 rounded-xl border border-red-100 px-3 py-2.5 min-w-0">
+            <div className="w-2.5 h-2.5 rounded-sm bg-red-600 shrink-0" />
+            {isLoaded && (
+              <PlaceSearchInput
+                ref={dropoffSearchRef}
+                value={dropoffAddress}
+                onChange={setDropoffAddress}
+                onPlaceSelect={handleDropoffPlaceSelect}
+                restrictCountryCode={pickupCountryCode}
+                restrictCountryName={pickupCountryName}
+                locationBias={pickupCoords}
+                placeholder={t.taxi.dropoffPlaceholder}
+                suggestionsPlacement="above-keyboard"
+                listTop={dropoffListTop}
+                inputClassName="w-full bg-transparent text-gray-900 font-semibold focus:outline-none text-base placeholder-gray-400"
+              />
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="relative h-[100dvh] w-full flex-shrink-0">
-        <div className="absolute inset-0 z-0 pt-16">
+        <div className={`absolute inset-0 z-0 ${isDropoffSearch ? 'pt-0' : 'pt-16'}`}>
           {!isLoaded ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-900">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
@@ -671,7 +705,7 @@ export default function Taxi() {
           )}
         </div>
 
-        {isLoaded && mobileStep !== 'confirm_ride' && (
+        {isLoaded && mobileStep === 'select_pickup' && (
           <button 
             onClick={() => locateUser()}
             className="absolute bottom-[360px] right-4 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 transition-colors z-20"
@@ -680,19 +714,29 @@ export default function Taxi() {
           </button>
         )}
 
-        {isLoaded && mobileStep !== 'confirm_ride' && (
+        {isLoaded && mobileStep === 'select_pickup' && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10 pointer-events-none pb-6 flex flex-col items-center">
             <div className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg mb-2 whitespace-nowrap animate-bounce">
-              {mobileStep === 'select_pickup' ? t.taxi.pickupLabel : t.taxi.dropoffLabel}?
+              {t.taxi.pickupLabel}?
             </div>
             <div className="w-8 h-12 flex items-center justify-center relative">
-               <div className={`w-6 h-6 rounded-full border-4 border-white ${mobileStep === 'select_pickup' ? 'bg-blue-600' : 'bg-red-600'} absolute bottom-0 shadow-md z-10`}></div>
+               <div className="w-6 h-6 rounded-full border-4 border-white bg-blue-600 absolute bottom-0 shadow-md z-10"></div>
                <div className="w-1 h-8 bg-black absolute bottom-3 z-0"></div>
             </div>
           </div>
         )}
 
-        {mobileStep !== 'select_pickup' && (
+        {isLoaded && isDropoffSearch && (
+          <button
+            type="button"
+            onClick={() => locateUser()}
+            className="absolute bottom-24 right-4 bg-white p-3 rounded-full shadow-lg text-gray-800 z-20"
+          >
+            <LocateFixed className="w-6 h-6 text-blue-600" />
+          </button>
+        )}
+
+        {mobileStep === 'confirm_ride' && (
           <button 
             onClick={handleMobileBack}
             className="absolute top-28 left-4 z-20 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 transition-colors border border-gray-100"
@@ -701,10 +745,20 @@ export default function Taxi() {
           </button>
         )}
 
-        <div
-          className="absolute bottom-0 left-0 w-full z-20 pointer-events-none pb-4 px-4 transition-transform duration-200 ease-out"
-          style={{ transform: sheetLift > 0 ? `translateY(-${sheetLift}px)` : undefined }}
-        >
+        {isDropoffSearch && dropoffAddress.trim() && (
+          <div className="absolute bottom-0 left-0 right-0 z-30 p-4 pointer-events-none pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <button
+              type="button"
+              onClick={handleMobileNext}
+              className="pointer-events-auto w-full bg-black text-white py-4 rounded-xl font-bold text-base shadow-lg active:scale-95"
+            >
+              {t.taxi.confirmDestination}
+            </button>
+          </div>
+        )}
+
+        {!isDropoffSearch && (
+        <div className="absolute bottom-0 left-0 w-full z-20 pointer-events-none pb-4 px-4">
           <div className="bg-white rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] p-5 pointer-events-auto w-full overflow-visible">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
 
@@ -727,34 +781,6 @@ export default function Taxi() {
                 </div>
                 <button onClick={handleMobileNext} className="w-full bg-black text-white py-4 rounded-xl font-bold text-base shadow-md active:scale-95 transition-all">
                   {t.taxi.confirmLocation}
-                </button>
-              </div>
-            )}
-
-            {mobileStep === 'select_dropoff' && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                <h2 className="text-xl font-bold text-gray-900 mb-3">{t.taxi.dropoffLabel}?</h2>
-                <div className="relative mb-4">
-                  <div className="flex items-center gap-3 bg-red-50 px-4 py-3.5 rounded-2xl border border-red-100">
-                    <div className="w-3 h-3 rounded-sm bg-red-600 shrink-0" />
-                    {isLoaded && (
-                      <PlaceSearchInput
-                        value={dropoffAddress}
-                        onChange={setDropoffAddress}
-                        onPlaceSelect={handleDropoffPlaceSelect}
-                        onFocusChange={setDropoffInputFocused}
-                        restrictCountryCode={pickupCountryCode}
-                        restrictCountryName={pickupCountryName}
-                        locationBias={pickupCoords}
-                        placeholder={t.taxi.dropoffPlaceholder}
-                        className="flex-1 min-w-0"
-                        inputClassName="w-full bg-transparent text-gray-900 font-bold focus:outline-none text-base placeholder-gray-400"
-                      />
-                    )}
-                  </div>
-                </div>
-                <button onClick={handleMobileNext} className="w-full bg-black text-white py-4 rounded-xl font-bold text-base shadow-md active:scale-95 transition-all">
-                  {t.taxi.confirmDestination}
                 </button>
               </div>
             )}
@@ -794,6 +820,7 @@ export default function Taxi() {
             )}
           </div>
         </div>
+        )}
       </main>
     </div>
   );
