@@ -22,7 +22,7 @@ function CountryCard({ pkg }: { pkg: PackageData }) {
         {pkg.country}
       </span>
       <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-        {pkg.plans[0]?.price}
+        {pkg.plans[0]?.price || '—'}
       </span>
     </Link>
   );
@@ -49,7 +49,7 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
         <p className="text-xs text-gray-400">{pkg.countryCount} {esimT.countriesLabel}</p>
       </div>
       <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-        {pkg.plans[0]?.price}
+        {pkg.plans[0]?.price || '—'}
       </span>
     </Link>
   );
@@ -83,10 +83,13 @@ export default function EsimPackages() {
   // Convert live packages to PackageData
   const liveCountryPackages: PackageData[] = useMemo(() => {
     return Object.entries(allPkgs).map(([cc, pkgs]) => {
-      const cheapest = pkgs.reduce<ESIMPackageRaw | null>((best, p) => {
+      const valid = pkgs.filter(p => (p.sell_price_minor ?? 0) > 0);
+      const cheapest = valid.reduce<ESIMPackageRaw | null>((best, p) => {
         if (!best || (p.sell_price_minor ?? 0) < (best.sell_price_minor ?? 0)) return p;
         return best;
       }, null);
+
+      if (!cheapest) return null;
 
       return {
         country: getCountryName(cc) || cc,
@@ -95,17 +98,19 @@ export default function EsimPackages() {
         slug: `${(getCountryName(cc) || cc).toLowerCase().replace(/\s+/g, '-')}-esim`,
         region: 'all',
         featured: false,
-        plans: cheapest ? [{
+        plans: [{
           gb: cheapest.volume > 0
             ? parseFloat((cheapest.volume / (1024 * 1024 * 1024)).toFixed(1))
-            : 999,
+            : 1,
           days: cheapest.duration,
           price: formatPrice(cheapest.sell_price_minor, cheapest.currencyCode),
           code: cheapest.packageCode,
           id: cheapest.slug,
-        }] : [],
+        }],
       };
-    }).sort((a, b) => a.country.localeCompare(b.country));
+    })
+      .filter((p): p is PackageData => p !== null)
+      .sort((a, b) => a.country.localeCompare(b.country));
   }, [allPkgs]);
 
   // Use live if available, else static fallback

@@ -40,17 +40,12 @@ const SLUG_TO_CODE: Record<string, string> = {
   'montenegro-esim': 'ME',
 };
 
-const ALLOWED_GB = [1, 3, 5, 10, 20, 50, 100];
-
-function isAllowedGB(volumeBytes: number): boolean {
-  if (volumeBytes === 0) return false;
-  const gb = volumeBytes / (1024 ** 3);
-  if (gb >= 1) {
-    return ALLOWED_GB.includes(Math.round(gb)) && Math.abs(gb - Math.round(gb)) < 0.01;
-  }
-  // Stored in MB (e.g. 500 for 500 MB)
-  const mb = volumeBytes / 1024;
-  return ALLOWED_GB.includes(Math.round(mb)) && Math.abs(mb - Math.round(mb)) < 0.01;
+/** Show real API packages (not strict 1/3/5/10 GB tiers — those hid most countries). */
+function isDataPlanPackage(p: ESIMPackageRaw): boolean {
+  if (p.is_unlimited || isUnlimitedPlan(p.name)) return false;
+  if (!p.volume || p.volume <= 0) return false;
+  if (!p.sell_price_minor || p.sell_price_minor <= 0) return false;
+  return true;
 }
 
 function isUnlimitedPlan(name: string): boolean {
@@ -278,9 +273,18 @@ export default function CountryEsim() {
   const countryName = getCountryName(activeCountryCode || '');
   const flag = countryCodeToFlag(activeCountryCode || '');
 
+  const staticPlans: LivePlan[] = (staticPkg?.plans || []).map(p => ({
+    gb: p.gb >= 1 ? p.gb * 1024 * 1024 * 1024 : p.gb * 1024 * 1024,
+    days: p.days,
+    price: typeof p.price === 'string' ? p.price : `$${(p.price as number).toFixed(2)}`,
+    code: p.code || '',
+    id: p.id || '',
+    isUnlimited: false,
+    countryCode: activeCountryCode || '',
+  }));
+
   const limitedPlans: LivePlan[] = livePkgs
-    .filter(p => !p.is_unlimited && !isUnlimitedPlan(p.name))
-    .filter(p => isAllowedGB(p.volume as number))
+    .filter(isDataPlanPackage)
     .map(p => ({
       gb: p.volume as number,
       days: p.duration,
@@ -293,7 +297,7 @@ export default function CountryEsim() {
     .sort((a, b) => a.gb - b.gb);
 
   const unlimitedPlans: LivePlan[] = livePkgs
-    .filter(p => p.is_unlimited)
+    .filter(p => (p.is_unlimited || isUnlimitedPlan(p.name)) && (p.sell_price_minor ?? 0) > 0)
     .map(p => ({
       gb: 0,
       days: p.duration,
@@ -305,7 +309,9 @@ export default function CountryEsim() {
     }))
     .sort((a, b) => a.days - b.days);
 
-  const totalPlans = limitedPlans.length + unlimitedPlans.length;
+  const displayLimitedPlans = limitedPlans.length > 0 ? limitedPlans : staticPlans;
+  const showFallbackNote = limitedPlans.length === 0 && staticPlans.length > 0;
+  const totalPlans = displayLimitedPlans.length + unlimitedPlans.length;
 
   if (liveLoading) {
     return (
@@ -319,21 +325,7 @@ export default function CountryEsim() {
     );
   }
 
-  // Build static fallback plans if API has no data
-  const staticPlans: LivePlan[] = (staticPkg?.plans || []).map(p => ({
-    gb: p.gb >= 1 ? p.gb * 1024 * 1024 * 1024 : p.gb * 1024 * 1024,
-    days: p.days,
-    price: typeof p.price === 'string' ? p.price : `$${(p.price as number).toFixed(2)}`,
-    code: p.code || '',
-    id: p.id || '',
-    isUnlimited: false,
-    countryCode: activeCountryCode || '',
-  }));
-
-  const displayLimitedPlans = limitedPlans.length > 0 ? limitedPlans : staticPlans;
-  const showFallbackNote = limitedPlans.length === 0 && staticPlans.length > 0;
-
-  if (displayLimitedPlans.length === 0) {
+  if (displayLimitedPlans.length === 0 && unlimitedPlans.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Seo title="eSIM not found" canonicalPath={"/" + (slug || '')} />
@@ -390,15 +382,21 @@ export default function CountryEsim() {
             {t.countryEsim.backToAll}
           </Link>
 
-          {limitedPlans.length > 0 && (
+          {showFallbackNote && (
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-6">
+              {t.countryEsim.fallbackNote || 'Showing cached prices — live sync updating soon.'}
+            </p>
+          )}
+
+          {displayLimitedPlans.length > 0 && (
             <div className="mb-10">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <Wifi className="w-5 h-5 text-blue-600" />
-                {t.countryEsim.availablePlans || 'Available Plans'} ({limitedPlans.length})
+                {t.countryEsim.availablePlans || 'Available Plans'} ({displayLimitedPlans.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {limitedPlans.map((plan, i) => (
-                  <LimitedPlanCard key={plan.code} plan={plan} countryName={countryName} />
+                {displayLimitedPlans.map((plan, i) => (
+                  <LimitedPlanCard key={plan.id || plan.code || String(i)} plan={plan} countryName={countryName} />
                 ))}
               </div>
             </div>
