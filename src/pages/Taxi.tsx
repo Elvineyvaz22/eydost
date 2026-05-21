@@ -50,7 +50,7 @@ export default function Taxi() {
   
   // Coordinates
   const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(defaultCenter);
+  const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(null);
   const [dropoffCoords, setDropoffCoords] = useState<google.maps.LatLngLiteral | null>(null);
   
   // Addresses
@@ -70,6 +70,36 @@ export default function Taxi() {
   const dropoffSearchRef = useRef<PlaceSearchInputHandle>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
+  const locateUser = useCallback((map?: google.maps.Map) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
+          setMapCenter(userPos);
+          setPickupCoords(userPos);
+          if (map) map.panTo(userPos);
+          else mapRef.current?.panTo(userPos);
+          geocodeLatLng(userPos, 'pickup');
+        },
+        (error) => {
+          console.warn("Location error:", error);
+          setPickupCoords(defaultCenter);
+          if (map) geocodeLatLng(defaultCenter, 'pickup');
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      );
+    } else {
+      setPickupCoords(defaultCenter);
+      if (map) geocodeLatLng(defaultCenter, 'pickup');
+    }
+  }, []);
+
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+    geocoderRef.current = new google.maps.Geocoder();
+    locateUser(map);
+  }, [locateUser]);
+
   const applyPickupCountry = (components?: google.maps.GeocoderAddressComponent[]) => {
     const { code, name } = extractCountry(components);
     if (code && pickupCountryCode && code !== pickupCountryCode) {
@@ -81,109 +111,44 @@ export default function Taxi() {
     setPickupCountryName(name);
   };
 
-  const getMapTarget = useCallback((): 'pickup' | 'dropoff' => {
-    if (isMobile) return mobileStep === 'select_dropoff' ? 'dropoff' : 'pickup';
-    return activeInput;
-  }, [isMobile, mobileStep, activeInput]);
-
-  const geocodeLatLng = useCallback(
-    (latlng: google.maps.LatLngLiteral, target: 'pickup' | 'dropoff') => {
-      if (!geocoderRef.current) {
-        geocoderRef.current = new google.maps.Geocoder();
-      }
-
-      geocoderRef.current.geocode({ location: latlng }, (results, status) => {
-        if (status === 'OK' && results?.[0]) {
-          const address = formatGeocoderResult(results[0]);
-          const components = results[0].address_components;
-          if (target === 'pickup') {
-            setPickupAddress(address);
-            applyPickupCountry(components);
-          } else if (isSameCountry(components, pickupCountryCode)) {
-            setDropoffAddress(address);
-          }
-        }
-      });
-    },
-    [pickupCountryCode]
-  );
-
-  const syncFromMapCenter = useCallback(
-    (map?: google.maps.Map, forceTarget?: 'pickup' | 'dropoff') => {
-      const m = map ?? mapRef.current;
-      if (!m) return;
-      const center = m.getCenter();
-      if (!center) return;
-
-      const latlng = { lat: center.lat(), lng: center.lng() };
-      const target = forceTarget ?? getMapTarget();
-      setMapCenter(latlng);
-
-      if (target === 'pickup') {
-        setPickupCoords(latlng);
-        geocodeLatLng(latlng, 'pickup');
-      } else {
-        setDropoffCoords(latlng);
-        geocodeLatLng(latlng, 'dropoff');
-      }
-    },
-    [getMapTarget, geocodeLatLng]
-  );
-
-  const locateUser = useCallback(
-    (map?: google.maps.Map) => {
-      const target = getMapTarget();
-
-      const applyPosition = (pos: google.maps.LatLngLiteral) => {
-        setMapCenter(pos);
-        if (map) map.panTo(pos);
-        else mapRef.current?.panTo(pos);
-
+  const geocodeLatLng = (latlng: google.maps.LatLngLiteral, target: 'pickup' | 'dropoff') => {
+    if (!geocoderRef.current) return;
+    
+    geocoderRef.current.geocode({ location: latlng }, (results, status) => {
+      if (status === 'OK' && results?.[0]) {
+        const address = formatGeocoderResult(results[0]);
+        const components = results[0].address_components;
         if (target === 'pickup') {
-          setPickupCoords(pos);
-          geocodeLatLng(pos, 'pickup');
-        } else {
-          setDropoffCoords(pos);
-          geocodeLatLng(pos, 'dropoff');
+          setPickupAddress(address);
+          applyPickupCountry(components);
+        } else if (isSameCountry(components, pickupCountryCode)) {
+          setDropoffAddress(address);
         }
-      };
-
-      if (!navigator.geolocation) {
-        applyPosition(defaultCenter);
-        return;
       }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) =>
-          applyPosition({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          }),
-        (error) => {
-          console.warn('Location error:', error);
-          applyPosition(defaultCenter);
-        },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-      );
-    },
-    [getMapTarget, geocodeLatLng]
-  );
-
-  const onMapLoad = useCallback(
-    (map: google.maps.Map) => {
-      mapRef.current = map;
-      geocoderRef.current = new google.maps.Geocoder();
-      // Pin = map center — sync pickup from marker position right away
-      syncFromMapCenter(map, 'pickup');
-      locateUser(map);
-    },
-    [syncFromMapCenter, locateUser]
-  );
+    });
+  };
 
   const onMapDragEnd = () => {
     if (!mapRef.current) return;
     if (isMobile && mobileStep === 'confirm_ride') return;
-    syncFromMapCenter();
+    
+    const center = mapRef.current.getCenter();
+    if (!center) return;
+    
+    const latlng = { lat: center.lat(), lng: center.lng() };
+    setMapCenter(latlng);
+
+    const currentTarget = isMobile 
+      ? (mobileStep === 'select_pickup' ? 'pickup' : 'dropoff') 
+      : activeInput;
+
+    if (currentTarget === 'pickup') {
+      geocodeLatLng(latlng, 'pickup');
+      setPickupCoords(latlng);
+    } else {
+      geocodeLatLng(latlng, 'dropoff');
+      setDropoffCoords(latlng);
+    }
   };
 
   const handlePickupPlaceChanged = () => {
@@ -372,20 +337,6 @@ export default function Taxi() {
       }
     }
   };
-
-  useEffect(() => {
-    if (!isLoaded || !mapRef.current || mobileStep !== 'select_pickup') return;
-    if (!pickupAddress.trim()) {
-      syncFromMapCenter(undefined, 'pickup');
-    }
-  }, [isLoaded, mobileStep, pickupAddress, syncFromMapCenter]);
-
-  useEffect(() => {
-    if (!isLoaded || !mapRef.current || mobileStep !== 'select_dropoff') return;
-    if (!dropoffAddress.trim()) {
-      syncFromMapCenter(undefined, 'dropoff');
-    }
-  }, [isLoaded, mobileStep, dropoffAddress, syncFromMapCenter]);
 
   useEffect(() => {
     if (mobileStep !== 'select_dropoff') return;
@@ -721,76 +672,56 @@ export default function Taxi() {
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
             </div>
           ) : (
-            <div className="relative w-full h-full">
-              <GoogleMap
-                mapContainerStyle={{ width: '100%', height: '100%' }}
-                zoom={16}
-                center={mapCenter}
-                onLoad={onMapLoad}
-                onDragEnd={onMapDragEnd}
-                options={{
-                  disableDefaultUI: true,
-                  zoomControl: false,
-                  gestureHandling: 'greedy',
-                  styles: [
-                    { elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
-                    { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-                    { elementType: 'labels.text.fill', stylers: [{ color: '#616161' }] },
-                    { elementType: 'labels.text.stroke', stylers: [{ color: '#f5f5f5' }] },
-                    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-                    { featureType: 'road.arterial', elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
-                    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#dadada' }] },
-                    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#616161' }] },
-                    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9c9c9' }] },
-                  ],
-                }}
-              >
-                {directions && (
-                  <DirectionsRenderer
-                    directions={directions}
-                    options={{
-                      polylineOptions: { strokeColor: '#000000', strokeWeight: 4 },
-                      suppressMarkers: false,
-                    }}
-                  />
-                )}
-              </GoogleMap>
-
-              {mobileStep === 'select_pickup' && !directions && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-10 pointer-events-none pb-6 flex flex-col items-center">
-                  <div className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg mb-2 whitespace-nowrap animate-bounce">
-                    {t.taxi.pickupLabel}?
-                  </div>
-                  <div className="w-8 h-12 flex items-center justify-center relative">
-                    <div className="w-6 h-6 rounded-full border-4 border-white bg-blue-600 absolute bottom-0 shadow-md z-10" />
-                    <div className="w-1 h-8 bg-black absolute bottom-3 z-0" />
-                  </div>
-                </div>
+            <GoogleMap
+              mapContainerStyle={{ width: '100%', height: '100%' }}
+              zoom={16}
+              center={mapCenter}
+              onLoad={onMapLoad}
+              onDragEnd={onMapDragEnd}
+              options={{
+                disableDefaultUI: true, zoomControl: false, gestureHandling: "greedy",
+                styles: [
+                  { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+                  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+                  { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+                  { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
+                  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+                  { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+                  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
+                  { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+                  { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
+                ],
+              }}
+            >
+              {directions && (
+                <DirectionsRenderer 
+                  directions={directions} 
+                  options={{ polylineOptions: { strokeColor: '#000000', strokeWeight: 4 }, suppressMarkers: false }}
+                />
               )}
-
-              {mobileStep === 'select_dropoff' && !directions && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-10 pointer-events-none pb-6 flex flex-col items-center">
-                  <div className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg mb-2 whitespace-nowrap">
-                    {t.taxi.dropoffLabel}?
-                  </div>
-                  <div className="w-8 h-12 flex items-center justify-center relative">
-                    <div className="w-6 h-6 rounded-full border-4 border-white bg-red-600 absolute bottom-0 shadow-md z-10" />
-                    <div className="w-1 h-8 bg-black absolute bottom-3 z-0" />
-                  </div>
-                </div>
-              )}
-            </div>
+            </GoogleMap>
           )}
         </div>
 
         {isLoaded && mobileStep === 'select_pickup' && (
-          <button
-            type="button"
+          <button 
             onClick={() => locateUser()}
             className="absolute bottom-[360px] right-4 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 transition-colors z-20"
           >
             <LocateFixed className="w-6 h-6 text-blue-600" />
           </button>
+        )}
+
+        {isLoaded && mobileStep === 'select_pickup' && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10 pointer-events-none pb-6 flex flex-col items-center">
+            <div className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg mb-2 whitespace-nowrap animate-bounce">
+              {t.taxi.pickupLabel}?
+            </div>
+            <div className="w-8 h-12 flex items-center justify-center relative">
+               <div className="w-6 h-6 rounded-full border-4 border-white bg-blue-600 absolute bottom-0 shadow-md z-10"></div>
+               <div className="w-1 h-8 bg-black absolute bottom-3 z-0"></div>
+            </div>
+          </div>
         )}
 
         {isLoaded && isDropoffSearch && (
