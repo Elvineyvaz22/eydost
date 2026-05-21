@@ -17,6 +17,7 @@ import VercelAnalytics from './components/VercelAnalytics';
 import CountryEsim from './pages/CountryEsim';
 import RegionalEsim from './pages/RegionalEsim';
 import Taxi from './pages/Taxi';
+import TaxiOrderTest from './pages/TaxiOrderTest';
 import AllPackages from './pages/AllPackages';
 import Privacy from './pages/Privacy';
 import About from './pages/About';
@@ -173,6 +174,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/esim" element={<AllPackages />} />
                 <Route path="/taxi" element={<Taxi />} />
+                <Route path="/taxi-order" element={<TaxiOrderTest />} />
                 <Route
                   path="/admin/login"
                   element={
