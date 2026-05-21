@@ -673,7 +673,7 @@ export default function Taxi() {
         )}
 
         <div className="absolute bottom-0 left-0 w-full z-20 pointer-events-none pb-4 px-4">
-          <div className="bg-white rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] p-5 pointer-events-auto w-full">
+          <div className="bg-white rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] p-5 pointer-events-auto w-full overflow-visible">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
 
             {mobileStep === 'select_pickup' && (
@@ -700,9 +700,9 @@ export default function Taxi() {
             )}
 
             {mobileStep === 'select_dropoff' && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300 overflow-visible">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">{t.taxi.dropoffLabel}?</h2>
-                <div className="flex items-center gap-4 bg-red-50 p-4 rounded-2xl border border-red-100 mb-5 relative">
+                <div className="flex items-center gap-4 bg-red-50 p-4 rounded-2xl border border-red-100 mb-5 relative overflow-visible z-10">
                    <div className="w-3 h-3 rounded-sm bg-red-600 shrink-0"></div>
                   {isLoaded && (
                     <PlaceSearchInput

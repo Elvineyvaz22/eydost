@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { isInPickupCountry } from '../utils/addressFormat';
+
+type PanelRect = { top: number; left: number; width: number; maxHeight: number };
 
 type Props = {
   value: string;
@@ -8,14 +11,24 @@ type Props = {
   placeholder?: string;
   className?: string;
   inputClassName?: string;
-  /** Pickup country ISO code — dropoff suggestions only in this country */
   restrictCountryCode?: string | null;
   restrictCountryName?: string | null;
-  /** Bias search near pickup */
   locationBias?: google.maps.LatLngLiteral | null;
   disabled?: boolean;
   variant?: 'light' | 'dark';
 };
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 1024
+  );
+  useEffect(() => {
+    const onResize = () => setMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return mobile;
+}
 
 export default function PlaceSearchInput({
   value,
@@ -30,19 +43,23 @@ export default function PlaceSearchInput({
   disabled = false,
   variant = 'light',
 }: Props) {
+  const isMobile = useIsMobile();
   const dropdownClass =
     variant === 'dark'
-      ? 'bg-gray-800 border-gray-700 shadow-2xl'
-      : 'bg-white border-gray-200 shadow-xl';
-  const itemHover = variant === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50';
-  const itemActive = variant === 'dark' ? 'bg-gray-700' : 'bg-gray-100';
+      ? 'bg-gray-900 border-gray-600 shadow-2xl'
+      : 'bg-white border-gray-200 shadow-2xl';
+  const itemHover = variant === 'dark' ? 'hover:bg-gray-800 active:bg-gray-800' : 'hover:bg-gray-50 active:bg-gray-50';
+  const itemActive = variant === 'dark' ? 'bg-gray-800' : 'bg-blue-50';
   const mainText = variant === 'dark' ? 'text-white' : 'text-gray-900';
   const subText = variant === 'dark' ? 'text-gray-400' : 'text-gray-500';
+
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [panelRect, setPanelRect] = useState<PanelRect | null>(null);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const serviceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesRef = useRef<google.maps.places.PlacesService | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,6 +70,43 @@ export default function PlaceSearchInput({
       placesRef.current = new google.maps.places.PlacesService(document.createElement('div'));
     }
   }, []);
+
+  const updatePanelPosition = useCallback(() => {
+    const el = inputRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const vTop = vv?.offsetTop ?? 0;
+    const gap = 10;
+    const spaceAbove = rect.top - vTop - gap;
+    const maxHeight = Math.min(260, Math.max(140, spaceAbove));
+    const top = Math.max(vTop + gap, rect.top - maxHeight - gap);
+
+    setPanelRect({
+      top,
+      left: rect.left,
+      width: rect.width,
+      maxHeight,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!open || !isMobile) {
+      setPanelRect(null);
+      return;
+    }
+    updatePanelPosition();
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', updatePanelPosition);
+    vv?.addEventListener('scroll', updatePanelPosition);
+    window.addEventListener('resize', updatePanelPosition);
+    return () => {
+      vv?.removeEventListener('resize', updatePanelPosition);
+      vv?.removeEventListener('scroll', updatePanelPosition);
+      window.removeEventListener('resize', updatePanelPosition);
+    };
+  }, [open, isMobile, predictions.length, updatePanelPosition]);
 
   const fetchPredictions = useCallback(
     (input: string) => {
@@ -88,9 +142,12 @@ export default function PlaceSearchInput({
         setPredictions(filtered);
         setOpen(filtered.length > 0);
         setActiveIndex(-1);
+        if (filtered.length > 0 && isMobile) {
+          requestAnimationFrame(updatePanelPosition);
+        }
       });
     },
-    [restrictCountryCode, restrictCountryName, locationBias]
+    [restrictCountryCode, restrictCountryName, locationBias, isMobile, updatePanelPosition]
   );
 
   const selectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
@@ -106,6 +163,7 @@ export default function PlaceSearchInput({
           onPlaceSelect(place);
           setOpen(false);
           setPredictions([]);
+          inputRef.current?.blur();
         }
       }
     );
@@ -113,9 +171,10 @@ export default function PlaceSearchInput({
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (wrapperRef.current?.contains(target)) return;
+      if ((target as Element).closest?.('.place-search-dropdown')) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
@@ -125,6 +184,16 @@ export default function PlaceSearchInput({
     onChange(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => fetchPredictions(text), 280);
+  };
+
+  const onInputFocus = () => {
+    if (isMobile) {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        updatePanelPosition();
+      }, 300);
+    }
+    if (value.trim().length >= 2 && predictions.length > 0) setOpen(true);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -144,49 +213,75 @@ export default function PlaceSearchInput({
     }
   };
 
+  const renderItems = () =>
+    predictions.map((p, i) => (
+      <li
+        key={p.place_id}
+        role="option"
+        aria-selected={i === activeIndex}
+        className={`cursor-pointer px-4 py-3.5 border-b border-gray-100/80 last:border-0 ${
+          i === activeIndex ? itemActive : itemHover
+        }`}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          selectPrediction(p);
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          selectPrediction(p);
+        }}
+      >
+        <span className={`font-semibold block truncate text-[15px] ${mainText}`}>
+          {p.structured_formatting.main_text}
+        </span>
+        {p.structured_formatting.secondary_text && (
+          <span className={`text-xs truncate block mt-0.5 ${subText}`}>
+            {p.structured_formatting.secondary_text}
+          </span>
+        )}
+      </li>
+    ));
+
+  const dropdownList = open && predictions.length > 0 && (
+    <ul
+      className={`place-search-dropdown overflow-y-auto overscroll-contain rounded-2xl border py-1 ${dropdownClass} ${
+        isMobile ? '' : 'absolute left-0 right-0 top-full z-[200] mt-2 max-h-56'
+      }`}
+      style={
+        isMobile && panelRect
+          ? {
+              position: 'fixed',
+              top: panelRect.top,
+              left: panelRect.left,
+              width: panelRect.width,
+              maxHeight: panelRect.maxHeight,
+              zIndex: 10050,
+            }
+          : undefined
+      }
+      role="listbox"
+    >
+      {renderItems()}
+    </ul>
+  );
+
   return (
     <div ref={wrapperRef} className={`relative ${className}`}>
       <input
+        ref={inputRef}
         type="text"
         value={value}
         disabled={disabled || !restrictCountryCode}
         onChange={(e) => onInputChange(e.target.value)}
-        onFocus={() => value.trim().length >= 2 && predictions.length > 0 && setOpen(true)}
+        onFocus={onInputFocus}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         className={inputClassName}
         autoComplete="off"
+        enterKeyHint="search"
       />
-      {open && predictions.length > 0 && (
-        <ul
-          className={`place-search-dropdown absolute left-0 right-0 top-full z-[100] mt-2 max-h-56 overflow-y-auto rounded-2xl border py-1 ${dropdownClass}`}
-          role="listbox"
-        >
-          {predictions.map((p, i) => (
-            <li
-              key={p.place_id}
-              role="option"
-              aria-selected={i === activeIndex}
-              className={`cursor-pointer px-4 py-3 text-sm ${
-                i === activeIndex ? itemActive : itemHover
-              }`}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                selectPrediction(p);
-              }}
-            >
-              <span className={`font-semibold block truncate ${mainText}`}>
-                {p.structured_formatting.main_text}
-              </span>
-              {p.structured_formatting.secondary_text && (
-                <span className={`text-xs truncate block ${subText}`}>
-                  {p.structured_formatting.secondary_text}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      {!isMobile && dropdownList}
+      {isMobile && dropdownList && panelRect && createPortal(dropdownList, document.body)}
     </div>
   );
 }

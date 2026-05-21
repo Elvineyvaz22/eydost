@@ -326,7 +326,7 @@ export default function TaxiOrderTest() {
 
       {/* Bottom sheet — one step at a time (like Maxim app) */}
       <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-6 pointer-events-none">
-        <div className="pointer-events-auto rounded-t-3xl bg-[#1e1e1e] border border-white/10 p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.65)]">
+        <div className="pointer-events-auto rounded-t-3xl bg-[#1e1e1e] border border-white/10 p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.65)] overflow-visible">
           <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-4" />
 
           {step === 'select_pickup' && (
@@ -357,9 +357,9 @@ export default function TaxiOrderTest() {
           )}
 
           {step === 'select_dropoff' && (
-            <div>
+            <div className="overflow-visible">
               <h2 className="text-xl font-bold mb-4">{t.dropoffQ}</h2>
-              <div className="flex items-center gap-3 bg-[#252525] rounded-2xl px-4 py-3 mb-5 border border-sky-500/20">
+              <div className="flex items-center gap-3 bg-[#252525] rounded-2xl px-4 py-3 mb-5 border border-sky-500/20 overflow-visible relative z-10">
                 <span className="w-3 h-3 rounded-sm bg-sky-500 shrink-0" />
                 {isLoaded && (
                   <PlaceSearchInput
