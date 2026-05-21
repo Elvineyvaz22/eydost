@@ -9,7 +9,8 @@ import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@rea
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
-import { formatGeocoderResult, formatPlaceAddress } from '../utils/addressFormat';
+import { formatGeocoderResult, formatPlaceAddress, extractCountry } from '../utils/addressFormat';
+import PlaceSearchInput from '../components/PlaceSearchInput';
 
 const defaultCenter = { lat: 40.409264, lng: 49.867092 };
 
@@ -75,12 +76,13 @@ export default function TaxiOrderTest() {
   const [step, setStep] = useState<Step>('select_pickup');
   const [pickupAddress, setPickupAddress] = useState('');
   const [dropoffAddress, setDropoffAddress] = useState('');
+  const [pickupCountryCode, setPickupCountryCode] = useState<string | null>(null);
+  const [pickupCountryName, setPickupCountryName] = useState<string | null>(null);
   const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(null);
   const [dropoffCoords, setDropoffCoords] = useState<google.maps.LatLngLiteral | null>(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [pickupAutocomplete, setPickupAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-  const [dropoffAutocomplete, setDropoffAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
@@ -90,8 +92,14 @@ export default function TaxiOrderTest() {
     geocoderRef.current.geocode({ location: latlng }, (results, status) => {
       if (status === 'OK' && results?.[0]) {
         const address = formatGeocoderResult(results[0]);
-        if (target === 'pickup') setPickupAddress(address);
-        else setDropoffAddress(address);
+        if (target === 'pickup') {
+          setPickupAddress(address);
+          const country = extractCountry(results[0].address_components);
+          setPickupCountryCode(country.code);
+          setPickupCountryName(country.name);
+        } else {
+          setDropoffAddress(address);
+        }
       }
     });
   }, []);
@@ -147,6 +155,9 @@ export default function TaxiOrderTest() {
     if (!pickupAutocomplete) return;
     const place = pickupAutocomplete.getPlace();
     setPickupAddress(formatPlaceAddress(place));
+    const country = extractCountry(place.address_components);
+    setPickupCountryCode(country.code);
+    setPickupCountryName(country.name);
     if (place.geometry?.location) {
       const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
       setPickupCoords(loc);
@@ -155,9 +166,7 @@ export default function TaxiOrderTest() {
     }
   };
 
-  const handleDropoffPlaceChanged = () => {
-    if (!dropoffAutocomplete) return;
-    const place = dropoffAutocomplete.getPlace();
+  const handleDropoffPlaceSelect = (place: google.maps.places.PlaceResult) => {
     setDropoffAddress(formatPlaceAddress(place));
     if (place.geometry?.location) {
       const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
@@ -338,14 +347,17 @@ export default function TaxiOrderTest() {
               <div className="flex items-center gap-3 bg-[#252525] rounded-2xl px-4 py-3 mb-5 border border-sky-500/20">
                 <span className="w-3 h-3 rounded-sm bg-sky-500 shrink-0" />
                 {isLoaded && (
-                  <Autocomplete onLoad={setDropoffAutocomplete} onPlaceChanged={handleDropoffPlaceChanged} className="flex-1 min-w-0">
-                    <input
-                      value={dropoffAddress}
-                      onChange={(e) => setDropoffAddress(e.target.value)}
-                      placeholder={t.dropoffPh}
-                      className="w-full bg-transparent text-base font-semibold outline-none placeholder-gray-600"
-                    />
-                  </Autocomplete>
+                  <PlaceSearchInput
+                    value={dropoffAddress}
+                    onChange={setDropoffAddress}
+                    onPlaceSelect={handleDropoffPlaceSelect}
+                    excludeCountryCode={pickupCountryCode}
+                    excludeCountryName={pickupCountryName}
+                    placeholder={t.dropoffPh}
+                    variant="dark"
+                    className="flex-1 min-w-0"
+                    inputClassName="w-full bg-transparent text-base font-semibold outline-none placeholder-gray-600"
+                  />
                 )}
               </div>
               <button
