@@ -8,7 +8,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
-import { formatGeocoderResult, formatPlaceAddress, extractCountry } from '../utils/addressFormat';
+import { formatGeocoderResult, formatPlaceAddress, extractCountry, isSameCountry } from '../utils/addressFormat';
 import PlaceSearchInput from '../components/PlaceSearchInput';
 
 const WA_LINK = 'https://wa.me/994992000444';
@@ -57,6 +57,7 @@ export default function Taxi() {
   const [pickupAddress, setPickupAddress] = useState('');
   const [dropoffAddress, setDropoffAddress] = useState('');
   const [pickupCountryCode, setPickupCountryCode] = useState<string | null>(null);
+  const [pickupCountryName, setPickupCountryName] = useState<string | null>(null);
   
   const [selectedCar, setSelectedCar] = useState('economy');
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
@@ -96,16 +97,28 @@ export default function Taxi() {
     locateUser(map);
   }, [locateUser]);
 
+  const applyPickupCountry = (components?: google.maps.GeocoderAddressComponent[]) => {
+    const { code, name } = extractCountry(components);
+    if (code && pickupCountryCode && code !== pickupCountryCode) {
+      setDropoffAddress('');
+      setDropoffCoords(null);
+      setDirections(null);
+    }
+    setPickupCountryCode(code);
+    setPickupCountryName(name);
+  };
+
   const geocodeLatLng = (latlng: google.maps.LatLngLiteral, target: 'pickup' | 'dropoff') => {
     if (!geocoderRef.current) return;
     
     geocoderRef.current.geocode({ location: latlng }, (results, status) => {
       if (status === 'OK' && results?.[0]) {
         const address = formatGeocoderResult(results[0]);
+        const components = results[0].address_components;
         if (target === 'pickup') {
           setPickupAddress(address);
-          setPickupCountryCode(extractCountry(results[0].address_components).code);
-        } else {
+          applyPickupCountry(components);
+        } else if (isSameCountry(components, pickupCountryCode)) {
           setDropoffAddress(address);
         }
       }
@@ -139,7 +152,7 @@ export default function Taxi() {
     if (pickupAutocomplete !== null) {
       const place = pickupAutocomplete.getPlace();
       setPickupAddress(formatPlaceAddress(place));
-      setPickupCountryCode(extractCountry(place.address_components).code);
+      applyPickupCountry(place.address_components);
       
       if (place.geometry && place.geometry.location) {
         const location = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
@@ -151,6 +164,16 @@ export default function Taxi() {
   };
 
   const handleDropoffPlaceSelect = (place: google.maps.places.PlaceResult) => {
+    if (!isSameCountry(place.address_components, pickupCountryCode)) {
+      alert(
+        language === 'az'
+          ? 'Təyinat pickup ilə eyni ölkədə olmalıdır.'
+          : language === 'ru'
+          ? 'Пункт назначения должен быть в той же стране, что и посадка.'
+          : 'Drop-off must be in the same country as pickup.'
+      );
+      return;
+    }
     setDropoffAddress(formatPlaceAddress(place));
     if (place.geometry?.location) {
       const location = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
@@ -196,6 +219,10 @@ export default function Taxi() {
     const handleBooking = async () => {
       if (!pickupAddress || !dropoffAddress) {
         alert(language === 'az' ? "Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin." : (language === 'ru' ? "Пожалуйста, выберите пункты отправления и назначения." : "Please select both pickup and drop-off locations."));
+        return;
+      }
+      if (!pickupCountryCode) {
+        alert(language === 'az' ? 'Pickup ölkəsi təyin olunmayıb.' : 'Pickup country not set.');
         return;
       }
       const car = CAR_CLASSES.find(c => c.id === selectedCar);
@@ -467,6 +494,8 @@ export default function Taxi() {
                               onChange={setDropoffAddress}
                               onPlaceSelect={handleDropoffPlaceSelect}
                               restrictCountryCode={pickupCountryCode}
+                              restrictCountryName={pickupCountryName}
+                              locationBias={pickupCoords}
                               placeholder={t.taxi.dropoffPlaceholder}
                               variant="dark"
                               inputClassName="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
@@ -681,6 +710,8 @@ export default function Taxi() {
                       onChange={setDropoffAddress}
                       onPlaceSelect={handleDropoffPlaceSelect}
                       restrictCountryCode={pickupCountryCode}
+                      restrictCountryName={pickupCountryName}
+                      locationBias={pickupCoords}
                       placeholder={t.taxi.dropoffPlaceholder}
                       className="w-full"
                       inputClassName="w-full bg-transparent text-gray-900 font-bold focus:outline-none truncate text-base placeholder-gray-400"

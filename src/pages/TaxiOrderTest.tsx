@@ -9,7 +9,7 @@ import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@rea
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
-import { formatGeocoderResult, formatPlaceAddress, extractCountry } from '../utils/addressFormat';
+import { formatGeocoderResult, formatPlaceAddress, extractCountry, isSameCountry } from '../utils/addressFormat';
 import PlaceSearchInput from '../components/PlaceSearchInput';
 
 const defaultCenter = { lat: 40.409264, lng: 49.867092 };
@@ -77,6 +77,7 @@ export default function TaxiOrderTest() {
   const [pickupAddress, setPickupAddress] = useState('');
   const [dropoffAddress, setDropoffAddress] = useState('');
   const [pickupCountryCode, setPickupCountryCode] = useState<string | null>(null);
+  const [pickupCountryName, setPickupCountryName] = useState<string | null>(null);
   const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(null);
   const [dropoffCoords, setDropoffCoords] = useState<google.maps.LatLngLiteral | null>(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -86,20 +87,35 @@ export default function TaxiOrderTest() {
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
-  const geocodeLatLng = useCallback((latlng: google.maps.LatLngLiteral, target: 'pickup' | 'dropoff') => {
-    if (!geocoderRef.current) return;
-    geocoderRef.current.geocode({ location: latlng }, (results, status) => {
-      if (status === 'OK' && results?.[0]) {
-        const address = formatGeocoderResult(results[0]);
-        if (target === 'pickup') {
-          setPickupAddress(address);
-          setPickupCountryCode(extractCountry(results[0].address_components).code);
-        } else {
-          setDropoffAddress(address);
+  const applyPickupCountry = (components?: google.maps.GeocoderAddressComponent[]) => {
+    const { code, name } = extractCountry(components);
+    if (pickupCountryCode && code && code !== pickupCountryCode) {
+      setDropoffAddress('');
+      setDropoffCoords(null);
+      setDirections(null);
+    }
+    setPickupCountryCode(code);
+    setPickupCountryName(name);
+  };
+
+  const geocodeLatLng = useCallback(
+    (latlng: google.maps.LatLngLiteral, target: 'pickup' | 'dropoff') => {
+      if (!geocoderRef.current) return;
+      geocoderRef.current.geocode({ location: latlng }, (results, status) => {
+        if (status === 'OK' && results?.[0]) {
+          const address = formatGeocoderResult(results[0]);
+          const components = results[0].address_components;
+          if (target === 'pickup') {
+            setPickupAddress(address);
+            applyPickupCountry(components);
+          } else if (isSameCountry(components, pickupCountryCode)) {
+            setDropoffAddress(address);
+          }
         }
-      }
-    });
-  }, []);
+      });
+    },
+    [pickupCountryCode]
+  );
 
   const calculateRoute = useCallback((origin: google.maps.LatLngLiteral, destination: google.maps.LatLngLiteral) => {
     const ds = new google.maps.DirectionsService();
@@ -152,7 +168,7 @@ export default function TaxiOrderTest() {
     if (!pickupAutocomplete) return;
     const place = pickupAutocomplete.getPlace();
     setPickupAddress(formatPlaceAddress(place));
-    setPickupCountryCode(extractCountry(place.address_components).code);
+    applyPickupCountry(place.address_components);
     if (place.geometry?.location) {
       const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
       setPickupCoords(loc);
@@ -162,6 +178,10 @@ export default function TaxiOrderTest() {
   };
 
   const handleDropoffPlaceSelect = (place: google.maps.places.PlaceResult) => {
+    if (!isSameCountry(place.address_components, pickupCountryCode)) {
+      alert(language === 'az' ? 'Təyinat pickup ilə eyni ölkədə olmalıdır.' : 'Drop-off must be in the same country as pickup.');
+      return;
+    }
     setDropoffAddress(formatPlaceAddress(place));
     if (place.geometry?.location) {
       const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
@@ -347,6 +367,8 @@ export default function TaxiOrderTest() {
                     onChange={setDropoffAddress}
                     onPlaceSelect={handleDropoffPlaceSelect}
                     restrictCountryCode={pickupCountryCode}
+                    restrictCountryName={pickupCountryName}
+                    locationBias={pickupCoords}
                     placeholder={t.dropoffPh}
                     variant="dark"
                     className="flex-1 min-w-0"

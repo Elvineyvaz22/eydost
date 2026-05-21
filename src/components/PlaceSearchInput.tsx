@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { isInPickupCountry } from '../utils/addressFormat';
 
 type Props = {
   value: string;
@@ -7,8 +8,11 @@ type Props = {
   placeholder?: string;
   className?: string;
   inputClassName?: string;
-  /** ISO country code from pickup (e.g. "az") — dropoff only in this country */
+  /** Pickup country ISO code — dropoff suggestions only in this country */
   restrictCountryCode?: string | null;
+  restrictCountryName?: string | null;
+  /** Bias search near pickup */
+  locationBias?: google.maps.LatLngLiteral | null;
   disabled?: boolean;
   variant?: 'light' | 'dark';
 };
@@ -21,6 +25,8 @@ export default function PlaceSearchInput({
   className = '',
   inputClassName = '',
   restrictCountryCode = null,
+  restrictCountryName = null,
+  locationBias = null,
   disabled = false,
   variant = 'light',
 }: Props) {
@@ -56,26 +62,35 @@ export default function PlaceSearchInput({
         return;
       }
 
-      serviceRef.current.getPlacePredictions(
-        {
-          input,
-          types: ['geocode', 'establishment'],
-          componentRestrictions: { country: restrictCountryCode },
-        },
-        (results, status) => {
-          if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
-            setPredictions([]);
-            setOpen(false);
-            return;
-          }
+      const request: google.maps.places.AutocompletionRequest = {
+        input,
+        types: ['geocode', 'establishment'],
+        componentRestrictions: { country: [restrictCountryCode] },
+      };
 
-          setPredictions(results);
-          setOpen(results.length > 0);
-          setActiveIndex(-1);
+      if (locationBias) {
+        request.locationBias = new google.maps.Circle({
+          center: locationBias,
+          radius: 200_000,
+        });
+      }
+
+      serviceRef.current.getPlacePredictions(request, (results, status) => {
+        if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
+          setPredictions([]);
+          setOpen(false);
+          return;
         }
-      );
+
+        const filtered = results.filter((p) =>
+          isInPickupCountry(p, restrictCountryCode, restrictCountryName)
+        );
+        setPredictions(filtered);
+        setOpen(filtered.length > 0);
+        setActiveIndex(-1);
+      });
     },
-    [restrictCountryCode]
+    [restrictCountryCode, restrictCountryName, locationBias]
   );
 
   const selectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
@@ -134,7 +149,7 @@ export default function PlaceSearchInput({
       <input
         type="text"
         value={value}
-        disabled={disabled}
+        disabled={disabled || !restrictCountryCode}
         onChange={(e) => onInputChange(e.target.value)}
         onFocus={() => value.trim().length >= 2 && predictions.length > 0 && setOpen(true)}
         onKeyDown={onKeyDown}

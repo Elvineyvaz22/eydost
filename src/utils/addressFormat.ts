@@ -23,6 +23,41 @@ export function extractCountry(components?: AddressComponent[]): {
   };
 }
 
+/** Prediction is in the given country (for same-country dropoff filter) */
+export function isInPickupCountry(
+  prediction: google.maps.places.AutocompletePrediction,
+  countryCode: string | null,
+  countryName: string | null
+): boolean {
+  if (!countryCode && !countryName) return false;
+
+  const lastTerm = prediction.terms[prediction.terms.length - 1]?.value?.trim().toLowerCase() ?? '';
+  const secondary = prediction.structured_formatting?.secondary_text?.toLowerCase() ?? '';
+  const description = prediction.description.toLowerCase();
+
+  if (countryName) {
+    const name = countryName.toLowerCase();
+    if (lastTerm === name) return true;
+    if (description.endsWith(`, ${name}`) || description.endsWith(name)) return true;
+    if (secondary.includes(name)) return true;
+  }
+
+  if (countryCode === 'az') {
+    const azLabels = ['azerbaijan', 'azərbaycan', 'азербайджан'];
+    if (azLabels.some((l) => lastTerm === l || description.includes(l))) return true;
+  }
+
+  return false;
+}
+
+export function isSameCountry(
+  components: AddressComponent[] | undefined,
+  expectedCode: string | null
+): boolean {
+  if (!expectedCode) return true;
+  return extractCountry(components).code === expectedCode;
+}
+
 function getComponent(components: AddressComponent[], type: string): string | undefined {
   const c = components.find((x) => x.types.includes(type));
   return c?.long_name;
