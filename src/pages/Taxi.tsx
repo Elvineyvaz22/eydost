@@ -627,16 +627,14 @@ export default function Taxi() {
 
   return (
     <div className="h-[100dvh] w-full flex flex-col bg-gray-100 relative overflow-hidden">
-      {!isDropoffSearch && (
-        <div className="absolute top-0 left-0 w-full z-50">
-          <Header />
-        </div>
-      )}
+      <div className="absolute top-0 left-0 w-full z-50">
+        <Header />
+      </div>
 
       {isDropoffSearch && (
         <div
           ref={dropoffTopBarRef}
-          className="absolute top-0 left-0 right-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm"
+          className="fixed top-16 left-0 right-0 z-40 flex items-center gap-2 px-3 py-3 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm"
         >
           <button
             type="button"
@@ -668,7 +666,7 @@ export default function Taxi() {
       )}
 
       <main className="relative h-[100dvh] w-full flex-shrink-0">
-        <div className={`absolute inset-0 z-0 ${isDropoffSearch ? 'pt-0' : 'pt-16'}`}>
+        <div className={`absolute inset-0 z-0 ${isDropoffSearch ? 'pt-[7.25rem]' : 'pt-16'}`}>
           {!isLoaded ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-900">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
