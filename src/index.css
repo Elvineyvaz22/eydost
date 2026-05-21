@@ -65,18 +65,9 @@
   }
 }
 
-/* Custom place search (dropoff) — above keyboard on mobile */
+/* Custom place search (dropoff) — list directly above input */
 .place-search-dropdown {
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.18), 0 4px 16px rgba(0, 0, 0, 0.08) !important;
-}
-
-@media (max-width: 1023px) {
-  .place-search-dropdown {
-    background-color: #ffffff !important;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    border-radius: 1rem !important;
-  }
 }
 
 /* Hide the default generic google pin icon for a cleaner look */

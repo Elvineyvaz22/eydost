@@ -63,6 +63,8 @@ export default function Taxi() {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 
   const [pickupAutocomplete, setPickupAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const [dropoffInputFocused, setDropoffInputFocused] = useState(false);
+  const [sheetLift, setSheetLift] = useState(0);
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
@@ -334,6 +336,33 @@ export default function Taxi() {
       }
     }
   };
+
+  useEffect(() => {
+    if (mobileStep !== 'select_dropoff') {
+      setDropoffInputFocused(false);
+      setSheetLift(0);
+    }
+  }, [mobileStep]);
+
+  useEffect(() => {
+    if (!dropoffInputFocused) {
+      setSheetLift(0);
+      return;
+    }
+    const vv = window.visualViewport;
+    const update = () => {
+      if (!vv) return;
+      const keyboardH = window.innerHeight - vv.height - vv.offsetTop;
+      setSheetLift(Math.max(0, keyboardH));
+    };
+    update();
+    vv?.addEventListener('resize', update);
+    vv?.addEventListener('scroll', update);
+    return () => {
+      vv?.removeEventListener('resize', update);
+      vv?.removeEventListener('scroll', update);
+    };
+  }, [dropoffInputFocused]);
 
   const handleMobileBack = () => {
     if (mobileStep === 'select_dropoff') {
@@ -672,7 +701,10 @@ export default function Taxi() {
           </button>
         )}
 
-        <div className="absolute bottom-0 left-0 w-full z-20 pointer-events-none pb-4 px-4">
+        <div
+          className="absolute bottom-0 left-0 w-full z-20 pointer-events-none pb-4 px-4 transition-transform duration-200 ease-out"
+          style={{ transform: sheetLift > 0 ? `translateY(-${sheetLift}px)` : undefined }}
+        >
           <div className="bg-white rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] p-5 pointer-events-auto w-full overflow-visible">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
 
@@ -700,23 +732,26 @@ export default function Taxi() {
             )}
 
             {mobileStep === 'select_dropoff' && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300 overflow-visible">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">{t.taxi.dropoffLabel}?</h2>
-                <div className="flex items-center gap-4 bg-red-50 p-4 rounded-2xl border border-red-100 mb-5 relative overflow-visible z-10">
-                   <div className="w-3 h-3 rounded-sm bg-red-600 shrink-0"></div>
-                  {isLoaded && (
-                    <PlaceSearchInput
-                      value={dropoffAddress}
-                      onChange={setDropoffAddress}
-                      onPlaceSelect={handleDropoffPlaceSelect}
-                      restrictCountryCode={pickupCountryCode}
-                      restrictCountryName={pickupCountryName}
-                      locationBias={pickupCoords}
-                      placeholder={t.taxi.dropoffPlaceholder}
-                      className="w-full"
-                      inputClassName="w-full bg-transparent text-gray-900 font-bold focus:outline-none truncate text-base placeholder-gray-400"
-                    />
-                  )}
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">{t.taxi.dropoffLabel}?</h2>
+                <div className="relative mb-4">
+                  <div className="flex items-center gap-3 bg-red-50 px-4 py-3.5 rounded-2xl border border-red-100">
+                    <div className="w-3 h-3 rounded-sm bg-red-600 shrink-0" />
+                    {isLoaded && (
+                      <PlaceSearchInput
+                        value={dropoffAddress}
+                        onChange={setDropoffAddress}
+                        onPlaceSelect={handleDropoffPlaceSelect}
+                        onFocusChange={setDropoffInputFocused}
+                        restrictCountryCode={pickupCountryCode}
+                        restrictCountryName={pickupCountryName}
+                        locationBias={pickupCoords}
+                        placeholder={t.taxi.dropoffPlaceholder}
+                        className="flex-1 min-w-0"
+                        inputClassName="w-full bg-transparent text-gray-900 font-bold focus:outline-none text-base placeholder-gray-400"
+                      />
+                    )}
+                  </div>
                 </div>
                 <button onClick={handleMobileNext} className="w-full bg-black text-white py-4 rounded-xl font-bold text-base shadow-md active:scale-95 transition-all">
                   {t.taxi.confirmDestination}
