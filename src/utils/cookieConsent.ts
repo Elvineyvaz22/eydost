@@ -15,6 +15,9 @@ export function getStoredConsent(): ConsentChoice | null {
 
 export function setStoredConsent(choice: ConsentChoice): void {
   localStorage.setItem(STORAGE_KEY, choice);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('eydost:consent'));
+  }
 }
 
 function gtagConsentUpdate(granted: boolean): void {

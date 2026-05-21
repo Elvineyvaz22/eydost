@@ -28,8 +28,10 @@ Architecture: React/Vite frontend (root) + Python FastAPI backend (`/backend`).
 
 ### Key gotchas
 
+- **Vercel / taxi webhook:** `vercel.json` must keep `builds` + `routes` so `api/taxi-webhook.ts` deploys. Never add `experimentalServices` (breaks `/api/*` → 405 on POST). After any `vercel.json` change, smoke-test: `POST https://eydost.com/api/taxi-webhook` should return **200** (not `index.html` / 405). Vercel dashboard Framework Preset: **Vite** or **Other**, not **Services**.
 - No automated test suite exists (no jest/vitest/pytest configured)
 - The `package-lock.json` is present — always use `npm` (not pnpm/yarn)
 - Frontend uses React Router with hash-free client-side routing; SPA fallback is handled by Vite in dev
 - Admin panel at `/admin` uses Supabase Auth (credentials in `ADMIN_README.md`)
 - Google Maps API key (`VITE_GOOGLE_MAPS_API_KEY`) is needed only for the Taxi page; the rest of the site works without it
+- **Vercel Web Analytics:** `@vercel/analytics` via `VercelAnalytics.tsx` (loads only when cookie consent is `all`). Enable in Vercel dashboard → Project → **Analytics** → Web Analytics → Enable, then deploy.
