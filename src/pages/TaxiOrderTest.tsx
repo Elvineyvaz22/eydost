@@ -9,8 +9,10 @@ import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@rea
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const libraries: ('places')[] = ['places'];
+const libraries: ('places' | 'geocoding')[] = ['places', 'geocoding'];
 const defaultCenter = { lat: 40.409264, lng: 49.867092 };
+const MAP_HEIGHT = '52vh';
+const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 const darkMapStyle: google.maps.MapTypeStyle[] = [
   { elementType: 'geometry', stylers: [{ color: '#1d1d1d' }] },
@@ -31,6 +33,8 @@ const copy = {
     order: 'Sifariş et',
     selectBoth: 'Hər iki ünvanı seçin',
     eta: 'təxminən',
+    mapLoading: 'Xəritə yüklənir...',
+    mapError: 'Google Maps açılmadı. Vercel-də VITE_GOOGLE_MAPS_API_KEY təyin edin.',
   },
   en: {
     pickupHint: 'Pickup',
@@ -40,6 +44,8 @@ const copy = {
     order: 'Order ride',
     selectBoth: 'Select both addresses',
     eta: 'approx.',
+    mapLoading: 'Loading map...',
+    mapError: 'Google Maps failed to load. Set VITE_GOOGLE_MAPS_API_KEY on Vercel.',
   },
   ru: {
     pickupHint: 'Откуда',
@@ -49,6 +55,8 @@ const copy = {
     order: 'Заказать',
     selectBoth: 'Выберите оба адреса',
     eta: 'примерно',
+    mapLoading: 'Загрузка карты...',
+    mapError: 'Карта не загрузилась. Укажите VITE_GOOGLE_MAPS_API_KEY в Vercel.',
   },
 };
 
@@ -60,7 +68,7 @@ export default function TaxiOrderTest() {
   const waId = searchParams.get('wa_id');
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    googleMapsApiKey: mapsApiKey,
     libraries,
   });
 
@@ -109,7 +117,7 @@ export default function TaxiOrderTest() {
     }
   }, [geocodeLatLng]);
 
-  const onMapIdle = () => {
+  const syncMapCenterToField = useCallback(() => {
     const center = mapRef.current?.getCenter();
     if (!center) return;
     const latlng = { lat: center.lat(), lng: center.lng() };
@@ -121,7 +129,7 @@ export default function TaxiOrderTest() {
       setDropoffCoords(latlng);
       geocodeLatLng(latlng, 'dropoff');
     }
-  };
+  }, [activeField, geocodeLatLng]);
 
   const applyPlace = (place: google.maps.places.PlaceResult, target: ActiveField) => {
     const addr = place.formatted_address || place.name || '';
@@ -172,30 +180,28 @@ export default function TaxiOrderTest() {
     alert(language === 'az' ? 'Test sifarişi qeydə alındı (konsol).' : 'Test order logged (console).');
   };
 
-  if (loadError) {
-    return (
-      <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center p-6 text-center">
-        <p>Google Maps API key required (VITE_GOOGLE_MAPS_API_KEY)</p>
-      </div>
-    );
-  }
+  const mapReady = isLoaded && !loadError && Boolean(mapsApiKey);
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-[#121212] text-white flex flex-col">
       <Seo title="Taxi order (test)" noIndex canonicalPath="/taxi-order" />
 
-      {/* Map */}
-      <div className="relative flex-1 min-h-[48vh] max-h-[58vh]">
-        {isLoaded ? (
+      {/* Map — fixed height so Google Maps always renders */}
+      <div
+        className="relative w-full shrink-0"
+        style={{ height: MAP_HEIGHT, minHeight: 280 }}
+      >
+        {mapReady ? (
           <GoogleMap
-            mapContainerClassName="w-full h-full"
+            mapContainerStyle={{ width: '100%', height: '100%' }}
             center={mapCenter}
             zoom={16}
             onLoad={onMapLoad}
-            onIdle={onMapIdle}
+            onDragEnd={syncMapCenterToField}
+            onIdle={syncMapCenterToField}
             options={{
               disableDefaultUI: true,
-              zoomControl: false,
+              zoomControl: true,
               styles: darkMapStyle,
               gestureHandling: 'greedy',
             }}
@@ -211,7 +217,12 @@ export default function TaxiOrderTest() {
             )}
           </GoogleMap>
         ) : (
-          <div className="w-full h-full bg-[#1a1a1a] animate-pulse" />
+          <div className="w-full h-full bg-[#1a1a1a] flex flex-col items-center justify-center gap-3 px-6 text-center">
+            <div className="w-10 h-10 border-2 border-[#f5c518] border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-gray-400">
+              {loadError || !mapsApiKey ? t.mapError : t.mapLoading}
+            </p>
+          </div>
         )}
 
         {/* Center pin */}
@@ -229,6 +240,7 @@ export default function TaxiOrderTest() {
           </div>
         </div>
 
+        {mapReady && (
         <button
           type="button"
           onClick={() => {
@@ -251,17 +263,20 @@ export default function TaxiOrderTest() {
         >
           <LocateFixed className="w-5 h-5 text-white" />
         </button>
+        )}
       </div>
 
       {/* Bottom panel — no service type row (Maxim sarı taxi / teslimat / kamyon) */}
-      <div className="shrink-0 rounded-t-3xl bg-[#1e1e1e] border-t border-white/5 px-4 pt-4 pb-6 pb-safe space-y-3 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
-        <button
-          type="button"
+      <div className="shrink-0 rounded-t-3xl bg-[#1e1e1e] border-t border-white/5 px-4 pt-4 pb-8 space-y-3 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => {
             setActiveField('pickup');
             if (pickupCoords) mapRef.current?.panTo(pickupCoords);
           }}
-          className={`w-full text-left rounded-2xl px-4 py-3.5 transition-colors ${
+          onKeyDown={(e) => e.key === 'Enter' && setActiveField('pickup')}
+          className={`w-full text-left rounded-2xl px-4 py-3.5 transition-colors cursor-pointer ${
             activeField === 'pickup' ? 'bg-[#2d2d2d] ring-1 ring-red-500/40' : 'bg-[#252525]'
           }`}
         >
@@ -285,15 +300,17 @@ export default function TaxiOrderTest() {
               <span className="text-gray-600 text-sm">...</span>
             )}
           </div>
-        </button>
+        </div>
 
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => {
             setActiveField('dropoff');
             if (dropoffCoords) mapRef.current?.panTo(dropoffCoords);
           }}
-          className={`w-full text-left rounded-2xl px-4 py-3.5 transition-colors ${
+          onKeyDown={(e) => e.key === 'Enter' && setActiveField('dropoff')}
+          className={`w-full text-left rounded-2xl px-4 py-3.5 transition-colors cursor-pointer ${
             activeField === 'dropoff' ? 'bg-[#2d2d2d] ring-1 ring-sky-500/40' : 'bg-[#252525]'
           }`}
         >
@@ -318,7 +335,7 @@ export default function TaxiOrderTest() {
             )}
             <ChevronRight className="w-5 h-5 text-gray-600 shrink-0" />
           </div>
-        </button>
+        </div>
 
         {routeLeg && (
           <p className="text-center text-xs text-gray-500">

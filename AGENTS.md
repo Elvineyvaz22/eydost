@@ -33,5 +33,5 @@ Architecture: React/Vite frontend (root) + Python FastAPI backend (`/backend`).
 - The `package-lock.json` is present — always use `npm` (not pnpm/yarn)
 - Frontend uses React Router with hash-free client-side routing; SPA fallback is handled by Vite in dev
 - Admin panel at `/admin` uses Supabase Auth (credentials in `ADMIN_README.md`)
-- Google Maps API key (`VITE_GOOGLE_MAPS_API_KEY`) is needed only for the Taxi page; the rest of the site works without it
+- Google Maps API key (`VITE_GOOGLE_MAPS_API_KEY`) is required for `/taxi` and `/taxi-order` (set in Vercel env + local `.env` for build)
 - **Vercel Web Analytics:** `@vercel/analytics` via `VercelAnalytics.tsx` (loads only when cookie consent is `all`). Enable in Vercel dashboard → Project → **Analytics** → Web Analytics → Enable, then deploy.
