@@ -63,7 +63,7 @@ export default function Taxi() {
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 
   const [pickupAutocomplete, setPickupAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-  const [dropoffListTop, setDropoffListTop] = useState(112);
+  const [dropoffListTop, setDropoffListTop] = useState(140);
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const dropoffTopBarRef = useRef<HTMLDivElement>(null);
@@ -636,7 +636,7 @@ export default function Taxi() {
       {isDropoffSearch && (
         <div
           ref={dropoffTopBarRef}
-          className="absolute top-0 left-0 right-0 z-40 flex items-center gap-2 px-3 pt-3 pb-3 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm"
+          className="absolute top-0 left-0 right-0 z-40 flex items-center gap-2 px-3 pb-3 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm"
         >
           <button
             type="button"
