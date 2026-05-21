@@ -3,12 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import { MapPin, Navigation, Car, MessageCircle, Star, Users, Briefcase, ArrowLeft, LocateFixed, CheckCircle, XCircle } from 'lucide-react';
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 import { getWaId, createOrder } from '../utils/whatsapp';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
+import { formatGeocoderResult, formatPlaceAddress } from '../utils/addressFormat';
 
 const WA_LINK = 'https://wa.me/994992000444';
 
@@ -99,10 +99,8 @@ export default function Taxi() {
     if (!geocoderRef.current) return;
     
     geocoderRef.current.geocode({ location: latlng }, (results, status) => {
-      if (status === 'OK' && results && results[0]) {
-        const addressParts = results[0].formatted_address.split(',');
-        const address = addressParts.slice(0, isMobile ? 2 : 3).join(',');
-        
+      if (status === 'OK' && results?.[0]) {
+        const address = formatGeocoderResult(results[0]);
         if (target === 'pickup') setPickupAddress(address);
         else setDropoffAddress(address);
       }
@@ -135,7 +133,7 @@ export default function Taxi() {
   const handlePickupPlaceChanged = () => {
     if (pickupAutocomplete !== null) {
       const place = pickupAutocomplete.getPlace();
-      setPickupAddress(place.formatted_address || place.name || '');
+      setPickupAddress(formatPlaceAddress(place));
       
       if (place.geometry && place.geometry.location) {
         const location = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
@@ -149,7 +147,7 @@ export default function Taxi() {
   const handleDropoffPlaceChanged = () => {
     if (dropoffAutocomplete !== null) {
       const place = dropoffAutocomplete.getPlace();
-      setDropoffAddress(place.formatted_address || place.name || '');
+      setDropoffAddress(formatPlaceAddress(place));
       
       if (place.geometry && place.geometry.location) {
         const location = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
@@ -407,32 +405,16 @@ export default function Taxi() {
 
   if (!isMobile) {
     return (
-      <div className="min-h-screen bg-[#0A0F1C] flex flex-col font-sans">
+      <div className="h-[100dvh] bg-[#0A0F1C] flex flex-col font-sans overflow-hidden">
         <Seo
           title="Global Taxi Booking via WhatsApp"
           description="Book reliable taxi rides in 500+ cities across 50+ countries — all through WhatsApp. No app needed. Instant confirmation."
           canonicalPath="/taxi"
         />
         <Header />
-        <main className="flex-1 pt-24 pb-16 lg:pt-32 lg:pb-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-10 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-semibold mb-6">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                {t.taxi.availableEverywhere}
-              </div>
-              <h1 className="text-4xl lg:text-6xl font-extrabold text-white leading-tight mb-4 tracking-tight">
-                Fast Rides <br className="hidden lg:block" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-200">
-                  via WhatsApp.
-                </span>
-              </h1>
-              <p className="text-gray-400 max-w-2xl text-lg mx-auto lg:mx-0">
-                {t.taxi.rideDescription}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <main className="flex-1 min-h-0 pt-20 pb-4">
+          <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full items-stretch">
               <div className="lg:col-span-5 flex flex-col">
                 <div className="bg-gray-900/60 backdrop-blur-xl border border-gray-800 rounded-3xl p-6 shadow-2xl flex-1 flex flex-col">
                   <div className="space-y-4">
@@ -520,7 +502,7 @@ export default function Taxi() {
                 </div>
               </div>
 
-              <div className="lg:col-span-7 relative min-h-[600px] lg:min-h-0 rounded-3xl overflow-hidden border border-gray-700 shadow-2xl">
+              <div className="lg:col-span-7 relative min-h-[400px] h-full rounded-3xl overflow-hidden border border-gray-700 shadow-2xl">
                 <div className="absolute inset-0">
                   {!isLoaded ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
@@ -581,13 +563,12 @@ export default function Taxi() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-gray-100 relative overflow-y-auto">
+    <div className="h-[100dvh] w-full flex flex-col bg-gray-100 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full z-50">
          <Header />
       </div>
@@ -746,39 +727,6 @@ export default function Taxi() {
           </div>
         </div>
       </main>
-
-      <section className="bg-white py-20 border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center lg:text-left max-w-2xl">{t.taxiSteps.title}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 sm:gap-16">
-            <div className="group">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
-                <img src="/assets/taxi/step1.png" alt="Trip Details" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step1Title}</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{t.taxiSteps.step1Desc}</p>
-            </div>
-            <div className="group">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
-                <img src="/assets/taxi/step2.png" alt="Easy Payment" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step2Title}</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{t.taxiSteps.step2Desc}</p>
-            </div>
-            <div className="group">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-50 border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
-                <img src="/assets/taxi/step3.png" alt="Meet Driver" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{t.taxiSteps.step3Title}</h3>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{t.taxiSteps.step3Desc}</p>
-            </div>
-          </div>
-          <div className="mt-16 text-center lg:text-left">
-            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="inline-block bg-black text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors shadow-xl">{t.taxiSteps.cta}</a>
-          </div>
-        </div>
-      </section>
-      <Footer />
     </div>
   );
 }
