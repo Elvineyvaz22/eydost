@@ -23,33 +23,6 @@ export function extractCountry(components?: AddressComponent[]): {
   };
 }
 
-/** Dropoff suggestions: hide results in pickup country */
-export function isInExcludedCountry(
-  prediction: google.maps.places.AutocompletePrediction,
-  excludeCode: string | null,
-  excludeName: string | null
-): boolean {
-  if (!excludeCode && !excludeName) return false;
-
-  const lastTerm = prediction.terms[prediction.terms.length - 1]?.value?.trim().toLowerCase() ?? '';
-  const secondary = prediction.structured_formatting?.secondary_text?.toLowerCase() ?? '';
-  const description = prediction.description.toLowerCase();
-
-  if (excludeName) {
-    const name = excludeName.toLowerCase();
-    if (lastTerm === name) return true;
-    if (description.endsWith(`, ${name}`) || description.endsWith(name)) return true;
-    if (secondary.includes(name)) return true;
-  }
-
-  if (excludeCode === 'az') {
-    const azLabels = ['azerbaijan', 'azərbaycan', 'азербайджан'];
-    if (azLabels.some((l) => lastTerm === l || description.includes(l))) return true;
-  }
-
-  return false;
-}
-
 function getComponent(components: AddressComponent[], type: string): string | undefined {
   const c = components.find((x) => x.types.includes(type));
   return c?.long_name;

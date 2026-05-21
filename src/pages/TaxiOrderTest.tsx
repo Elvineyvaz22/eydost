@@ -77,7 +77,6 @@ export default function TaxiOrderTest() {
   const [pickupAddress, setPickupAddress] = useState('');
   const [dropoffAddress, setDropoffAddress] = useState('');
   const [pickupCountryCode, setPickupCountryCode] = useState<string | null>(null);
-  const [pickupCountryName, setPickupCountryName] = useState<string | null>(null);
   const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(null);
   const [dropoffCoords, setDropoffCoords] = useState<google.maps.LatLngLiteral | null>(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -94,9 +93,7 @@ export default function TaxiOrderTest() {
         const address = formatGeocoderResult(results[0]);
         if (target === 'pickup') {
           setPickupAddress(address);
-          const country = extractCountry(results[0].address_components);
-          setPickupCountryCode(country.code);
-          setPickupCountryName(country.name);
+          setPickupCountryCode(extractCountry(results[0].address_components).code);
         } else {
           setDropoffAddress(address);
         }
@@ -155,9 +152,7 @@ export default function TaxiOrderTest() {
     if (!pickupAutocomplete) return;
     const place = pickupAutocomplete.getPlace();
     setPickupAddress(formatPlaceAddress(place));
-    const country = extractCountry(place.address_components);
-    setPickupCountryCode(country.code);
-    setPickupCountryName(country.name);
+    setPickupCountryCode(extractCountry(place.address_components).code);
     if (place.geometry?.location) {
       const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
       setPickupCoords(loc);
@@ -351,8 +346,7 @@ export default function TaxiOrderTest() {
                     value={dropoffAddress}
                     onChange={setDropoffAddress}
                     onPlaceSelect={handleDropoffPlaceSelect}
-                    excludeCountryCode={pickupCountryCode}
-                    excludeCountryName={pickupCountryName}
+                    restrictCountryCode={pickupCountryCode}
                     placeholder={t.dropoffPh}
                     variant="dark"
                     className="flex-1 min-w-0"

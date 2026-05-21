@@ -57,7 +57,6 @@ export default function Taxi() {
   const [pickupAddress, setPickupAddress] = useState('');
   const [dropoffAddress, setDropoffAddress] = useState('');
   const [pickupCountryCode, setPickupCountryCode] = useState<string | null>(null);
-  const [pickupCountryName, setPickupCountryName] = useState<string | null>(null);
   
   const [selectedCar, setSelectedCar] = useState('economy');
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
@@ -105,9 +104,7 @@ export default function Taxi() {
         const address = formatGeocoderResult(results[0]);
         if (target === 'pickup') {
           setPickupAddress(address);
-          const country = extractCountry(results[0].address_components);
-          setPickupCountryCode(country.code);
-          setPickupCountryName(country.name);
+          setPickupCountryCode(extractCountry(results[0].address_components).code);
         } else {
           setDropoffAddress(address);
         }
@@ -142,9 +139,7 @@ export default function Taxi() {
     if (pickupAutocomplete !== null) {
       const place = pickupAutocomplete.getPlace();
       setPickupAddress(formatPlaceAddress(place));
-      const country = extractCountry(place.address_components);
-      setPickupCountryCode(country.code);
-      setPickupCountryName(country.name);
+      setPickupCountryCode(extractCountry(place.address_components).code);
       
       if (place.geometry && place.geometry.location) {
         const location = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
@@ -471,8 +466,7 @@ export default function Taxi() {
                               value={dropoffAddress}
                               onChange={setDropoffAddress}
                               onPlaceSelect={handleDropoffPlaceSelect}
-                              excludeCountryCode={pickupCountryCode}
-                              excludeCountryName={pickupCountryName}
+                              restrictCountryCode={pickupCountryCode}
                               placeholder={t.taxi.dropoffPlaceholder}
                               variant="dark"
                               inputClassName="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
@@ -686,8 +680,7 @@ export default function Taxi() {
                       value={dropoffAddress}
                       onChange={setDropoffAddress}
                       onPlaceSelect={handleDropoffPlaceSelect}
-                      excludeCountryCode={pickupCountryCode}
-                      excludeCountryName={pickupCountryName}
+                      restrictCountryCode={pickupCountryCode}
                       placeholder={t.taxi.dropoffPlaceholder}
                       className="w-full"
                       inputClassName="w-full bg-transparent text-gray-900 font-bold focus:outline-none truncate text-base placeholder-gray-400"

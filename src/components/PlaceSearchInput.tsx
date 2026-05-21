@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isInExcludedCountry } from '../utils/addressFormat';
 
 type Props = {
   value: string;
@@ -8,8 +7,8 @@ type Props = {
   placeholder?: string;
   className?: string;
   inputClassName?: string;
-  excludeCountryCode?: string | null;
-  excludeCountryName?: string | null;
+  /** ISO country code from pickup (e.g. "az") — dropoff only in this country */
+  restrictCountryCode?: string | null;
   disabled?: boolean;
   variant?: 'light' | 'dark';
 };
@@ -21,8 +20,7 @@ export default function PlaceSearchInput({
   placeholder,
   className = '',
   inputClassName = '',
-  excludeCountryCode = null,
-  excludeCountryName = null,
+  restrictCountryCode = null,
   disabled = false,
   variant = 'light',
 }: Props) {
@@ -52,14 +50,18 @@ export default function PlaceSearchInput({
 
   const fetchPredictions = useCallback(
     (input: string) => {
-      if (!serviceRef.current || input.trim().length < 2) {
+      if (!serviceRef.current || !restrictCountryCode || input.trim().length < 2) {
         setPredictions([]);
         setOpen(false);
         return;
       }
 
       serviceRef.current.getPlacePredictions(
-        { input, types: ['geocode', 'establishment'] },
+        {
+          input,
+          types: ['geocode', 'establishment'],
+          componentRestrictions: { country: restrictCountryCode },
+        },
         (results, status) => {
           if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
             setPredictions([]);
@@ -67,16 +69,13 @@ export default function PlaceSearchInput({
             return;
           }
 
-          const filtered = results.filter(
-            (p) => !isInExcludedCountry(p, excludeCountryCode, excludeCountryName)
-          );
-          setPredictions(filtered);
-          setOpen(filtered.length > 0);
+          setPredictions(results);
+          setOpen(results.length > 0);
           setActiveIndex(-1);
         }
       );
     },
-    [excludeCountryCode, excludeCountryName]
+    [restrictCountryCode]
   );
 
   const selectPrediction = (prediction: google.maps.places.AutocompletePrediction) => {
