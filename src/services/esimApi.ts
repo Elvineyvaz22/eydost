@@ -5,6 +5,7 @@
  */
 
 import { supabase } from '../lib/supabase';
+import type { PackageData } from '../data/esimPackages';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -167,4 +168,81 @@ export async function fetchCountriesList(): Promise<string[]> {
     if (row.country_code) codes.add(row.country_code);
   }
   return Array.from(codes).sort();
+}
+
+/** Cheapest package with a real price (skip 0 / missing from sync). */
+export function pickCheapestPricedPackage(pkgs: ESIMPackageRaw[]): ESIMPackageRaw | null {
+  const valid = pkgs.filter((p) => (p.sell_price_minor ?? 0) > 0);
+  if (!valid.length) return null;
+  return valid.reduce<ESIMPackageRaw | null>(
+    (best, p) => (!best || p.sell_price_minor < best.sell_price_minor ? p : best),
+    null
+  );
+}
+
+function slugForCountryCode(cc: string, staticPackages: PackageData[]): string {
+  const known = staticPackages.find((p) => p.countryCode.toUpperCase() === cc.toUpperCase());
+  if (known) return known.slug;
+  const name = getCountryName(cc) || cc;
+  return `${name.toLowerCase().replace(/\s+/g, '-')}-esim`;
+}
+
+function planFromLivePackage(p: ESIMPackageRaw) {
+  return {
+    gb:
+      p.volume > 0
+        ? parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1))
+        : 1,
+    days: p.duration,
+    price: formatPrice(p.sell_price_minor, p.currencyCode),
+    code: p.packageCode,
+    id: p.slug,
+  };
+}
+
+/**
+ * All static countries stay visible; live Supabase prices override when valid.
+ */
+export function mergeStaticWithLive(
+  staticPackages: PackageData[],
+  liveByCountry: Record<string, ESIMPackageRaw[]>
+): PackageData[] {
+  const liveMap: Record<string, ESIMPackageRaw[]> = {};
+  for (const [cc, pkgs] of Object.entries(liveByCountry)) {
+    liveMap[cc.toUpperCase()] = pkgs;
+  }
+
+  const seen = new Set<string>();
+  const merged: PackageData[] = [];
+
+  for (const sp of staticPackages) {
+    const cc = sp.countryCode.toUpperCase();
+    seen.add(cc);
+    const cheapest = pickCheapestPricedPackage(liveMap[cc] || []);
+    const plans =
+      cheapest != null
+        ? [planFromLivePackage(cheapest)]
+        : sp.plans.filter((pl) => pl.price && pl.price !== '$0.00');
+
+    merged.push({
+      ...sp,
+      plans: plans.length > 0 ? plans : sp.plans,
+    });
+  }
+
+  for (const [cc, pkgs] of Object.entries(liveMap)) {
+    if (seen.has(cc)) continue;
+    const cheapest = pickCheapestPricedPackage(pkgs);
+    if (!cheapest) continue;
+    merged.push({
+      country: getCountryName(cc) || cc,
+      countryCode: cc,
+      flag: countryCodeToFlag(cc),
+      slug: slugForCountryCode(cc, staticPackages),
+      region: 'all',
+      plans: [planFromLivePackage(cheapest)],
+    });
+  }
+
+  return merged.sort((a, b) => a.country.localeCompare(b.country));
 }

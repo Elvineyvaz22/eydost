@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import FlagImage from '../components/FlagImage';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import Seo from '../components/Seo';
-import { fetchAllCountriesPackages, countryCodeToFlag, getCountryName, formatPrice, type ESIMPackageRaw } from '../services/esimApi';
+import { fetchAllCountriesPackages, mergeStaticWithLive, type ESIMPackageRaw } from '../services/esimApi';
 
 function CountryCard({ pkg }: { pkg: PackageData }) {
   const { t } = useLanguage();
@@ -124,38 +124,10 @@ export default function AllPackages() {
       .catch(err => { setError(err.message); setLoading(false); });
   }, []);
 
-  // Convert live packages to PackageData format
-  const liveCountryPackages: PackageData[] = useMemo(() => {
-    return Object.entries(allPkgs).map(([cc, pkgs]) => {
-      const cheapest = pkgs.reduce<ESIMPackageRaw | null>((best, p) => {
-        if (!best || p.sell_price_minor < best.sell_price_minor) return p;
-        return best;
-      }, null);
-
-      return {
-        country: getCountryName(cc) || cc,
-        countryCode: cc,
-        flag: countryCodeToFlag(cc),
-        slug: `${(getCountryName(cc) || cc).toLowerCase().replace(/\s+/g, '-')}-esim`,
-        region: 'all',
-        plans: cheapest ? [{
-          gb: cheapest.volume > 0
-            ? parseFloat((cheapest.volume / (1024 * 1024 * 1024)).toFixed(1))
-            : 999,
-          days: cheapest.duration,
-          price: formatPrice(cheapest.sell_price_minor, cheapest.currencyCode),
-          code: cheapest.packageCode,
-          id: cheapest.slug,
-        }] : [],
-      };
-    }).sort((a, b) => a.country.localeCompare(b.country));
-  }, [allPkgs]);
-
-  // Merge: use live if available, else static fallback
-  const activePackages = useMemo(() => {
-    if (liveCountryPackages.length > 0) return liveCountryPackages;
-    return staticPackages;
-  }, [liveCountryPackages, staticPackages]);
+  const activePackages = useMemo(
+    () => mergeStaticWithLive(staticPackages, allPkgs),
+    [staticPackages, allPkgs]
+  );
 
   const filteredCountries = useMemo(() => {
     return activePackages
