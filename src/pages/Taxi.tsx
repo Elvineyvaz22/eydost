@@ -8,10 +8,9 @@ import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 import { getWaId, createOrder } from '../utils/whatsapp';
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
 
 const WA_LINK = 'https://wa.me/994992000444';
-
-const libraries: ("places" | "geocoding")[] = ["places"];
 
 const defaultCenter = { lat: 40.409264, lng: 49.867092 }; // Baku
 
@@ -29,8 +28,9 @@ export default function Taxi() {
   const paymentStatus = searchParams.get('status');
 
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries,
+    id: GOOGLE_MAPS_LOADER_ID,
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_MAPS_LIBRARIES,
     language: 'en',
   });
 
@@ -219,8 +219,6 @@ export default function Taxi() {
         priceText = ` (~$${(totalFare * 0.9).toFixed(2)} - $${(totalFare * 1.2).toFixed(2)})`;
       }
 
-      const msg = `Sifarişə davam edək`;
-      
       trackEvent(EVENTS.WHATSAPP_TAXI_ORDER, {
         car_class: car?.id,
         pickup: pickupAddress,
@@ -276,12 +274,11 @@ export default function Taxi() {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             tg.MainButton.setText("SİFARİŞ GÖNDƏRİLİR...");
             try {
-              tg.sendData(msg);
+              tg.sendData('');
               tg.MainButton.hide();
               setTimeout(() => tg.close(), 1000);
             } catch {
-              const url = `https://t.me/eydost_esim_bot?text=${encodeURIComponent(msg)}`;
-              tg.openTelegramLink(url);
+              tg.openTelegramLink('https://t.me/eydost_esim_bot');
               tg.close();
             }
           };
@@ -291,11 +288,10 @@ export default function Taxi() {
           createOrder({
             wa_id: waId,
             type: 'taxi',
-            details: msg,
           }).catch(console.error);
-          window.location.replace(`${WA_LINK}?text=${encodeURIComponent(msg)}`);
+          window.location.replace(WA_LINK);
         } else {
-          window.location.replace(`${WA_LINK}?text=${encodeURIComponent(msg)}`);
+          window.location.replace(WA_LINK);
         }
       }, 800);
     };

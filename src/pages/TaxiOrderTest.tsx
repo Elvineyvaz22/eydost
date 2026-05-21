@@ -1,6 +1,5 @@
 /**
- * Maxim-style taxi order UI (test only). Not linked to /taxi or production webhook flow.
- * Route: /taxi-order
+ * Maxim-style taxi order UI (test). Route: /taxi-order — not linked to /taxi webhook.
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -8,11 +7,9 @@ import { MapPin, Flag, ChevronRight, LocateFixed } from 'lucide-react';
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
 
-const libraries: ('places' | 'geocoding')[] = ['places', 'geocoding'];
 const defaultCenter = { lat: 40.409264, lng: 49.867092 };
-const MAP_HEIGHT = '52vh';
-const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 const darkMapStyle: google.maps.MapTypeStyle[] = [
   { elementType: 'geometry', stylers: [{ color: '#1d1d1d' }] },
@@ -32,9 +29,7 @@ const copy = {
     dropoffPh: 'Təyinat ünvanı',
     order: 'Sifariş et',
     selectBoth: 'Hər iki ünvanı seçin',
-    eta: 'təxminən',
     mapLoading: 'Xəritə yüklənir...',
-    mapError: 'Google Maps açılmadı. Vercel-də VITE_GOOGLE_MAPS_API_KEY təyin edin.',
   },
   en: {
     pickupHint: 'Pickup',
@@ -43,9 +38,7 @@ const copy = {
     dropoffPh: 'Destination',
     order: 'Order ride',
     selectBoth: 'Select both addresses',
-    eta: 'approx.',
     mapLoading: 'Loading map...',
-    mapError: 'Google Maps failed to load. Set VITE_GOOGLE_MAPS_API_KEY on Vercel.',
   },
   ru: {
     pickupHint: 'Откуда',
@@ -54,9 +47,7 @@ const copy = {
     dropoffPh: 'Пункт назначения',
     order: 'Заказать',
     selectBoth: 'Выберите оба адреса',
-    eta: 'примерно',
     mapLoading: 'Загрузка карты...',
-    mapError: 'Карта не загрузилась. Укажите VITE_GOOGLE_MAPS_API_KEY в Vercel.',
   },
 };
 
@@ -68,8 +59,9 @@ export default function TaxiOrderTest() {
   const waId = searchParams.get('wa_id');
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: mapsApiKey,
-    libraries,
+    id: GOOGLE_MAPS_LOADER_ID,
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   const [activeField, setActiveField] = useState<ActiveField>('pickup');
@@ -117,7 +109,7 @@ export default function TaxiOrderTest() {
     }
   }, [geocodeLatLng]);
 
-  const syncMapCenterToField = useCallback(() => {
+  const onMapDragEnd = useCallback(() => {
     const center = mapRef.current?.getCenter();
     if (!center) return;
     const latlng = { lat: center.lat(), lng: center.lng() };
@@ -162,48 +154,49 @@ export default function TaxiOrderTest() {
   }, [pickupCoords, dropoffCoords]);
 
   const routeLeg = directions?.routes[0]?.legs[0];
-  const etaText = routeLeg?.duration?.text;
 
   const handleOrder = () => {
     if (!pickupAddress.trim() || !dropoffAddress.trim()) {
       alert(t.selectBoth);
       return;
     }
-    console.log('[taxi-order test]', {
-      customerId,
-      waId,
-      pickup: pickupAddress,
-      dropoff: dropoffAddress,
-      pickupCoords,
-      dropoffCoords,
-    });
-    alert(language === 'az' ? 'Test sifarişi qeydə alındı (konsol).' : 'Test order logged (console).');
+    console.log('[taxi-order test]', { customerId, waId, pickup: pickupAddress, dropoff: dropoffAddress, pickupCoords, dropoffCoords });
+    alert(language === 'az' ? 'Test sifarişi qeydə alındı.' : 'Test order logged.');
   };
 
-  const mapReady = isLoaded && !loadError && Boolean(mapsApiKey);
+  if (loadError) {
+    return (
+      <div className="min-h-[100dvh] bg-[#121212] text-white flex items-center justify-center p-6 text-center text-sm text-gray-400">
+        Google Maps yüklənmədi. /taxi işləyirsə, səhifəni yeniləyin (Ctrl+Shift+R).
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-[#121212] text-white flex flex-col">
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-[#121212] text-white">
       <Seo title="Taxi order (test)" noIndex canonicalPath="/taxi-order" />
 
-      {/* Map — fixed height so Google Maps always renders */}
-      <div
-        className="relative w-full shrink-0"
-        style={{ height: MAP_HEIGHT, minHeight: 280 }}
-      >
-        {mapReady ? (
+      {/* Full-screen map — same pattern as /taxi mobile */}
+      <div className="absolute inset-0 z-0">
+        {!isLoaded ? (
+          <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a]">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 border-4 border-[#f5c518] border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-gray-500">{t.mapLoading}</p>
+            </div>
+          </div>
+        ) : (
           <GoogleMap
             mapContainerStyle={{ width: '100%', height: '100%' }}
             center={mapCenter}
             zoom={16}
             onLoad={onMapLoad}
-            onDragEnd={syncMapCenterToField}
-            onIdle={syncMapCenterToField}
+            onDragEnd={onMapDragEnd}
             options={{
               disableDefaultUI: true,
-              zoomControl: true,
-              styles: darkMapStyle,
+              zoomControl: false,
               gestureHandling: 'greedy',
+              styles: darkMapStyle,
             }}
           >
             {directions && (
@@ -216,31 +209,25 @@ export default function TaxiOrderTest() {
               />
             )}
           </GoogleMap>
-        ) : (
-          <div className="w-full h-full bg-[#1a1a1a] flex flex-col items-center justify-center gap-3 px-6 text-center">
-            <div className="w-10 h-10 border-2 border-[#f5c518] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-400">
-              {loadError || !mapsApiKey ? t.mapError : t.mapLoading}
-            </p>
-          </div>
         )}
+      </div>
 
-        {/* Center pin */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="mb-8 flex flex-col items-center">
-            {etaText && (
-              <span className="mb-1 rounded-md bg-[#2a2a2a] px-2 py-0.5 text-xs font-semibold text-[#f5c518]">
-                {etaText}
-              </span>
-            )}
-            <MapPin
-              className={`w-10 h-10 drop-shadow-lg ${activeField === 'pickup' ? 'text-red-500' : 'text-sky-400'}`}
-              fill="currentColor"
-            />
-          </div>
+      {/* Center pin */}
+      {isLoaded && (
+        <div className="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-full flex flex-col items-center pb-6">
+          {routeLeg?.duration?.text && (
+            <span className="mb-2 rounded-full bg-[#2a2a2a] px-3 py-1 text-xs font-bold text-[#f5c518]">
+              {routeLeg.duration.text}
+            </span>
+          )}
+          <MapPin
+            className={`w-9 h-9 drop-shadow-lg ${activeField === 'pickup' ? 'text-red-500' : 'text-sky-400'}`}
+            fill="currentColor"
+          />
         </div>
+      )}
 
-        {mapReady && (
+      {isLoaded && (
         <button
           type="button"
           onClick={() => {
@@ -258,104 +245,85 @@ export default function TaxiOrderTest() {
               }
             });
           }}
-          className="absolute right-3 top-3 rounded-full bg-[#2a2a2a]/90 p-3 shadow-lg border border-white/10"
+          className="absolute bottom-[340px] right-4 z-20 rounded-full bg-[#2a2a2a] p-3 shadow-lg border border-white/10"
           aria-label="My location"
         >
           <LocateFixed className="w-5 h-5 text-white" />
         </button>
-        )}
-      </div>
+      )}
 
-      {/* Bottom panel — no service type row (Maxim sarı taxi / teslimat / kamyon) */}
-      <div className="shrink-0 rounded-t-3xl bg-[#1e1e1e] border-t border-white/5 px-4 pt-4 pb-8 space-y-3 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            setActiveField('pickup');
-            if (pickupCoords) mapRef.current?.panTo(pickupCoords);
-          }}
-          onKeyDown={(e) => e.key === 'Enter' && setActiveField('pickup')}
-          className={`w-full text-left rounded-2xl px-4 py-3.5 transition-colors cursor-pointer ${
-            activeField === 'pickup' ? 'bg-[#2d2d2d] ring-1 ring-red-500/40' : 'bg-[#252525]'
-          }`}
-        >
-          <p className="text-[11px] text-gray-500 mb-1">{t.pickupHint}</p>
-          <div className="flex items-center gap-3">
-            <span className="w-3 h-3 rounded-full bg-red-500 shrink-0 ring-2 ring-red-500/30" />
-            {isLoaded ? (
-              <Autocomplete
-                onLoad={setPickupAutocomplete}
-                onPlaceChanged={() => pickupAutocomplete && applyPlace(pickupAutocomplete.getPlace(), 'pickup')}
-              >
-                <input
-                  value={pickupAddress}
-                  onChange={(e) => setPickupAddress(e.target.value)}
-                  onFocus={() => setActiveField('pickup')}
-                  placeholder={t.pickupPh}
-                  className="flex-1 bg-transparent text-[15px] font-medium text-white placeholder-gray-600 outline-none min-w-0"
-                />
-              </Autocomplete>
-            ) : (
-              <span className="text-gray-600 text-sm">...</span>
-            )}
+      {/* Bottom sheet — Maxim style, no service type row */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-6 pointer-events-none">
+        <div className="pointer-events-auto rounded-t-3xl bg-[#1e1e1e] border border-white/10 px-4 pt-4 pb-5 shadow-[0_-12px_40px_rgba(0,0,0,0.6)] space-y-3">
+          <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-1" />
+
+          <div
+            className={`rounded-2xl px-4 py-3 transition-colors ${
+              activeField === 'pickup' ? 'bg-[#2d2d2d] ring-1 ring-red-500/40' : 'bg-[#252525]'
+            }`}
+          >
+            <p className="text-[11px] text-gray-500 mb-1">{t.pickupHint}</p>
+            <div className="flex items-center gap-3">
+              <span className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
+              {isLoaded && (
+                <Autocomplete
+                  onLoad={setPickupAutocomplete}
+                  onPlaceChanged={() => pickupAutocomplete && applyPlace(pickupAutocomplete.getPlace(), 'pickup')}
+                  className="flex-1 min-w-0"
+                >
+                  <input
+                    value={pickupAddress}
+                    onChange={(e) => setPickupAddress(e.target.value)}
+                    onFocus={() => setActiveField('pickup')}
+                    placeholder={t.pickupPh}
+                    className="w-full bg-transparent text-[15px] font-medium text-white placeholder-gray-600 outline-none"
+                  />
+                </Autocomplete>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            setActiveField('dropoff');
-            if (dropoffCoords) mapRef.current?.panTo(dropoffCoords);
-          }}
-          onKeyDown={(e) => e.key === 'Enter' && setActiveField('dropoff')}
-          className={`w-full text-left rounded-2xl px-4 py-3.5 transition-colors cursor-pointer ${
-            activeField === 'dropoff' ? 'bg-[#2d2d2d] ring-1 ring-sky-500/40' : 'bg-[#252525]'
-          }`}
-        >
-          <p className="text-[11px] text-gray-500 mb-1">{t.dropoffHint}</p>
-          <div className="flex items-center gap-3">
-            <Flag className="w-4 h-4 text-sky-400 shrink-0" />
-            {isLoaded ? (
-              <Autocomplete
-                onLoad={setDropoffAutocomplete}
-                onPlaceChanged={() => dropoffAutocomplete && applyPlace(dropoffAutocomplete.getPlace(), 'dropoff')}
-              >
-                <input
-                  value={dropoffAddress}
-                  onChange={(e) => setDropoffAddress(e.target.value)}
-                  onFocus={() => setActiveField('dropoff')}
-                  placeholder={t.dropoffPh}
-                  className="flex-1 bg-transparent text-[15px] font-medium text-white placeholder-gray-600 outline-none min-w-0"
-                />
-              </Autocomplete>
-            ) : (
-              <span className="text-gray-600 text-sm">...</span>
-            )}
-            <ChevronRight className="w-5 h-5 text-gray-600 shrink-0" />
+          <div
+            className={`rounded-2xl px-4 py-3 transition-colors ${
+              activeField === 'dropoff' ? 'bg-[#2d2d2d] ring-1 ring-sky-500/40' : 'bg-[#252525]'
+            }`}
+          >
+            <p className="text-[11px] text-gray-500 mb-1">{t.dropoffHint}</p>
+            <div className="flex items-center gap-3">
+              <Flag className="w-4 h-4 text-sky-400 shrink-0" />
+              {isLoaded && (
+                <Autocomplete
+                  onLoad={setDropoffAutocomplete}
+                  onPlaceChanged={() => dropoffAutocomplete && applyPlace(dropoffAutocomplete.getPlace(), 'dropoff')}
+                  className="flex-1 min-w-0"
+                >
+                  <input
+                    value={dropoffAddress}
+                    onChange={(e) => setDropoffAddress(e.target.value)}
+                    onFocus={() => setActiveField('dropoff')}
+                    placeholder={t.dropoffPh}
+                    className="w-full bg-transparent text-[15px] font-medium text-white placeholder-gray-600 outline-none"
+                  />
+                </Autocomplete>
+              )}
+              <ChevronRight className="w-5 h-5 text-gray-600 shrink-0" />
+            </div>
           </div>
+
+          {routeLeg && (
+            <p className="text-center text-xs text-gray-500">
+              {routeLeg.distance?.text} · {routeLeg.duration?.text}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={handleOrder}
+            className="w-full rounded-2xl bg-[#f5c518] hover:bg-[#e6b616] text-[#1a1a1a] font-bold text-base py-4 active:scale-[0.98] transition-transform"
+          >
+            {t.order}
+          </button>
         </div>
-
-        {routeLeg && (
-          <p className="text-center text-xs text-gray-500">
-            {routeLeg.distance?.text} · {routeLeg.duration?.text}
-          </p>
-        )}
-
-        <button
-          type="button"
-          onClick={handleOrder}
-          className="w-full rounded-2xl bg-[#f5c518] hover:bg-[#e6b616] text-[#1a1a1a] font-bold text-base py-4 transition-colors active:scale-[0.98]"
-        >
-          {t.order}
-        </button>
-
-        {(customerId || waId) && (
-          <p className="text-center text-[10px] text-gray-600 truncate">
-            test id: {customerId || '—'} {waId ? `· wa: ${waId}` : ''}
-          </p>
-        )}
       </div>
     </div>
   );
