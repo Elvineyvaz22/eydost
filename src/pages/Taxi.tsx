@@ -10,8 +10,14 @@ import { getWaId, createOrder } from '../utils/whatsapp';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
 import { formatGeocoderResult, formatPlaceAddress, extractCountry, isSameCountry } from '../utils/addressFormat';
 import PlaceSearchInput, { type PlaceSearchInputHandle } from '../components/PlaceSearchInput';
+import TaxiOrderBottomNav from '../components/TaxiOrderBottomNav';
+import TaxiRequestsPanel from '../components/TaxiRequestsPanel';
+import { resolveTaxiLinkId, resolveTaxiWaId } from '../utils/taxiLinkSession';
+import { useTaxiLinkStorage } from '../hooks/useTaxiLinkStorage';
+import type { TaxiOrderRecord } from '../services/taxiSessionApi';
 
 const WA_LINK = 'https://wa.me/994992000444';
+const MOBILE_NAV_H = '5.5rem';
 
 const defaultCenter = { lat: 40.409264, lng: 49.867092 }; // Baku
 
@@ -25,7 +31,7 @@ const CAR_CLASSES = [
 export default function Taxi() {
   const { t, language } = useLanguage();
   const [searchParams] = useSearchParams();
-  const urlBookingId = searchParams.get('id') || searchParams.get('bookingId');
+  const linkId = resolveTaxiLinkId(searchParams);
   const paymentStatus = searchParams.get('status');
 
   const { isLoaded } = useLoadScript({
@@ -47,6 +53,7 @@ export default function Taxi() {
   const [activeInput, setActiveInput] = useState<'pickup' | 'dropoff'>('pickup');
   const [mobileStep, setMobileStep] = useState<'select_pickup' | 'select_dropoff' | 'confirm_ride'>('select_pickup');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isOrdering, setIsOrdering] = useState(false);
   
   // Coordinates
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -69,6 +76,35 @@ export default function Taxi() {
   const dropoffTopBarRef = useRef<HTMLDivElement>(null);
   const dropoffSearchRef = useRef<PlaceSearchInputHandle>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+
+  const tabLabels =
+    language === 'az'
+      ? { home: 'Ana səhifə', requests: 'Tələblər', requestsTitle: 'Keçmiş sifarişlər', requestsEmpty: 'Hələ sifariş yoxdur.', repeat: 'Təkrarla' }
+      : language === 'ru'
+        ? { home: 'Главная', requests: 'Заказы', requestsTitle: 'История заказов', requestsEmpty: 'Заказов пока нет.', repeat: 'Повторить' }
+        : { home: 'Home', requests: 'Requests', requestsTitle: 'Past orders', requestsEmpty: 'No orders yet.', repeat: 'Repeat' };
+
+  const { orders, activeTab, setActiveTab, saveOrderToHistory } = useTaxiLinkStorage(
+    linkId,
+    resolveTaxiWaId(searchParams) || getWaId(),
+    {
+      step: mobileStep,
+      pickupAddress,
+      dropoffAddress,
+      pickupCoords,
+      dropoffCoords,
+      pickupCountryCode,
+    },
+    {
+      setPickupAddress,
+      setDropoffAddress,
+      setPickupCoords,
+      setDropoffCoords,
+      setPickupCountryCode,
+      setMapCenter,
+      setMobileStep,
+    }
+  );
 
   const locateUser = useCallback((map?: google.maps.Map) => {
     if (navigator.geolocation) {
@@ -186,7 +222,7 @@ export default function Taxi() {
     }
   };
 
-  const calculateRoute = (origin: google.maps.LatLngLiteral, destination: google.maps.LatLngLiteral) => {
+  const calculateRoute = useCallback((origin: google.maps.LatLngLiteral, destination: google.maps.LatLngLiteral) => {
     const directionsService = new google.maps.DirectionsService();
     directionsService.route(
       {
@@ -202,7 +238,29 @@ export default function Taxi() {
         }
       }
     );
-  };
+  }, []);
+
+  const applyOrder = useCallback(
+    (order: TaxiOrderRecord) => {
+      setPickupAddress(order.pickup_address);
+      setDropoffAddress(order.dropoff_address);
+      let origin: google.maps.LatLngLiteral | null = null;
+      let dest: google.maps.LatLngLiteral | null = null;
+      if (order.pickup_lat != null && order.pickup_lng != null) {
+        origin = { lat: order.pickup_lat, lng: order.pickup_lng };
+        setPickupCoords(origin);
+        setMapCenter(origin);
+      }
+      if (order.dropoff_lat != null && order.dropoff_lng != null) {
+        dest = { lat: order.dropoff_lat, lng: order.dropoff_lng };
+        setDropoffCoords(dest);
+      }
+      if (isMobile) setMobileStep('confirm_ride');
+      if (origin && dest) calculateRoute(origin, dest);
+      setActiveTab('home');
+    },
+    [isMobile, calculateRoute, setActiveTab]
+  );
 
   useEffect(() => {
     if (!isMobile) {
@@ -215,11 +273,9 @@ export default function Taxi() {
   }, [pickupCoords, dropoffCoords, isMobile]);
 
   const isTelegramWebApp = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initData;
+  const waId = resolveTaxiWaId(searchParams) || getWaId();
 
-    const [isOrdering] = useState(false);
-    const waId = getWaId();
-
-    const handleBooking = async () => {
+  const handleBooking = async () => {
       if (!pickupAddress || !dropoffAddress) {
         alert(language === 'az' ? "Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin." : (language === 'ru' ? "Пожалуйста, выберите пункты отправления и назначения." : "Please select both pickup and drop-off locations."));
         return;
@@ -256,8 +312,17 @@ export default function Taxi() {
         estimated_price: priceText
       });
 
-      // Use bookingId from URL (?id=RIT-7842) if provided by bsqd.me, else generate one
-      const bookingId = urlBookingId || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      setIsOrdering(true);
+      try {
+      if (linkId) {
+        try {
+          await saveOrderToHistory();
+        } catch (e) {
+          console.warn('[taxi] save order history', e);
+        }
+      }
+
+      const bookingId = linkId || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
       try {
         const res = await fetch('/api/taxi-webhook', {
           method: 'POST',
@@ -288,6 +353,9 @@ export default function Taxi() {
         }
       } catch (e) {
         console.warn('Taxi webhook failed:', e);
+      }
+      } finally {
+        setIsOrdering(false);
       }
 
       setIsSuccess(true);
@@ -470,66 +538,103 @@ export default function Taxi() {
           <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full items-stretch">
               <div className="lg:col-span-5 flex flex-col">
-                <div className="bg-gray-900/60 backdrop-blur-xl border border-gray-800 rounded-3xl p-6 shadow-2xl flex-1 flex flex-col">
-                  <div className="space-y-4">
-                    <div 
-                      onClick={() => {
-                        setActiveInput('pickup');
-                        if (pickupCoords) mapRef.current?.panTo(pickupCoords);
-                      }}
-                      className={`relative p-3 rounded-xl border-2 transition-all cursor-text ${
-                        activeInput === 'pickup' ? 'border-blue-500 bg-gray-800' : 'border-gray-700 bg-gray-800/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Navigation className="w-5 h-5 text-blue-400 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-semibold mb-1 uppercase">{t.taxi.pickupLabel}</p>
-                          {isLoaded && (
-                            <Autocomplete onLoad={(auto) => setPickupAutocomplete(auto)} onPlaceChanged={handlePickupPlaceChanged}>
-                              <input
-                                type="text"
-                                value={pickupAddress}
-                                onChange={(e) => setPickupAddress(e.target.value)}
-                                placeholder={t.taxi.pickupPlaceholder}
-                                className="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
-                              />
-                            </Autocomplete>
-                          )}
-                        </div>
-                      </div>
+                <div className="bg-gray-900/60 backdrop-blur-xl border border-gray-800 rounded-3xl p-6 shadow-2xl flex-1 flex flex-col min-h-0">
+                  {linkId && (
+                    <div className="flex gap-2 mb-4 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('home')}
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                          activeTab === 'home' ? 'bg-[#f5c518] text-gray-900' : 'bg-gray-800 text-gray-400'
+                        }`}
+                      >
+                        {tabLabels.home}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('requests')}
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                          activeTab === 'requests' ? 'bg-[#f5c518] text-gray-900' : 'bg-gray-800 text-gray-400'
+                        }`}
+                      >
+                        {tabLabels.requests}
+                      </button>
                     </div>
+                  )}
 
-                    <div 
-                      onClick={() => {
-                        setActiveInput('dropoff');
-                        if (dropoffCoords) mapRef.current?.panTo(dropoffCoords);
-                      }}
-                      className={`relative p-3 rounded-xl border-2 transition-all cursor-text ${
-                        activeInput === 'dropoff' ? 'border-red-500 bg-gray-800' : 'border-gray-700 bg-gray-800/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <MapPin className="w-5 h-5 text-red-500 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-semibold mb-1 uppercase">{t.taxi.dropoffLabel}</p>
-                          {isLoaded && (
-                            <PlaceSearchInput
-                              value={dropoffAddress}
-                              onChange={setDropoffAddress}
-                              onPlaceSelect={handleDropoffPlaceSelect}
-                              restrictCountryCode={pickupCountryCode}
-                              restrictCountryName={pickupCountryName}
-                              locationBias={pickupCoords}
-                              placeholder={t.taxi.dropoffPlaceholder}
-                              variant="dark"
-                              inputClassName="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
-                            />
-                          )}
+                  {linkId && activeTab === 'requests' ? (
+                    <div className="flex-1 min-h-0 overflow-hidden">
+                      <TaxiRequestsPanel
+                        orders={orders}
+                        language={language}
+                        title={tabLabels.requestsTitle}
+                        emptyText={tabLabels.requestsEmpty}
+                        repeatLabel={tabLabels.repeat}
+                        onSelect={applyOrder}
+                        variant="dark"
+                      />
+                    </div>
+                  ) : (
+                  <>
+                    <div className="space-y-4">
+                      <div
+                        onClick={() => {
+                          setActiveInput('pickup');
+                          if (pickupCoords) mapRef.current?.panTo(pickupCoords);
+                        }}
+                        className={`relative p-3 rounded-xl border-2 transition-all cursor-text ${
+                          activeInput === 'pickup' ? 'border-blue-500 bg-gray-800' : 'border-gray-700 bg-gray-800/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Navigation className="w-5 h-5 text-blue-400 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-gray-500 font-semibold mb-1 uppercase">{t.taxi.pickupLabel}</p>
+                            {isLoaded && (
+                              <Autocomplete onLoad={(auto) => setPickupAutocomplete(auto)} onPlaceChanged={handlePickupPlaceChanged}>
+                                <input
+                                  type="text"
+                                  value={pickupAddress}
+                                  onChange={(e) => setPickupAddress(e.target.value)}
+                                  placeholder={t.taxi.pickupPlaceholder}
+                                  className="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
+                                />
+                              </Autocomplete>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        onClick={() => {
+                          setActiveInput('dropoff');
+                          if (dropoffCoords) mapRef.current?.panTo(dropoffCoords);
+                        }}
+                        className={`relative p-3 rounded-xl border-2 transition-all cursor-text ${
+                          activeInput === 'dropoff' ? 'border-red-500 bg-gray-800' : 'border-gray-700 bg-gray-800/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <MapPin className="w-5 h-5 text-red-500 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-gray-500 font-semibold mb-1 uppercase">{t.taxi.dropoffLabel}</p>
+                            {isLoaded && (
+                              <PlaceSearchInput
+                                value={dropoffAddress}
+                                onChange={setDropoffAddress}
+                                onPlaceSelect={handleDropoffPlaceSelect}
+                                restrictCountryCode={pickupCountryCode}
+                                restrictCountryName={pickupCountryName}
+                                locationBias={pickupCoords}
+                                placeholder={t.taxi.dropoffPlaceholder}
+                                variant="dark"
+                                inputClassName="w-full bg-transparent text-white font-medium focus:outline-none truncate placeholder-gray-500 text-sm"
+                              />
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
                     {routeDetails && (
                       <div className="mt-8">
@@ -555,6 +660,8 @@ export default function Taxi() {
                       <MessageCircle className="w-5 h-5" />
                       {isOrdering ? '...' : t.taxi.continueOrder}
                     </button>
+                  </>
+                  )}
                 </div>
               </div>
 
@@ -624,6 +731,8 @@ export default function Taxi() {
   }
 
   const isDropoffSearch = mobileStep === 'select_dropoff';
+  const showMobileNav = Boolean(linkId);
+  const showMobileRequests = showMobileNav && activeTab === 'requests';
 
   return (
     <div className="h-[100dvh] w-full flex flex-col bg-gray-100 relative overflow-hidden">
@@ -661,6 +770,25 @@ export default function Taxi() {
                 inputClassName="w-full bg-transparent text-gray-900 font-semibold focus:outline-none text-base placeholder-gray-400"
               />
             )}
+          </div>
+        </div>
+      )}
+
+      {showMobileRequests && (
+        <div
+          className="fixed inset-0 z-30 bg-white flex flex-col pt-16"
+          style={{ paddingBottom: MOBILE_NAV_H }}
+        >
+          <div className="flex-1 min-h-0 px-4 py-4">
+            <TaxiRequestsPanel
+              orders={orders}
+              language={language}
+              title={tabLabels.requestsTitle}
+              emptyText={tabLabels.requestsEmpty}
+              repeatLabel={tabLabels.repeat}
+              onSelect={applyOrder}
+              variant="light"
+            />
           </div>
         </div>
       )}
@@ -703,10 +831,11 @@ export default function Taxi() {
           )}
         </div>
 
-        {isLoaded && mobileStep === 'select_pickup' && (
+        {isLoaded && mobileStep === 'select_pickup' && !showMobileRequests && (
           <button 
             onClick={() => locateUser()}
-            className="absolute bottom-[360px] right-4 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 transition-colors z-20"
+            className="absolute right-4 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 transition-colors z-20"
+            style={{ bottom: showMobileNav ? `calc(${MOBILE_NAV_H} + 300px)` : '360px' }}
           >
             <LocateFixed className="w-6 h-6 text-blue-600" />
           </button>
@@ -755,8 +884,14 @@ export default function Taxi() {
           </div>
         )}
 
-        {!isDropoffSearch && (
-        <div className="absolute bottom-0 left-0 w-full z-20 pointer-events-none pb-4 px-4">
+        {!isDropoffSearch && !showMobileRequests && (
+        <div
+          className="absolute left-0 w-full z-20 pointer-events-none px-4"
+          style={{
+            bottom: showMobileNav ? MOBILE_NAV_H : 0,
+            paddingBottom: showMobileNav ? '0.75rem' : '1rem',
+          }}
+        >
           <div className="bg-white rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] p-5 pointer-events-auto w-full overflow-visible">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
 
@@ -820,6 +955,14 @@ export default function Taxi() {
         </div>
         )}
       </main>
+
+      {showMobileNav && (
+        <TaxiOrderBottomNav
+          active={activeTab}
+          onChange={setActiveTab}
+          labels={{ home: tabLabels.home, requests: tabLabels.requests }}
+        />
+      )}
     </div>
   );
 }
