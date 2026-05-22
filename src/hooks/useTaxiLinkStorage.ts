@@ -80,9 +80,9 @@ export function useTaxiLinkStorage(
         if (cancelled) return;
         const list = profile.orders.slice(0, 4);
         setOrders(list);
-        if (list.length > 0) setActiveTab('requests');
 
         const session = profile.session;
+        let resumeStep: Step | undefined;
         if (session) {
           if (session.pickupAddress) restore.setPickupAddress(session.pickupAddress);
           if (session.dropoffAddress) restore.setDropoffAddress(session.dropoffAddress);
@@ -90,13 +90,17 @@ export function useTaxiLinkStorage(
           if (session.dropoffCoords) restore.setDropoffCoords(session.dropoffCoords);
           if (session.pickupCountryCode !== undefined) restore.setPickupCountryCode(session.pickupCountryCode);
           if (session.pickupCoords) restore.setMapCenter(session.pickupCoords);
-          const step = session.step;
+          resumeStep = session.step as Step | undefined;
           if (
             restore.setMobileStep &&
-            (step === 'select_pickup' || step === 'select_dropoff' || step === 'confirm_ride')
+            (resumeStep === 'select_pickup' || resumeStep === 'select_dropoff' || resumeStep === 'confirm_ride')
           ) {
-            restore.setMobileStep(step);
+            restore.setMobileStep(resumeStep);
           }
+        }
+
+        if (list.length > 0 && resumeStep !== 'select_dropoff' && resumeStep !== 'confirm_ride') {
+          setActiveTab('requests');
         }
       })
       .catch((e) => console.warn('[taxi] profile load', e))

@@ -7,7 +7,13 @@ import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
 import { getWaId, createOrder } from '../utils/whatsapp';
-import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
+import {
+  GOOGLE_MAPS_API_KEY,
+  GOOGLE_MAPS_LIBRARIES,
+  GOOGLE_MAPS_LOADER_ID,
+  TAXI_MOBILE_MAP_STYLES,
+  TAXI_DESKTOP_MAP_STYLES,
+} from '../utils/googleMaps';
 import { formatGeocoderResult, formatPlaceAddress, extractCountry, isSameCountry } from '../utils/addressFormat';
 import PlaceSearchInput, { type PlaceSearchInputHandle } from '../components/PlaceSearchInput';
 import TaxiOrderBottomNav from '../components/TaxiOrderBottomNav';
@@ -17,7 +23,7 @@ import { useTaxiLinkStorage } from '../hooks/useTaxiLinkStorage';
 import type { TaxiOrderRecord } from '../services/taxiSessionApi';
 
 const WA_LINK = 'https://wa.me/994992000444';
-const MOBILE_NAV_H = '5.5rem';
+const MOBILE_NAV_H = '3.75rem';
 
 const defaultCenter = { lat: 40.409264, lng: 49.867092 }; // Baku
 
@@ -397,8 +403,10 @@ export default function Taxi() {
   // Mobile Handlers
   const handleMobileNext = () => {
     if (mobileStep === 'select_pickup') {
+      setActiveTab('home');
       setMobileStep('select_dropoff');
     } else if (mobileStep === 'select_dropoff') {
+      setActiveTab('home');
       setMobileStep('confirm_ride');
       if (pickupCoords && dropoffCoords) {
         calculateRoute(pickupCoords, dropoffCoords);
@@ -681,15 +689,7 @@ export default function Taxi() {
                       onDragEnd={onMapDragEnd}
                       options={{
                         disableDefaultUI: true, zoomControl: true, gestureHandling: "greedy",
-                        styles: [
-                          { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-                          { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-                          { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-                          { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
-                          { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
-                          { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
-                          { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
-                        ],
+                        styles: TAXI_DESKTOP_MAP_STYLES,
                       }}
                     >
                       {directions && (
@@ -731,8 +731,11 @@ export default function Taxi() {
   }
 
   const isDropoffSearch = mobileStep === 'select_dropoff';
-  const showMobileNav = Boolean(linkId);
-  const showMobileRequests = showMobileNav && activeTab === 'requests';
+  const hideBottomNav =
+    mobileStep === 'select_dropoff' || mobileStep === 'confirm_ride' || isDropoffSearch;
+  const showMobileNav = Boolean(linkId) && !hideBottomNav;
+  const showMobileRequests =
+    Boolean(linkId) && activeTab === 'requests' && mobileStep === 'select_pickup' && !isDropoffSearch;
 
   return (
     <div className="h-[100dvh] w-full flex flex-col bg-gray-100 relative overflow-hidden">
@@ -807,18 +810,10 @@ export default function Taxi() {
               onLoad={onMapLoad}
               onDragEnd={onMapDragEnd}
               options={{
-                disableDefaultUI: true, zoomControl: false, gestureHandling: "greedy",
-                styles: [
-                  { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-                  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-                  { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-                  { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-                  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-                  { featureType: "road.arterial", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
-                  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#dadada" }] },
-                  { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-                  { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] },
-                ],
+                disableDefaultUI: true,
+                zoomControl: false,
+                gestureHandling: 'greedy',
+                styles: TAXI_MOBILE_MAP_STYLES,
               }}
             >
               {directions && (
@@ -873,7 +868,7 @@ export default function Taxi() {
         )}
 
         {isDropoffSearch && dropoffAddress.trim() && (
-          <div className="absolute bottom-0 left-0 right-0 z-30 p-4 pointer-events-none pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="absolute bottom-0 left-0 right-0 z-40 p-4 pointer-events-none pb-[max(1rem,env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={handleMobileNext}
@@ -886,10 +881,10 @@ export default function Taxi() {
 
         {!isDropoffSearch && !showMobileRequests && (
         <div
-          className="absolute left-0 w-full z-20 pointer-events-none px-4"
+          className="absolute left-0 w-full z-40 pointer-events-none px-4"
           style={{
             bottom: showMobileNav ? MOBILE_NAV_H : 0,
-            paddingBottom: showMobileNav ? '0.75rem' : '1rem',
+            paddingBottom: showMobileNav ? '0.5rem' : '1rem',
           }}
         >
           <div className="bg-white rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.15)] p-5 pointer-events-auto w-full overflow-visible">
@@ -961,6 +956,7 @@ export default function Taxi() {
           active={activeTab}
           onChange={setActiveTab}
           labels={{ home: tabLabels.home, requests: tabLabels.requests }}
+          variant="light"
         />
       )}
     </div>

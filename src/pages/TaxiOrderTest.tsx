@@ -8,7 +8,12 @@ import { ArrowLeft, LocateFixed } from 'lucide-react';
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
-import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
+import {
+  GOOGLE_MAPS_API_KEY,
+  GOOGLE_MAPS_LIBRARIES,
+  GOOGLE_MAPS_LOADER_ID,
+  TAXI_ORDER_MAP_STYLES,
+} from '../utils/googleMaps';
 import { formatGeocoderResult, formatPlaceAddress, extractCountry, isSameCountry } from '../utils/addressFormat';
 import PlaceSearchInput from '../components/PlaceSearchInput';
 import { resolveTaxiLinkId, resolveTaxiWaId, type TaxiOrderDraft } from '../utils/taxiLinkSession';
@@ -23,14 +28,6 @@ import { showToast } from '../components/Toast';
 import TaxiOrderBottomNav, { type TaxiOrderTab } from '../components/TaxiOrderBottomNav';
 
 const defaultCenter = { lat: 40.409264, lng: 49.867092 };
-
-const darkMapStyle: google.maps.MapTypeStyle[] = [
-  { elementType: 'geometry', stylers: [{ color: '#1d1d1d' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#8a8a8a' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1d1d1d' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2c2c2c' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1626' }] },
-];
 
 type Step = 'select_pickup' | 'select_dropoff' | 'confirm_ride';
 
@@ -508,7 +505,7 @@ export default function TaxiOrderTest() {
               disableDefaultUI: true,
               zoomControl: false,
               gestureHandling: 'greedy',
-              styles: darkMapStyle,
+              styles: TAXI_ORDER_MAP_STYLES,
             }}
           >
             {step === 'confirm_ride' && directions && (
