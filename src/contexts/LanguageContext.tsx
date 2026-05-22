@@ -1,8 +1,16 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { translations } from '../translations';
 import { supabase } from '../lib/supabase';
+import {
+  type AppLanguage,
+  cacheSessionGeoLanguage,
+  detectLanguageFromGeo,
+  getManualLanguage,
+  getSessionGeoLanguage,
+  saveManualLanguage,
+} from '../utils/languagePreference';
 
-type Language = 'en' | 'az' | 'ru';
+type Language = AppLanguage;
 
 interface LanguageContextType {
   language: Language;
@@ -18,13 +26,35 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+function resolveInitialLanguage(): Language {
+  return getManualLanguage() ?? getSessionGeoLanguage() ?? 'en';
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>(resolveInitialLanguage);
   const [siteContent, setSiteContent] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
 
+  const setLanguage = useCallback((lang: Language) => {
+    setLanguageState(lang);
+    saveManualLanguage(lang);
+  }, []);
+
   useEffect(() => {
     loadSiteContent();
+  }, []);
+
+  useEffect(() => {
+    if (getManualLanguage()) return;
+    let cancelled = false;
+    detectLanguageFromGeo().then((lang) => {
+      if (cancelled) return;
+      cacheSessionGeoLanguage(lang);
+      setLanguageState(lang);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const loadSiteContent = async () => {
