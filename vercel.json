@@ -52,6 +52,7 @@
   ],
   "routes": [
     { "src": "/api/taxi-webhook", "dest": "/api/taxi-webhook.ts" },
+    { "src": "/api/taxi-session", "dest": "/api/taxi-session.ts" },
     { "src": "/api/sync-esim-packages", "dest": "/api/sync-esim-packages.ts" },
     {
       "src": "/api/esim-packages",

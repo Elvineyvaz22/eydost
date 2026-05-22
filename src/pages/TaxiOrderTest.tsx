@@ -11,6 +11,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '../utils/googleMaps';
 import { formatGeocoderResult, formatPlaceAddress, extractCountry, isSameCountry } from '../utils/addressFormat';
 import PlaceSearchInput from '../components/PlaceSearchInput';
+import { resolveTaxiLinkId, resolveTaxiWaId, type TaxiOrderDraft } from '../utils/taxiLinkSession';
+import { fetchTaxiSession, saveTaxiSession } from '../services/taxiSessionApi';
 
 const defaultCenter = { lat: 40.409264, lng: 49.867092 };
 
@@ -35,6 +37,12 @@ const copy = {
     order: 'Sifariş et',
     mapLoading: 'Xəritə yüklənir...',
     distance: 'Məsafə',
+    linkRequiredTitle: 'Şəxsi link lazımdır',
+    linkRequiredBody: 'Bu səhifə yalnız sizə göndərilmiş taksi linki ilə açılır. WhatsApp botundan linkə toxunun.',
+    linkRequiredHint: 'Nümunə: /taxi-order?id=SİZİN-ID',
+    sessionLoading: 'Sizin sifarişiniz yüklənir...',
+    sessionError: 'Məlumat yüklənmədi. Yenidən cəhd edin.',
+    saving: 'Saxlanılır...',
   },
   en: {
     pickupQ: 'Pickup?',
@@ -46,6 +54,12 @@ const copy = {
     order: 'Order ride',
     mapLoading: 'Loading map...',
     distance: 'Distance',
+    linkRequiredTitle: 'Personal link required',
+    linkRequiredBody: 'This page opens only from your private taxi link sent in chat. Tap the link from the bot.',
+    linkRequiredHint: 'Example: /taxi-order?id=YOUR-ID',
+    sessionLoading: 'Loading your order...',
+    sessionError: 'Could not load your data. Please try again.',
+    saving: 'Saving...',
   },
   ru: {
     pickupQ: 'Откуда?',
@@ -57,6 +71,12 @@ const copy = {
     order: 'Заказать',
     mapLoading: 'Загрузка карты...',
     distance: 'Расстояние',
+    linkRequiredTitle: 'Нужна персональная ссылка',
+    linkRequiredBody: 'Страница открывается только по вашей ссылке из чата. Нажмите ссылку от бота.',
+    linkRequiredHint: 'Пример: /taxi-order?id=ВАШ-ID',
+    sessionLoading: 'Загрузка заказа...',
+    sessionError: 'Не удалось загрузить данные. Попробуйте снова.',
+    saving: 'Сохранение...',
   },
 };
 
@@ -64,8 +84,12 @@ export default function TaxiOrderTest() {
   const { language } = useLanguage();
   const t = copy[language] ?? copy.az;
   const [searchParams] = useSearchParams();
-  const customerId = searchParams.get('id') || searchParams.get('bookingId');
-  const waId = searchParams.get('wa_id');
+  const linkId = resolveTaxiLinkId(searchParams);
+  const waIdFromUrl = resolveTaxiWaId(searchParams);
+
+  const [sessionLoading, setSessionLoading] = useState(!!linkId);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { isLoaded, loadError } = useLoadScript({
     id: GOOGLE_MAPS_LOADER_ID,
@@ -86,6 +110,98 @@ export default function TaxiOrderTest() {
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipSaveRef = useRef(true);
+
+  const buildDraft = useCallback(
+    (): TaxiOrderDraft => ({
+      step,
+      pickupAddress,
+      dropoffAddress,
+      pickupCoords: pickupCoords ?? undefined,
+      dropoffCoords: dropoffCoords ?? undefined,
+      pickupCountryCode,
+    }),
+    [step, pickupAddress, dropoffAddress, pickupCoords, dropoffCoords, pickupCountryCode]
+  );
+
+  const persistDraftNow = useCallback(
+    async (patch?: Partial<TaxiOrderDraft>) => {
+      if (!linkId) return;
+      setIsSaving(true);
+      try {
+        await saveTaxiSession(linkId, { ...buildDraft(), ...patch }, waIdFromUrl);
+        setSessionError(null);
+      } catch (e) {
+        console.warn('[taxi-order] save failed', e);
+        setSessionError(t.sessionError);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [linkId, buildDraft, waIdFromUrl, t.sessionError]
+  );
+
+  useEffect(() => {
+    if (!linkId) return;
+    let cancelled = false;
+    setSessionLoading(true);
+    setSessionError(null);
+    fetchTaxiSession(linkId)
+      .then((session) => {
+        if (cancelled) return;
+        if (!session) return;
+        if (session.pickupAddress) setPickupAddress(session.pickupAddress);
+        if (session.dropoffAddress) setDropoffAddress(session.dropoffAddress);
+        if (session.pickupCoords) setPickupCoords(session.pickupCoords);
+        if (session.dropoffCoords) setDropoffCoords(session.dropoffCoords);
+        if (session.pickupCountryCode !== undefined) setPickupCountryCode(session.pickupCountryCode);
+        if (
+          session.step === 'select_dropoff' ||
+          session.step === 'confirm_ride' ||
+          session.step === 'select_pickup'
+        ) {
+          setStep(session.step);
+        }
+        if (session.pickupCoords) setMapCenter(session.pickupCoords);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          console.warn('[taxi-order] load failed', e);
+          setSessionError(t.sessionError);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setSessionLoading(false);
+          skipSaveRef.current = false;
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [linkId, t.sessionError]);
+
+  useEffect(() => {
+    if (!linkId || skipSaveRef.current || sessionLoading) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      persistDraftNow();
+    }, 600);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [
+    linkId,
+    sessionLoading,
+    step,
+    pickupAddress,
+    dropoffAddress,
+    pickupCoords,
+    dropoffCoords,
+    pickupCountryCode,
+    persistDraftNow,
+  ]);
 
   const applyPickupCountry = (components?: google.maps.GeocoderAddressComponent[]) => {
     const { code, name } = extractCountry(components);
@@ -231,14 +347,36 @@ export default function TaxiOrderTest() {
     });
   };
 
-  const handleOrder = () => {
-    console.log('[taxi-order]', { customerId, waId, pickupAddress, dropoffAddress, pickupCoords, dropoffCoords });
-    alert(language === 'az' ? 'Sifariş qeydə alındı (test).' : 'Order logged (test).');
+  const handleOrder = async () => {
+    if (!linkId) return;
+    await persistDraftNow({ step: 'confirm_ride' });
+    alert(language === 'az' ? 'Sifarişiniz qeydə alındı (test).' : 'Your order was saved (test).');
   };
 
   const routeLeg = directions?.routes[0]?.legs[0];
   const pinPickup = step === 'select_pickup';
   const showMapPin = step !== 'confirm_ride';
+
+  if (!linkId) {
+    return (
+      <div className="min-h-[100dvh] bg-[#121212] text-white flex flex-col items-center justify-center p-8 text-center">
+        <Seo title="Taxi order" noIndex canonicalPath="/taxi-order" />
+        <h1 className="text-xl font-bold mb-3">{t.linkRequiredTitle}</h1>
+        <p className="text-gray-400 text-sm max-w-sm mb-4">{t.linkRequiredBody}</p>
+        <p className="text-gray-600 text-xs font-mono">{t.linkRequiredHint}</p>
+      </div>
+    );
+  }
+
+  if (sessionLoading) {
+    return (
+      <div className="min-h-[100dvh] bg-[#121212] text-white flex flex-col items-center justify-center p-8 text-center">
+        <Seo title="Taxi order (test)" noIndex canonicalPath="/taxi-order" />
+        <div className="w-12 h-12 border-4 border-[#f5c518] border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-gray-400 text-sm">{t.sessionLoading}</p>
+      </div>
+    );
+  }
 
   if (loadError) {
     return (
@@ -251,6 +389,17 @@ export default function TaxiOrderTest() {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-[#121212] text-white">
       <Seo title="Taxi order (test)" noIndex canonicalPath="/taxi-order" />
+
+      {sessionError && (
+        <div className="absolute top-4 left-4 right-4 z-30 rounded-xl bg-red-950/90 border border-red-500/40 px-4 py-2 text-xs text-red-200">
+          {sessionError}
+        </div>
+      )}
+      {isSaving && (
+        <div className="absolute top-4 right-4 z-30 rounded-full bg-black/70 px-3 py-1 text-[10px] text-gray-400">
+          {t.saving}
+        </div>
+      )}
 
       {/* Full-screen map */}
       <div className="absolute inset-0 z-0">
