@@ -205,10 +205,8 @@ export default function TaxiOrderTest() {
       setIsSaving(true);
       try {
         await saveTaxiSession(linkId, { ...buildDraft(), ...patch }, { waId: waIdFromUrl });
-        setSessionError(null);
       } catch (e) {
-        console.warn('[taxi-order] save failed', e);
-        setSessionError(t.sessionError);
+        console.warn('[taxi-order] autosave failed', e);
       } finally {
         setIsSaving(false);
       }
@@ -246,6 +244,8 @@ export default function TaxiOrderTest() {
         if (!cancelled) {
           console.warn('[taxi-order] load failed', e);
           setSessionError(t.sessionError);
+          setOrders([]);
+          setFavorites([]);
         }
       })
       .finally(() => {

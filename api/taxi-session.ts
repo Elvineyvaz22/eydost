@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { MAX_TAXI_ORDERS_PER_LINK } from './taxiOrdersDb';
+
+const MAX_TAXI_ORDERS_PER_LINK = 4;
 
 /** Opaque id from bot link (?id=…). Must be hard to guess. */
 const LINK_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{7,127}$/;
@@ -49,6 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(204).end();
   }
 
+  try {
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceKey) {
@@ -157,4 +159,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
+  } catch (err) {
+    console.error('[taxi-session] unhandled', err);
+    return res.status(500).json({ error: err instanceof Error ? err.message : 'Server error' });
+  }
 }
