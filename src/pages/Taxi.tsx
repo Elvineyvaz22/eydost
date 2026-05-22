@@ -857,6 +857,18 @@ export default function Taxi() {
         )}
 
         {isLoaded && isDropoffSearch && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10 pointer-events-none pb-6 flex flex-col items-center">
+            <div className="bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg mb-2 whitespace-nowrap animate-bounce">
+              {t.taxi.dropoffLabel}?
+            </div>
+            <div className="w-8 h-12 flex items-center justify-center relative">
+              <div className="w-6 h-6 rounded-sm border-4 border-white bg-red-600 absolute bottom-0 shadow-md z-10 rotate-45" />
+              <div className="w-1 h-8 bg-black absolute bottom-3 z-0" />
+            </div>
+          </div>
+        )}
+
+        {isLoaded && isDropoffSearch && (
           <button
             type="button"
             onClick={() => locateUser()}
