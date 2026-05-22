@@ -12,7 +12,6 @@ type Props = {
   active: TaxiOrderTab;
   onChange: (tab: TaxiOrderTab) => void;
   labels: Labels;
-  requestCount?: number;
 };
 
 const tabs: { id: TaxiOrderTab; icon: typeof Home }[] = [
@@ -21,7 +20,7 @@ const tabs: { id: TaxiOrderTab; icon: typeof Home }[] = [
   { id: 'favorites', icon: Star },
 ];
 
-export default function TaxiOrderBottomNav({ active, onChange, labels, requestCount = 0 }: Props) {
+export default function TaxiOrderBottomNav({ active, onChange, labels }: Props) {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 bg-[#1a1a1a]/95 border-t border-white/10 backdrop-blur-md"
@@ -46,11 +45,6 @@ export default function TaxiOrderBottomNav({ active, onChange, labels, requestCo
                 }`}
               >
                 <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
-                {id === 'requests' && requestCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
-                    {requestCount > 9 ? '9+' : requestCount}
-                  </span>
-                )}
               </span>
               <span className={`text-[11px] font-medium ${isActive ? 'text-white' : ''}`}>{label}</span>
             </button>

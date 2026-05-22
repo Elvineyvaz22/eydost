@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { insertTaxiOrderIfNew, MAX_TAXI_ORDERS_PER_LINK } from './taxiOrdersDb';
 
 const LINK_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{7,127}$/;
 
@@ -36,7 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .select('id, pickup_address, dropoff_address, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, status, created_at')
         .eq('link_id', linkId)
         .order('created_at', { ascending: false })
-        .limit(50),
+        .limit(MAX_TAXI_ORDERS_PER_LINK),
       supabase
         .from('taxi_link_favorites')
         .select('id, label, address, lat, lng, kind, created_at')
@@ -61,28 +62,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const action = body.action as string;
 
     if (action === 'add_order') {
-      const payload = {
-        link_id: linkId,
-        pickup_address: String(body.pickup_address ?? ''),
-        dropoff_address: String(body.dropoff_address ?? ''),
-        pickup_lat: body.pickup_lat != null ? Number(body.pickup_lat) : null,
-        pickup_lng: body.pickup_lng != null ? Number(body.pickup_lng) : null,
-        dropoff_lat: body.dropoff_lat != null ? Number(body.dropoff_lat) : null,
-        dropoff_lng: body.dropoff_lng != null ? Number(body.dropoff_lng) : null,
-        status: 'saved',
-      };
-
-      const { data, error } = await supabase
-        .from('taxi_link_orders')
-        .insert(payload)
-        .select('*')
-        .single();
-
-      if (error) {
+      try {
+        const { order, duplicate } = await insertTaxiOrderIfNew(supabase, linkId, {
+          pickup_address: String(body.pickup_address ?? ''),
+          dropoff_address: String(body.dropoff_address ?? ''),
+          pickup_lat: body.pickup_lat != null ? Number(body.pickup_lat) : null,
+          pickup_lng: body.pickup_lng != null ? Number(body.pickup_lng) : null,
+          dropoff_lat: body.dropoff_lat != null ? Number(body.dropoff_lat) : null,
+          dropoff_lng: body.dropoff_lng != null ? Number(body.dropoff_lng) : null,
+        });
+        return res.status(200).json({ order, duplicate });
+      } catch (error) {
         console.error('[taxi-link-data] add_order', error);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error instanceof Error ? error.message : 'Insert failed' });
       }
-      return res.status(200).json({ order: data });
     }
 
     if (action === 'add_favorite') {

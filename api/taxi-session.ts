@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { MAX_TAXI_ORDERS_PER_LINK } from './taxiOrdersDb';
 
 /** Opaque id from bot link (?id=…). Must be hard to guess. */
 const LINK_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{7,127}$/;
@@ -81,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .select('id, pickup_address, dropoff_address, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, status, created_at')
         .eq('link_id', linkId)
         .order('created_at', { ascending: false })
-        .limit(50),
+        .limit(MAX_TAXI_ORDERS_PER_LINK),
       supabase
         .from('taxi_link_favorites')
         .select('id, label, address, lat, lng, kind, created_at')
@@ -152,40 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: error.message });
     }
 
-    let order = null;
-    if (
-      body.save_order === true &&
-      typeof body.pickup_address === 'string' &&
-      typeof body.dropoff_address === 'string' &&
-      body.pickup_address.trim() &&
-      body.dropoff_address.trim()
-    ) {
-      const orderRes = await supabase
-        .from('taxi_link_orders')
-        .insert({
-          link_id: linkId,
-          pickup_address: body.pickup_address,
-          dropoff_address: body.dropoff_address,
-          pickup_lat: body.pickup_lat != null ? Number(body.pickup_lat) : null,
-          pickup_lng: body.pickup_lng != null ? Number(body.pickup_lng) : null,
-          dropoff_lat: body.dropoff_lat != null ? Number(body.dropoff_lat) : null,
-          dropoff_lng: body.dropoff_lng != null ? Number(body.dropoff_lng) : null,
-          status: 'saved',
-        })
-        .select('*')
-        .single();
-      if (orderRes.error) {
-        console.error('[taxi-session] save_order insert failed', orderRes.error);
-      } else {
-        order = orderRes.data;
-      }
-    }
-
-    return res.status(200).json({
-      session: rowToDraft(data as SessionRow),
-      order,
-      orderError: order ? null : body.save_order === true ? 'order_insert_failed' : null,
-    });
+    return res.status(200).json({ session: rowToDraft(data as SessionRow) });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

@@ -160,6 +160,7 @@ export default function TaxiOrderTest() {
   const [sessionLoading, setSessionLoading] = useState(!!linkId);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isOrdering, setIsOrdering] = useState(false);
   const [activeTab, setActiveTab] = useState<TaxiOrderTab>('home');
   const [orders, setOrders] = useState<TaxiOrderRecord[]>([]);
   const [favorites, setFavorites] = useState<TaxiFavorite[]>([]);
@@ -223,7 +224,7 @@ export default function TaxiOrderTest() {
     fetchTaxiProfile(linkId)
       .then((profile) => {
         if (cancelled) return;
-        setOrders(profile.orders);
+        setOrders(profile.orders.slice(0, 4));
         setFavorites(profile.favorites);
         const session = profile.session;
         if (!session) return;
@@ -497,27 +498,24 @@ export default function TaxiOrderTest() {
   };
 
   const handleOrder = async () => {
-    if (!linkId) return;
+    if (!linkId || isOrdering) return;
     const draft = { ...buildDraft(), step: 'confirm_ride' as const };
     if (!draft.pickupAddress?.trim() || !draft.dropoffAddress?.trim()) return;
 
+    setIsOrdering(true);
     setIsSaving(true);
     try {
       await saveTaxiSession(linkId, draft, { waId: waIdFromUrl });
 
-      let newOrder: TaxiOrderRecord | null = null;
       try {
-        newOrder = await addTaxiOrder(linkId, draft);
+        await addTaxiOrder(linkId, draft);
       } catch (orderErr) {
         console.warn('[taxi-order] addTaxiOrder failed', orderErr);
         showToast(t.orderHistoryFailed, 'error');
       }
 
       const profile = await fetchTaxiProfile(linkId);
-      setOrders(profile.orders);
-      if (newOrder && !profile.orders.some((o) => o.id === newOrder!.id)) {
-        setOrders((prev) => [newOrder!, ...prev]);
-      }
+      setOrders(profile.orders.slice(0, 4));
 
       setSessionError(null);
       showToast(`${t.orderSaved} ${t.orderSavedHint}`);
@@ -526,6 +524,7 @@ export default function TaxiOrderTest() {
       showToast(t.sessionError, 'error');
     } finally {
       setIsSaving(false);
+      setIsOrdering(false);
     }
   };
 
@@ -853,9 +852,10 @@ export default function TaxiOrderTest() {
               <button
                 type="button"
                 onClick={handleOrder}
-                className="w-full py-4 rounded-xl bg-[#f5c518] text-[#1a1a1a] font-bold active:scale-[0.98]"
+                disabled={isOrdering}
+                className="w-full py-4 rounded-xl bg-[#f5c518] text-[#1a1a1a] font-bold active:scale-[0.98] disabled:opacity-50"
               >
-                {t.order}
+                {isOrdering ? t.saving : t.order}
               </button>
             </div>
           )}
@@ -863,12 +863,7 @@ export default function TaxiOrderTest() {
       </div>
       )}
 
-      <TaxiOrderBottomNav
-        active={activeTab}
-        onChange={setActiveTab}
-        labels={navLabels}
-        requestCount={orders.length}
-      />
+      <TaxiOrderBottomNav active={activeTab} onChange={setActiveTab} labels={navLabels} />
     </div>
   );
 }

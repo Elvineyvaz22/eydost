@@ -56,15 +56,14 @@ export async function fetchTaxiSession(linkId: string): Promise<TaxiLinkSession 
 export async function saveTaxiSession(
   linkId: string,
   draft: TaxiOrderDraft,
-  options?: { waId?: string | null; saveOrder?: boolean }
-): Promise<{ session: TaxiLinkSession; order?: TaxiOrderRecord | null }> {
+  options?: { waId?: string | null }
+): Promise<{ session: TaxiLinkSession }> {
   const res = await fetch('/api/taxi-session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       link_id: linkId,
       wa_id: options?.waId || undefined,
-      save_order: options?.saveOrder === true,
       step: draft.step,
       pickup_address: draft.pickupAddress ?? '',
       dropoff_address: draft.dropoffAddress ?? '',
@@ -81,11 +80,7 @@ export async function saveTaxiSession(
     throw new Error((err as { error?: string }).error || `Failed to save (${res.status})`);
   }
 
-  const json = (await res.json()) as {
-    session: TaxiLinkSession;
-    order?: TaxiOrderRecord | null;
-    orderError?: string | null;
-  };
+  const json = (await res.json()) as { session: TaxiLinkSession };
   return json;
 }
 
