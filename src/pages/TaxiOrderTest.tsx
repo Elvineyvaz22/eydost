@@ -4,7 +4,7 @@
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowLeft, LocateFixed, Trash2, MapPin } from 'lucide-react';
+import { ArrowLeft, LocateFixed } from 'lucide-react';
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -16,11 +16,8 @@ import {
   fetchTaxiProfile,
   saveTaxiSession,
   addTaxiOrder,
-  addTaxiFavorite,
-  removeTaxiFavorite,
   formatOrderDate,
   type TaxiOrderRecord,
-  type TaxiFavorite,
 } from '../services/taxiSessionApi';
 import { showToast } from '../components/Toast';
 import TaxiOrderBottomNav, { type TaxiOrderTab } from '../components/TaxiOrderBottomNav';
@@ -59,17 +56,8 @@ const copy = {
     sameCountryError: 'Təyinat götürmə ilə eyni ölkədə olmalıdır.',
     tabHome: 'Ana səhifə',
     tabRequests: 'Tələblər',
-    tabFavorites: 'Favorilər',
     requestsTitle: 'Keçmiş sifarişlər',
     requestsEmpty: 'Hələ sifariş yoxdur.',
-    favoritesTitle: 'Saxlanmış ünvanlar',
-    favoritesEmpty: 'Favorit ünvan əlavə edin.',
-    addPickupFav: 'Götürməni favoritə əlavə et',
-    addDropoffFav: 'Təyinatı favoritə əlavə et',
-    usePickup: 'Götürmə kimi istifadə et',
-    useDropoff: 'Təyinat kimi istifadə et',
-    favAdded: 'Favoritə əlavə olundu.',
-    favRemoved: 'Silindi.',
     repeatOrder: 'Təkrarla',
     orderHistoryFailed:
       'Ünvan saxlanıldı, amma Tələblər siyahısına yazılmadı. Supabase-də taxi_link_orders cədvəlini yaradın.',
@@ -95,17 +83,8 @@ const copy = {
     sameCountryError: 'Drop-off must be in the same country as pickup.',
     tabHome: 'Home',
     tabRequests: 'Requests',
-    tabFavorites: 'Favorites',
     requestsTitle: 'Past orders',
     requestsEmpty: 'No orders yet.',
-    favoritesTitle: 'Saved places',
-    favoritesEmpty: 'Add a favorite address.',
-    addPickupFav: 'Save pickup to favorites',
-    addDropoffFav: 'Save drop-off to favorites',
-    usePickup: 'Use as pickup',
-    useDropoff: 'Use as drop-off',
-    favAdded: 'Added to favorites.',
-    favRemoved: 'Removed.',
     repeatOrder: 'Repeat',
     orderHistoryFailed:
       'Addresses saved, but Requests list failed. Create taxi_link_orders table in Supabase.',
@@ -131,17 +110,8 @@ const copy = {
     sameCountryError: 'Пункт назначения должен быть в той же стране, что и посадка.',
     tabHome: 'Главная',
     tabRequests: 'Заказы',
-    tabFavorites: 'Избранное',
     requestsTitle: 'История заказов',
     requestsEmpty: 'Заказов пока нет.',
-    favoritesTitle: 'Сохранённые адреса',
-    favoritesEmpty: 'Добавьте адрес в избранное.',
-    addPickupFav: 'Сохранить посадку',
-    addDropoffFav: 'Сохранить назначение',
-    usePickup: 'Как посадка',
-    useDropoff: 'Как назначение',
-    favAdded: 'Добавлено в избранное.',
-    favRemoved: 'Удалено.',
     repeatOrder: 'Повторить',
     orderHistoryFailed:
       'Адреса сохранены, но список заказов не обновился. Создайте таблицу taxi_link_orders в Supabase.',
@@ -163,7 +133,6 @@ export default function TaxiOrderTest() {
   const [isOrdering, setIsOrdering] = useState(false);
   const [activeTab, setActiveTab] = useState<TaxiOrderTab>('home');
   const [orders, setOrders] = useState<TaxiOrderRecord[]>([]);
-  const [favorites, setFavorites] = useState<TaxiFavorite[]>([]);
 
   const { isLoaded, loadError } = useLoadScript({
     id: GOOGLE_MAPS_LOADER_ID,
@@ -223,7 +192,6 @@ export default function TaxiOrderTest() {
       .then((profile) => {
         if (cancelled) return;
         setOrders(profile.orders.slice(0, 4));
-        setFavorites(profile.favorites);
         const session = profile.session;
         if (!session) return;
         if (session.pickupAddress) setPickupAddress(session.pickupAddress);
@@ -245,7 +213,6 @@ export default function TaxiOrderTest() {
           console.warn('[taxi-order] load failed', e);
           setSessionError(t.sessionError);
           setOrders([]);
-          setFavorites([]);
         }
       })
       .finally(() => {
@@ -443,60 +410,6 @@ export default function TaxiOrderTest() {
     setActiveTab('home');
   };
 
-  const applyFavorite = (fav: TaxiFavorite, as: 'pickup' | 'dropoff') => {
-    if (as === 'pickup') {
-      setPickupAddress(fav.address);
-      if (fav.lat != null && fav.lng != null) {
-        const p = { lat: fav.lat, lng: fav.lng };
-        setPickupCoords(p);
-        setMapCenter(p);
-        mapRef.current?.panTo(p);
-      }
-      setStep('select_dropoff');
-    } else {
-      setDropoffAddress(fav.address);
-      if (fav.lat != null && fav.lng != null) {
-        const p = { lat: fav.lat, lng: fav.lng };
-        setDropoffCoords(p);
-        setMapCenter(p);
-        mapRef.current?.panTo(p);
-      }
-      setStep('select_dropoff');
-    }
-    setActiveTab('home');
-  };
-
-  const handleAddFavorite = async (kind: 'pickup' | 'dropoff') => {
-    if (!linkId) return;
-    const address = kind === 'pickup' ? pickupAddress : dropoffAddress;
-    const coords = kind === 'pickup' ? pickupCoords : dropoffCoords;
-    if (!address.trim()) return;
-    try {
-      const fav = await addTaxiFavorite(linkId, {
-        address,
-        lat: coords?.lat,
-        lng: coords?.lng,
-        kind,
-        label: address.split(',')[0],
-      });
-      setFavorites((prev) => [fav, ...prev]);
-      showToast(t.favAdded);
-    } catch {
-      showToast(t.sessionError, 'error');
-    }
-  };
-
-  const handleRemoveFavorite = async (id: string) => {
-    if (!linkId) return;
-    try {
-      await removeTaxiFavorite(linkId, id);
-      setFavorites((prev) => prev.filter((f) => f.id !== id));
-      showToast(t.favRemoved);
-    } catch {
-      showToast(t.sessionError, 'error');
-    }
-  };
-
   const handleOrder = async () => {
     if (!linkId || isOrdering) return;
     const draft = { ...buildDraft(), step: 'confirm_ride' as const };
@@ -528,7 +441,7 @@ export default function TaxiOrderTest() {
     }
   };
 
-  const navLabels = { home: t.tabHome, requests: t.tabRequests, favorites: t.tabFavorites };
+  const navLabels = { home: t.tabHome, requests: t.tabRequests };
 
   const routeLeg = directions?.routes[0]?.legs[0];
   const pinPickup = step === 'select_pickup';
@@ -682,82 +595,6 @@ export default function TaxiOrderTest() {
                   </div>
                   <p className="text-[#f5c518] text-xs font-semibold mt-3">{t.repeatOrder}</p>
                 </button>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Favorilər */}
-      {activeTab === 'favorites' && (
-        <div
-          className="absolute inset-0 z-20 bg-[#121212] flex flex-col"
-          style={{ paddingBottom: NAV_H }}
-        >
-          <div className="px-5 pt-6 pb-3">
-            <h2 className="text-xl font-bold">{t.favoritesTitle}</h2>
-          </div>
-          <div className="px-4 pb-2 flex flex-wrap gap-2">
-            {pickupAddress.trim() && (
-              <button
-                type="button"
-                onClick={() => handleAddFavorite('pickup')}
-                className="text-xs font-semibold px-3 py-2 rounded-full bg-[#252525] border border-white/10 text-gray-300"
-              >
-                {t.addPickupFav}
-              </button>
-            )}
-            {dropoffAddress.trim() && (
-              <button
-                type="button"
-                onClick={() => handleAddFavorite('dropoff')}
-                className="text-xs font-semibold px-3 py-2 rounded-full bg-[#252525] border border-white/10 text-gray-300"
-              >
-                {t.addDropoffFav}
-              </button>
-            )}
-          </div>
-          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
-            {favorites.length === 0 ? (
-              <p className="text-gray-500 text-sm text-center py-12">{t.favoritesEmpty}</p>
-            ) : (
-              favorites.map((fav) => (
-                <div
-                  key={fav.id}
-                  className="rounded-2xl bg-[#1e1e1e] border border-white/10 p-4"
-                >
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-4 h-4 text-[#f5c518] shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm">{fav.label || fav.address}</p>
-                      <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{fav.address}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFavorite(fav.id)}
-                      className="p-2 text-gray-500 hover:text-red-400"
-                      aria-label="Remove"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      type="button"
-                      onClick={() => applyFavorite(fav, 'pickup')}
-                      className="flex-1 text-xs font-bold py-2 rounded-lg bg-[#252525] text-gray-200"
-                    >
-                      {t.usePickup}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFavorite(fav, 'dropoff')}
-                      className="flex-1 text-xs font-bold py-2 rounded-lg bg-[#252525] text-gray-200"
-                    >
-                      {t.useDropoff}
-                    </button>
-                  </div>
-                </div>
               ))
             )}
           </div>

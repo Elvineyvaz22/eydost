@@ -1,11 +1,10 @@
-import { Home, Route, Star } from 'lucide-react';
+import { Home, Route } from 'lucide-react';
 
-export type TaxiOrderTab = 'home' | 'requests' | 'favorites';
+export type TaxiOrderTab = 'home' | 'requests';
 
 type Labels = {
   home: string;
   requests: string;
-  favorites: string;
 };
 
 type Props = {
@@ -17,7 +16,6 @@ type Props = {
 const tabs: { id: TaxiOrderTab; icon: typeof Home }[] = [
   { id: 'home', icon: Home },
   { id: 'requests', icon: Route },
-  { id: 'favorites', icon: Star },
 ];
 
 export default function TaxiOrderBottomNav({ active, onChange, labels }: Props) {
@@ -40,7 +38,7 @@ export default function TaxiOrderBottomNav({ active, onChange, labels }: Props) 
               }`}
             >
               <span
-                className={`relative flex h-10 w-10 items-center justify-center rounded-full ${
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${
                   isActive ? 'bg-[#2a2a2a]' : ''
                 }`}
               >
