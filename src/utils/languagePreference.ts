@@ -38,13 +38,42 @@ export function languageFromCountry(country: string | null | undefined): AppLang
   return country?.toUpperCase() === 'AZ' ? 'az' : 'en';
 }
 
+function languageFromNavigator(): AppLanguage | null {
+  if (typeof navigator === 'undefined') return null;
+  const langs = navigator.languages?.length ? navigator.languages : [navigator.language];
+  for (const raw of langs) {
+    const code = raw.toLowerCase();
+    if (code === 'az' || code.startsWith('az-')) return 'az';
+  }
+  return null;
+}
+
+function languageFromTimezone(): AppLanguage | null {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz === 'Asia/Baku') return 'az';
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function detectLocalHints(): AppLanguage {
+  return languageFromNavigator() ?? languageFromTimezone() ?? 'en';
+}
+
 export async function detectLanguageFromGeo(): Promise<AppLanguage> {
   try {
     const res = await fetch('/api/geo-country', { credentials: 'same-origin' });
-    if (!res.ok) return 'en';
-    const data = (await res.json()) as { country?: string | null };
-    return languageFromCountry(data.country ?? null);
+    const contentType = res.headers.get('content-type') ?? '';
+    if (res.ok && contentType.includes('application/json')) {
+      const data = (await res.json()) as { country?: string | null };
+      if (data.country) {
+        return languageFromCountry(data.country);
+      }
+    }
   } catch {
-    return 'en';
+    /* fall through to local hints */
   }
+  return detectLocalHints();
 }
