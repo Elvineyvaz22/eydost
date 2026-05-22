@@ -85,7 +85,7 @@ export default function Taxi() {
 
   const tabLabels =
     language === 'az'
-      ? { home: 'Ana səhifə', requests: 'Tələblər', requestsTitle: 'Keçmiş sifarişlər', requestsEmpty: 'Hələ sifariş yoxdur.', repeat: 'Təkrarla' }
+      ? { home: 'Ana səhifə', requests: 'Keçmiş', requestsTitle: 'Keçmiş sifarişlər', requestsEmpty: 'Hələ sifariş yoxdur.', repeat: 'Təkrarla' }
       : language === 'ru'
         ? { home: 'Главная', requests: 'Заказы', requestsTitle: 'История заказов', requestsEmpty: 'Заказов пока нет.', repeat: 'Повторить' }
         : { home: 'Home', requests: 'Requests', requestsTitle: 'Past orders', requestsEmpty: 'No orders yet.', repeat: 'Repeat' };

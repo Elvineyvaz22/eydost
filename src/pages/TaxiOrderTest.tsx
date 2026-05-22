@@ -52,12 +52,12 @@ const copy = {
     orderSavedHint: 'Eyni linklə yenidən açanda görünəcək.',
     sameCountryError: 'Təyinat götürmə ilə eyni ölkədə olmalıdır.',
     tabHome: 'Ana səhifə',
-    tabRequests: 'Tələblər',
+    tabRequests: 'Keçmiş',
     requestsTitle: 'Keçmiş sifarişlər',
     requestsEmpty: 'Hələ sifariş yoxdur.',
     repeatOrder: 'Təkrarla',
     orderHistoryFailed:
-      'Ünvan saxlanıldı, amma Tələblər siyahısına yazılmadı. Supabase-də taxi_link_orders cədvəlini yaradın.',
+      'Ünvan saxlanıldı, amma Keçmiş siyahısına yazılmadı. Supabase-də taxi_link_orders cədvəlini yaradın.',
   },
   en: {
     pickupQ: 'Pickup?',
@@ -561,7 +561,7 @@ export default function TaxiOrderTest() {
         </button>
       )}
 
-      {/* Tələblər */}
+      {/* Keçmiş */}
       {activeTab === 'requests' && (
         <div
           className="absolute inset-0 z-20 bg-[#121212] flex flex-col"

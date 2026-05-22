@@ -98,10 +98,6 @@ export function useTaxiLinkStorage(
             restore.setMobileStep(resumeStep);
           }
         }
-
-        if (list.length > 0 && resumeStep !== 'select_dropoff' && resumeStep !== 'confirm_ride') {
-          setActiveTab('requests');
-        }
       })
       .catch((e) => console.warn('[taxi] profile load', e))
       .finally(() => {
