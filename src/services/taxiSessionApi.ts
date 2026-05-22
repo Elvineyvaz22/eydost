@@ -81,7 +81,39 @@ export async function saveTaxiSession(
     throw new Error((err as { error?: string }).error || `Failed to save (${res.status})`);
   }
 
-  return (await res.json()) as { session: TaxiLinkSession; order?: TaxiOrderRecord | null };
+  const json = (await res.json()) as {
+    session: TaxiLinkSession;
+    order?: TaxiOrderRecord | null;
+    orderError?: string | null;
+  };
+  return json;
+}
+
+/** Add row to taxi_link_orders (Tələblər tab). */
+export async function addTaxiOrder(
+  linkId: string,
+  draft: TaxiOrderDraft
+): Promise<TaxiOrderRecord> {
+  const res = await fetch('/api/taxi-link-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      link_id: linkId,
+      action: 'add_order',
+      pickup_address: draft.pickupAddress ?? '',
+      dropoff_address: draft.dropoffAddress ?? '',
+      pickup_lat: draft.pickupCoords?.lat,
+      pickup_lng: draft.pickupCoords?.lng,
+      dropoff_lat: draft.dropoffCoords?.lat,
+      dropoff_lng: draft.dropoffCoords?.lng,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error || 'Failed to save order history');
+  }
+  const json = (await res.json()) as { order: TaxiOrderRecord };
+  return json.order;
 }
 
 export async function addTaxiFavorite(

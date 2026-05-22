@@ -15,6 +15,7 @@ import { resolveTaxiLinkId, resolveTaxiWaId, type TaxiOrderDraft } from '../util
 import {
   fetchTaxiProfile,
   saveTaxiSession,
+  addTaxiOrder,
   addTaxiFavorite,
   removeTaxiFavorite,
   formatOrderDate,
@@ -70,6 +71,8 @@ const copy = {
     favAdded: 'Favoritə əlavə olundu.',
     favRemoved: 'Silindi.',
     repeatOrder: 'Təkrarla',
+    orderHistoryFailed:
+      'Ünvan saxlanıldı, amma Tələblər siyahısına yazılmadı. Supabase-də taxi_link_orders cədvəlini yaradın.',
   },
   en: {
     pickupQ: 'Pickup?',
@@ -104,6 +107,8 @@ const copy = {
     favAdded: 'Added to favorites.',
     favRemoved: 'Removed.',
     repeatOrder: 'Repeat',
+    orderHistoryFailed:
+      'Addresses saved, but Requests list failed. Create taxi_link_orders table in Supabase.',
   },
   ru: {
     pickupQ: 'Откуда?',
@@ -138,6 +143,8 @@ const copy = {
     favAdded: 'Добавлено в избранное.',
     favRemoved: 'Удалено.',
     repeatOrder: 'Повторить',
+    orderHistoryFailed:
+      'Адреса сохранены, но список заказов не обновился. Создайте таблицу taxi_link_orders в Supabase.',
   },
 };
 
@@ -491,20 +498,32 @@ export default function TaxiOrderTest() {
 
   const handleOrder = async () => {
     if (!linkId) return;
+    const draft = { ...buildDraft(), step: 'confirm_ride' as const };
+    if (!draft.pickupAddress?.trim() || !draft.dropoffAddress?.trim()) return;
+
     setIsSaving(true);
     try {
-      const result = await saveTaxiSession(
-        linkId,
-        { ...buildDraft(), step: 'confirm_ride' },
-        { waId: waIdFromUrl, saveOrder: true }
-      );
-      if (result.order) {
-        setOrders((prev) => [result.order!, ...prev]);
+      await saveTaxiSession(linkId, draft, { waId: waIdFromUrl });
+
+      let newOrder: TaxiOrderRecord | null = null;
+      try {
+        newOrder = await addTaxiOrder(linkId, draft);
+      } catch (orderErr) {
+        console.warn('[taxi-order] addTaxiOrder failed', orderErr);
+        showToast(t.orderHistoryFailed, 'error');
       }
+
+      const profile = await fetchTaxiProfile(linkId);
+      setOrders(profile.orders);
+      if (newOrder && !profile.orders.some((o) => o.id === newOrder!.id)) {
+        setOrders((prev) => [newOrder!, ...prev]);
+      }
+
       setSessionError(null);
       showToast(`${t.orderSaved} ${t.orderSavedHint}`);
     } catch {
       setSessionError(t.sessionError);
+      showToast(t.sessionError, 'error');
     } finally {
       setIsSaving(false);
     }

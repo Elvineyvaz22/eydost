@@ -174,10 +174,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
         .select('*')
         .single();
-      if (!orderRes.error) order = orderRes.data;
+      if (orderRes.error) {
+        console.error('[taxi-session] save_order insert failed', orderRes.error);
+      } else {
+        order = orderRes.data;
+      }
     }
 
-    return res.status(200).json({ session: rowToDraft(data as SessionRow), order });
+    return res.status(200).json({
+      session: rowToDraft(data as SessionRow),
+      order,
+      orderError: order ? null : body.save_order === true ? 'order_insert_failed' : null,
+    });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
