@@ -4,7 +4,7 @@
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowLeft, LocateFixed } from 'lucide-react';
+import { ArrowLeft, LocateFixed, Trash2, MapPin } from 'lucide-react';
 import { useLoadScript, GoogleMap, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -12,7 +12,17 @@ import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } fro
 import { formatGeocoderResult, formatPlaceAddress, extractCountry, isSameCountry } from '../utils/addressFormat';
 import PlaceSearchInput from '../components/PlaceSearchInput';
 import { resolveTaxiLinkId, resolveTaxiWaId, type TaxiOrderDraft } from '../utils/taxiLinkSession';
-import { fetchTaxiSession, saveTaxiSession } from '../services/taxiSessionApi';
+import {
+  fetchTaxiProfile,
+  saveTaxiSession,
+  addTaxiFavorite,
+  removeTaxiFavorite,
+  formatOrderDate,
+  type TaxiOrderRecord,
+  type TaxiFavorite,
+} from '../services/taxiSessionApi';
+import { showToast } from '../components/Toast';
+import TaxiOrderBottomNav, { type TaxiOrderTab } from '../components/TaxiOrderBottomNav';
 
 const defaultCenter = { lat: 40.409264, lng: 49.867092 };
 
@@ -43,6 +53,23 @@ const copy = {
     sessionLoading: 'Sizin sifarişiniz yüklənir...',
     sessionError: 'Məlumat yüklənmədi. Yenidən cəhd edin.',
     saving: 'Saxlanılır...',
+    orderSaved: 'Ünvan seçiminiz qeydə alındı.',
+    orderSavedHint: 'Eyni linklə yenidən açanda görünəcək.',
+    sameCountryError: 'Təyinat götürmə ilə eyni ölkədə olmalıdır.',
+    tabHome: 'Ana səhifə',
+    tabRequests: 'Tələblər',
+    tabFavorites: 'Favorilər',
+    requestsTitle: 'Keçmiş sifarişlər',
+    requestsEmpty: 'Hələ sifariş yoxdur.',
+    favoritesTitle: 'Saxlanmış ünvanlar',
+    favoritesEmpty: 'Favorit ünvan əlavə edin.',
+    addPickupFav: 'Götürməni favoritə əlavə et',
+    addDropoffFav: 'Təyinatı favoritə əlavə et',
+    usePickup: 'Götürmə kimi istifadə et',
+    useDropoff: 'Təyinat kimi istifadə et',
+    favAdded: 'Favoritə əlavə olundu.',
+    favRemoved: 'Silindi.',
+    repeatOrder: 'Təkrarla',
   },
   en: {
     pickupQ: 'Pickup?',
@@ -60,6 +87,23 @@ const copy = {
     sessionLoading: 'Loading your order...',
     sessionError: 'Could not load your data. Please try again.',
     saving: 'Saving...',
+    orderSaved: 'Your addresses were saved.',
+    orderSavedHint: 'Open the same link again to see them.',
+    sameCountryError: 'Drop-off must be in the same country as pickup.',
+    tabHome: 'Home',
+    tabRequests: 'Requests',
+    tabFavorites: 'Favorites',
+    requestsTitle: 'Past orders',
+    requestsEmpty: 'No orders yet.',
+    favoritesTitle: 'Saved places',
+    favoritesEmpty: 'Add a favorite address.',
+    addPickupFav: 'Save pickup to favorites',
+    addDropoffFav: 'Save drop-off to favorites',
+    usePickup: 'Use as pickup',
+    useDropoff: 'Use as drop-off',
+    favAdded: 'Added to favorites.',
+    favRemoved: 'Removed.',
+    repeatOrder: 'Repeat',
   },
   ru: {
     pickupQ: 'Откуда?',
@@ -77,8 +121,27 @@ const copy = {
     sessionLoading: 'Загрузка заказа...',
     sessionError: 'Не удалось загрузить данные. Попробуйте снова.',
     saving: 'Сохранение...',
+    orderSaved: 'Адреса сохранены.',
+    orderSavedHint: 'Откройте ту же ссылку снова, чтобы увидеть их.',
+    sameCountryError: 'Пункт назначения должен быть в той же стране, что и посадка.',
+    tabHome: 'Главная',
+    tabRequests: 'Заказы',
+    tabFavorites: 'Избранное',
+    requestsTitle: 'История заказов',
+    requestsEmpty: 'Заказов пока нет.',
+    favoritesTitle: 'Сохранённые адреса',
+    favoritesEmpty: 'Добавьте адрес в избранное.',
+    addPickupFav: 'Сохранить посадку',
+    addDropoffFav: 'Сохранить назначение',
+    usePickup: 'Как посадка',
+    useDropoff: 'Как назначение',
+    favAdded: 'Добавлено в избранное.',
+    favRemoved: 'Удалено.',
+    repeatOrder: 'Повторить',
   },
 };
+
+const NAV_H = '5.5rem';
 
 export default function TaxiOrderTest() {
   const { language } = useLanguage();
@@ -90,6 +153,9 @@ export default function TaxiOrderTest() {
   const [sessionLoading, setSessionLoading] = useState(!!linkId);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<TaxiOrderTab>('home');
+  const [orders, setOrders] = useState<TaxiOrderRecord[]>([]);
+  const [favorites, setFavorites] = useState<TaxiFavorite[]>([]);
 
   const { isLoaded, loadError } = useLoadScript({
     id: GOOGLE_MAPS_LOADER_ID,
@@ -130,7 +196,7 @@ export default function TaxiOrderTest() {
       if (!linkId) return;
       setIsSaving(true);
       try {
-        await saveTaxiSession(linkId, { ...buildDraft(), ...patch }, waIdFromUrl);
+        await saveTaxiSession(linkId, { ...buildDraft(), ...patch }, { waId: waIdFromUrl });
         setSessionError(null);
       } catch (e) {
         console.warn('[taxi-order] save failed', e);
@@ -147,9 +213,12 @@ export default function TaxiOrderTest() {
     let cancelled = false;
     setSessionLoading(true);
     setSessionError(null);
-    fetchTaxiSession(linkId)
-      .then((session) => {
+    fetchTaxiProfile(linkId)
+      .then((profile) => {
         if (cancelled) return;
+        setOrders(profile.orders);
+        setFavorites(profile.favorites);
+        const session = profile.session;
         if (!session) return;
         if (session.pickupAddress) setPickupAddress(session.pickupAddress);
         if (session.dropoffAddress) setDropoffAddress(session.dropoffAddress);
@@ -295,7 +364,7 @@ export default function TaxiOrderTest() {
 
   const handleDropoffPlaceSelect = (place: google.maps.places.PlaceResult) => {
     if (!isSameCountry(place.address_components, pickupCountryCode)) {
-      alert(language === 'az' ? 'Təyinat pickup ilə eyni ölkədə olmalıdır.' : 'Drop-off must be in the same country as pickup.');
+      showToast(t.sameCountryError, 'error');
       return;
     }
     setDropoffAddress(formatPlaceAddress(place));
@@ -347,11 +416,101 @@ export default function TaxiOrderTest() {
     });
   };
 
+  const applyOrder = (order: TaxiOrderRecord) => {
+    setPickupAddress(order.pickup_address);
+    setDropoffAddress(order.dropoff_address);
+    let origin: google.maps.LatLngLiteral | null = null;
+    let dest: google.maps.LatLngLiteral | null = null;
+    if (order.pickup_lat != null && order.pickup_lng != null) {
+      origin = { lat: order.pickup_lat, lng: order.pickup_lng };
+      setPickupCoords(origin);
+      setMapCenter(origin);
+    }
+    if (order.dropoff_lat != null && order.dropoff_lng != null) {
+      dest = { lat: order.dropoff_lat, lng: order.dropoff_lng };
+      setDropoffCoords(dest);
+    }
+    setStep('confirm_ride');
+    if (origin && dest) calculateRoute(origin, dest);
+    setActiveTab('home');
+  };
+
+  const applyFavorite = (fav: TaxiFavorite, as: 'pickup' | 'dropoff') => {
+    if (as === 'pickup') {
+      setPickupAddress(fav.address);
+      if (fav.lat != null && fav.lng != null) {
+        const p = { lat: fav.lat, lng: fav.lng };
+        setPickupCoords(p);
+        setMapCenter(p);
+        mapRef.current?.panTo(p);
+      }
+      setStep('select_dropoff');
+    } else {
+      setDropoffAddress(fav.address);
+      if (fav.lat != null && fav.lng != null) {
+        const p = { lat: fav.lat, lng: fav.lng };
+        setDropoffCoords(p);
+        setMapCenter(p);
+        mapRef.current?.panTo(p);
+      }
+      setStep('select_dropoff');
+    }
+    setActiveTab('home');
+  };
+
+  const handleAddFavorite = async (kind: 'pickup' | 'dropoff') => {
+    if (!linkId) return;
+    const address = kind === 'pickup' ? pickupAddress : dropoffAddress;
+    const coords = kind === 'pickup' ? pickupCoords : dropoffCoords;
+    if (!address.trim()) return;
+    try {
+      const fav = await addTaxiFavorite(linkId, {
+        address,
+        lat: coords?.lat,
+        lng: coords?.lng,
+        kind,
+        label: address.split(',')[0],
+      });
+      setFavorites((prev) => [fav, ...prev]);
+      showToast(t.favAdded);
+    } catch {
+      showToast(t.sessionError, 'error');
+    }
+  };
+
+  const handleRemoveFavorite = async (id: string) => {
+    if (!linkId) return;
+    try {
+      await removeTaxiFavorite(linkId, id);
+      setFavorites((prev) => prev.filter((f) => f.id !== id));
+      showToast(t.favRemoved);
+    } catch {
+      showToast(t.sessionError, 'error');
+    }
+  };
+
   const handleOrder = async () => {
     if (!linkId) return;
-    await persistDraftNow({ step: 'confirm_ride' });
-    alert(language === 'az' ? 'Sifarişiniz qeydə alındı (test).' : 'Your order was saved (test).');
+    setIsSaving(true);
+    try {
+      const result = await saveTaxiSession(
+        linkId,
+        { ...buildDraft(), step: 'confirm_ride' },
+        { waId: waIdFromUrl, saveOrder: true }
+      );
+      if (result.order) {
+        setOrders((prev) => [result.order!, ...prev]);
+      }
+      setSessionError(null);
+      showToast(`${t.orderSaved} ${t.orderSavedHint}`);
+    } catch {
+      setSessionError(t.sessionError);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const navLabels = { home: t.tabHome, requests: t.tabRequests, favorites: t.tabFavorites };
 
   const routeLeg = directions?.routes[0]?.legs[0];
   const pinPickup = step === 'select_pickup';
@@ -451,7 +610,7 @@ export default function TaxiOrderTest() {
         </div>
       )}
 
-      {step !== 'select_pickup' && (
+      {activeTab === 'home' && step !== 'select_pickup' && (
         <button
           type="button"
           onClick={handleBack}
@@ -462,20 +621,138 @@ export default function TaxiOrderTest() {
         </button>
       )}
 
-      {isLoaded && step !== 'confirm_ride' && (
+      {activeTab === 'home' && isLoaded && step !== 'confirm_ride' && (
         <button
           type="button"
           onClick={locateUser}
-          className="absolute bottom-[300px] right-4 z-20 rounded-full bg-[#2a2a2a] p-3 shadow-lg border border-white/10"
+          className="absolute right-4 z-20 rounded-full bg-[#2a2a2a] p-3 shadow-lg border border-white/10"
+          style={{ bottom: `calc(${NAV_H} + 280px)` }}
           aria-label="My location"
         >
           <LocateFixed className="w-5 h-5" />
         </button>
       )}
 
-      {/* Bottom sheet — one step at a time (like Maxim app) */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-6 pointer-events-none">
-        <div className="pointer-events-auto rounded-t-3xl bg-[#1e1e1e] border border-white/10 p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.65)] overflow-visible">
+      {/* Tələblər */}
+      {activeTab === 'requests' && (
+        <div
+          className="absolute inset-0 z-20 bg-[#121212] flex flex-col"
+          style={{ paddingBottom: NAV_H }}
+        >
+          <div className="px-5 pt-6 pb-3">
+            <h2 className="text-xl font-bold">{t.requestsTitle}</h2>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+            {orders.length === 0 ? (
+              <p className="text-gray-500 text-sm text-center py-12">{t.requestsEmpty}</p>
+            ) : (
+              orders.map((order) => (
+                <button
+                  key={order.id}
+                  type="button"
+                  onClick={() => applyOrder(order)}
+                  className="w-full text-left rounded-2xl bg-[#1e1e1e] border border-white/10 p-4 active:bg-[#252525]"
+                >
+                  <p className="text-[10px] text-gray-500 mb-2">{formatOrderDate(order.created_at, language)}</p>
+                  <div className="flex gap-2 items-start mb-1">
+                    <span className="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                    <p className="text-sm font-medium line-clamp-2">{order.pickup_address}</p>
+                  </div>
+                  <div className="flex gap-2 items-start">
+                    <span className="w-2 h-2 rounded-sm bg-sky-500 mt-1.5 shrink-0" />
+                    <p className="text-sm font-medium line-clamp-2">{order.dropoff_address}</p>
+                  </div>
+                  <p className="text-[#f5c518] text-xs font-semibold mt-3">{t.repeatOrder}</p>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Favorilər */}
+      {activeTab === 'favorites' && (
+        <div
+          className="absolute inset-0 z-20 bg-[#121212] flex flex-col"
+          style={{ paddingBottom: NAV_H }}
+        >
+          <div className="px-5 pt-6 pb-3">
+            <h2 className="text-xl font-bold">{t.favoritesTitle}</h2>
+          </div>
+          <div className="px-4 pb-2 flex flex-wrap gap-2">
+            {pickupAddress.trim() && (
+              <button
+                type="button"
+                onClick={() => handleAddFavorite('pickup')}
+                className="text-xs font-semibold px-3 py-2 rounded-full bg-[#252525] border border-white/10 text-gray-300"
+              >
+                {t.addPickupFav}
+              </button>
+            )}
+            {dropoffAddress.trim() && (
+              <button
+                type="button"
+                onClick={() => handleAddFavorite('dropoff')}
+                className="text-xs font-semibold px-3 py-2 rounded-full bg-[#252525] border border-white/10 text-gray-300"
+              >
+                {t.addDropoffFav}
+              </button>
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+            {favorites.length === 0 ? (
+              <p className="text-gray-500 text-sm text-center py-12">{t.favoritesEmpty}</p>
+            ) : (
+              favorites.map((fav) => (
+                <div
+                  key={fav.id}
+                  className="rounded-2xl bg-[#1e1e1e] border border-white/10 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-4 h-4 text-[#f5c518] shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">{fav.label || fav.address}</p>
+                      <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{fav.address}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFavorite(fav.id)}
+                      className="p-2 text-gray-500 hover:text-red-400"
+                      aria-label="Remove"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => applyFavorite(fav, 'pickup')}
+                      className="flex-1 text-xs font-bold py-2 rounded-lg bg-[#252525] text-gray-200"
+                    >
+                      {t.usePickup}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyFavorite(fav, 'dropoff')}
+                      className="flex-1 text-xs font-bold py-2 rounded-lg bg-[#252525] text-gray-200"
+                    >
+                      {t.useDropoff}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Ana səhifə — bottom sheet */}
+      {activeTab === 'home' && (
+      <div
+        className="absolute left-0 right-0 z-20 px-4 pointer-events-none"
+        style={{ bottom: NAV_H, paddingBottom: '0.75rem' }}
+      >
+        <div className="pointer-events-auto rounded-t-3xl bg-[#1e1e1e] border border-white/10 p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.65)] overflow-visible max-h-[55vh] overflow-y-auto">
           <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-4" />
 
           {step === 'select_pickup' && (
@@ -565,6 +842,14 @@ export default function TaxiOrderTest() {
           )}
         </div>
       </div>
+      )}
+
+      <TaxiOrderBottomNav
+        active={activeTab}
+        onChange={setActiveTab}
+        labels={navLabels}
+        requestCount={orders.length}
+      />
     </div>
   );
 }

@@ -75,11 +75,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: error.message });
     }
 
+    const [ordersRes, favoritesRes] = await Promise.all([
+      supabase
+        .from('taxi_link_orders')
+        .select('id, pickup_address, dropoff_address, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, status, created_at')
+        .eq('link_id', linkId)
+        .order('created_at', { ascending: false })
+        .limit(50),
+      supabase
+        .from('taxi_link_favorites')
+        .select('id, label, address, lat, lng, kind, created_at')
+        .eq('link_id', linkId)
+        .order('created_at', { ascending: false })
+        .limit(30),
+    ]);
+
+    if (ordersRes.error) console.warn('[taxi-session] orders', ordersRes.error.message);
+    if (favoritesRes.error) console.warn('[taxi-session] favorites', favoritesRes.error.message);
+
     if (!data) {
-      return res.status(200).json({ session: null });
+      return res.status(200).json({
+        session: null,
+        orders: ordersRes.data ?? [],
+        favorites: favoritesRes.data ?? [],
+      });
     }
 
-    return res.status(200).json({ session: rowToDraft(data as SessionRow) });
+    return res.status(200).json({
+      session: rowToDraft(data as SessionRow),
+      orders: ordersRes.data ?? [],
+      favorites: favoritesRes.data ?? [],
+    });
   }
 
   if (req.method === 'POST') {
@@ -126,7 +152,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: error.message });
     }
 
-    return res.status(200).json({ session: rowToDraft(data as SessionRow) });
+    let order = null;
+    if (
+      body.save_order === true &&
+      typeof body.pickup_address === 'string' &&
+      typeof body.dropoff_address === 'string' &&
+      body.pickup_address.trim() &&
+      body.dropoff_address.trim()
+    ) {
+      const orderRes = await supabase
+        .from('taxi_link_orders')
+        .insert({
+          link_id: linkId,
+          pickup_address: body.pickup_address,
+          dropoff_address: body.dropoff_address,
+          pickup_lat: body.pickup_lat != null ? Number(body.pickup_lat) : null,
+          pickup_lng: body.pickup_lng != null ? Number(body.pickup_lng) : null,
+          dropoff_lat: body.dropoff_lat != null ? Number(body.dropoff_lat) : null,
+          dropoff_lng: body.dropoff_lng != null ? Number(body.dropoff_lng) : null,
+          status: 'saved',
+        })
+        .select('*')
+        .single();
+      if (!orderRes.error) order = orderRes.data;
+    }
+
+    return res.status(200).json({ session: rowToDraft(data as SessionRow), order });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
