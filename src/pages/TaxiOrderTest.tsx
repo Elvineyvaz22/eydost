@@ -290,6 +290,12 @@ export default function TaxiOrderTest() {
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     geocoderRef.current = new google.maps.Geocoder();
+    if (pickupCoords) {
+      map.panTo(pickupCoords);
+      return;
+    }
+    if (pickupAddress.trim()) return;
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -306,7 +312,7 @@ export default function TaxiOrderTest() {
         { enableHighAccuracy: true, timeout: 10000 }
       );
     }
-  }, [geocodeLatLng]);
+  }, [geocodeLatLng, pickupAddress, pickupCoords]);
 
   const onMapDragEnd = useCallback(() => {
     if (!mapRef.current || step === 'confirm_ride') return;
