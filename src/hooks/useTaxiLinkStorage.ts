@@ -38,6 +38,7 @@ export function useTaxiLinkStorage(
   const [profileReady, setProfileReady] = useState(!linkId);
   const [activeTab, setActiveTab] = useState<'home' | 'requests'>('home');
   const skipSaveRef = useRef(true);
+  const restoredRef = useRef(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const buildDraft = useCallback((): TaxiOrderDraft => ({
@@ -71,10 +72,13 @@ export function useTaxiLinkStorage(
   useEffect(() => {
     if (!linkId) {
       setProfileReady(true);
+      restoredRef.current = true;
       return;
     }
     let cancelled = false;
     setProfileReady(false);
+    restoredRef.current = false;
+    skipSaveRef.current = true;
     fetchTaxiProfile(linkId)
       .then((profile) => {
         if (cancelled) return;
@@ -98,10 +102,12 @@ export function useTaxiLinkStorage(
             restore.setMobileStep(resumeStep);
           }
         }
+        restoredRef.current = true;
       })
       .catch((e) => console.warn('[taxi] profile load', e))
       .finally(() => {
         if (!cancelled) {
+          restoredRef.current = true;
           setProfileReady(true);
           skipSaveRef.current = false;
         }
@@ -112,7 +118,15 @@ export function useTaxiLinkStorage(
   }, [linkId]);
 
   useEffect(() => {
-    if (!linkId || !profileReady || skipSaveRef.current) return;
+    if (!linkId || !profileReady || skipSaveRef.current || !restoredRef.current) return;
+    const hasDraft =
+      draft.pickupAddress.trim().length > 0 ||
+      draft.dropoffAddress.trim().length > 0 ||
+      draft.pickupCoords != null ||
+      draft.dropoffCoords != null ||
+      draft.step !== 'select_pickup';
+    if (!hasDraft) return;
+
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       persistDraft().catch((e) => console.warn('[taxi] autosave', e));

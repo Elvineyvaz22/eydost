@@ -47,8 +47,8 @@ export default function Taxi() {
     language: 'en',
   });
 
-  // Responsive state
-  const [isMobile, setIsMobile] = useState(false);
+  // Responsive — ilk renderdə desktop flash olmasın (mobil layout bir dəfə seçilir)
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -532,6 +532,14 @@ export default function Taxi() {
   }
 
   const routeDetails = directions?.routes[0]?.legs[0];
+
+  if (isMobile === null) {
+    return (
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-gray-100">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
 
   if (!isMobile) {
     return (

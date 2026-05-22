@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { isEsimRoute } from '../utils/routes';
+import { buildTaxiHref } from '../utils/taxiLinkSession';
 
 const WA_LINK = 'https://wa.me/994992000444';
 
@@ -10,6 +11,8 @@ export default function Header() {
   const { language, setLanguage, t, brand } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const taxiHref = buildTaxiHref(searchParams);
 
   const langs = ['EN', 'AZ', 'RU'] as const;
   const langMap = { EN: 'en', AZ: 'az', RU: 'ru' } as const;
@@ -22,7 +25,7 @@ export default function Header() {
 
   const navLinks = [
     { href: '/esim', label: t.nav.esim },
-    { href: '/taxi', label: t.nav.taxi },
+    { href: taxiHref, label: t.nav.taxi },
     { href: '/blog', label: blogLabel },
     { href: '/#how-esim', label: t.nav.howItWorks },
     { href: '/#faq', label: t.nav.faq },
@@ -69,7 +72,7 @@ export default function Header() {
 
             {isPackagesPage && (
               <a
-                href="/taxi"
+                href={taxiHref}
                 className="lg:hidden flex items-center gap-1.5 bg-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-orange-600 transition-all shadow-md active:scale-95"
               >
                 <Car className="w-3 h-3" />

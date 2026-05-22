@@ -26,6 +26,7 @@ import Refund from './pages/Refund';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Seo from './components/Seo';
+import TaxiLinkRedirect from './components/TaxiLinkRedirect';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import { PackagesProvider } from './contexts/PackagesContext';
 
@@ -163,6 +164,7 @@ function App() {
           <LanguageProvider>
             <CookieConsent />
             <VercelAnalytics />
+            <TaxiLinkRedirect />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/privacy" element={<Privacy />} />
