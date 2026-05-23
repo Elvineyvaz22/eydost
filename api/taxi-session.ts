@@ -12,6 +12,13 @@ function validateLinkId(value: unknown): string | null {
   return LINK_ID_RE.test(trimmed) ? trimmed : null;
 }
 
+function nullableNumber(value: unknown): number | null {
+  if (value == null) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+}
+
 type SessionRow = {
   link_id: string;
   wa_id: string | null;
@@ -135,14 +142,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (waId) payload.wa_id = waId;
 
-    if (body.pickup_lat != null && body.pickup_lng != null) {
-      payload.pickup_lat = Number(body.pickup_lat);
-      payload.pickup_lng = Number(body.pickup_lng);
-    }
-    if (body.dropoff_lat != null && body.dropoff_lng != null) {
-      payload.dropoff_lat = Number(body.dropoff_lat);
-      payload.dropoff_lng = Number(body.dropoff_lng);
-    }
+    payload.pickup_lat = nullableNumber(body.pickup_lat);
+    payload.pickup_lng = nullableNumber(body.pickup_lng);
+    payload.dropoff_lat = nullableNumber(body.dropoff_lat);
+    payload.dropoff_lng = nullableNumber(body.dropoff_lng);
 
     const { data, error } = await supabase
       .from('taxi_link_sessions')
