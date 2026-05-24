@@ -82,6 +82,8 @@ export default function Taxi() {
   const dropoffTopBarRef = useRef<HTMLDivElement>(null);
   const dropoffSearchRef = useRef<PlaceSearchInputHandle>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  const hasPickupDraftRef = useRef(false);
+  hasPickupDraftRef.current = Boolean(pickupAddress.trim() || pickupCoords);
 
   const tabLabels =
     language === 'az'
@@ -112,10 +114,14 @@ export default function Taxi() {
     }
   );
 
-  const locateUser = useCallback((map?: google.maps.Map) => {
+  const locateUser = useCallback((map?: google.maps.Map, autoLocate = false) => {
+    if (autoLocate && hasPickupDraftRef.current) return;
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          if (autoLocate && hasPickupDraftRef.current) return;
+
           const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
           setMapCenter(userPos);
           setPickupCoords(userPos);
@@ -139,7 +145,7 @@ export default function Taxi() {
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     geocoderRef.current = new google.maps.Geocoder();
-    locateUser(map);
+    locateUser(map, true);
   }, [locateUser]);
 
   const applyPickupCountry = (components?: google.maps.GeocoderAddressComponent[]) => {
