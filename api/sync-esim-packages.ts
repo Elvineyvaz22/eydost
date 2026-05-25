@@ -112,9 +112,18 @@ async function upsertPackagesForCountry(
   }
 
   const now = new Date().toISOString();
-  const records = packages.map((pkg) => {
+
+  // Dedupe by (country_code, package_code) within this country to avoid
+  // PostgreSQL's "ON CONFLICT DO UPDATE command cannot affect row a second
+  // time" error when the bot accidentally returns duplicates.
+  const seen = new Set<string>();
+  const records: any[] = [];
+  for (const pkg of packages) {
+    const key = `${countryCode}|${pkg.package_code}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     const isUnlimited = Number(pkg.volume) === 0;
-    return {
+    records.push({
       country_code: countryCode,
       package_code: pkg.package_code,
       slug: pkg.slug || null,
@@ -129,8 +138,8 @@ async function upsertPackagesForCountry(
       description: pkg.description || pkg.name,
       is_active: true,
       last_synced_at: now,
-    };
-  });
+    });
+  }
 
   const { error } = await supabaseAdmin
     .from('esim_packages')
@@ -141,9 +150,9 @@ async function upsertPackagesForCountry(
 
   if (error) {
     console.error(`  ✗ ${countryCode}: ${error.message}`);
-    return { upserted: 0, errors: records.length };
+    return { upserted: 0, errors: records.length, errorMessage: error.message } as any;
   }
-  return { upserted: records.length, errors: 0 };
+  return { upserted: records.length, errors: 0 } as any;
 }
 
 // ── Main sync function ─────────────────────────────────────────────────────────
@@ -173,6 +182,7 @@ async function syncAllPackages(): Promise<{
   let totalPackages = 0;
   let totalErrors = 0;
   const emptyCountries: string[] = [];
+  const sampleErrors: Array<{ country: string; message: string }> = [];
 
   // Run in batches of CONCURRENCY to stay under Vercel function timeout.
   const CONCURRENCY = 20;
@@ -182,12 +192,19 @@ async function syncAllPackages(): Promise<{
       batch.map(async (countryCode) => {
         try {
           const packages = await fetchBotPackages(countryCode);
-          const { upserted, errors } = await upsertPackagesForCountry(
+          const r: any = await upsertPackagesForCountry(
             supabase,
             countryCode,
             packages
           );
-          return { countryCode, upserted, errors, ok: true, fetched: packages.length };
+          return {
+            countryCode,
+            upserted: r.upserted,
+            errors: r.errors,
+            errorMessage: r.errorMessage,
+            ok: true,
+            fetched: packages.length,
+          };
         } catch (err: any) {
           return { countryCode, upserted: 0, errors: 1, ok: false, message: err?.message };
         }
@@ -200,9 +217,15 @@ async function syncAllPackages(): Promise<{
         totalPackages += r.upserted;
         totalErrors += r.errors;
         if (r.fetched === 0) emptyCountries.push(r.countryCode);
+        if (r.errorMessage && sampleErrors.length < 5) {
+          sampleErrors.push({ country: r.countryCode, message: r.errorMessage });
+        }
       } else {
         totalErrors++;
         console.error(`  ✗ ${r.countryCode}: ${r.message}`);
+        if (sampleErrors.length < 5) {
+          sampleErrors.push({ country: r.countryCode, message: r.message || 'unknown' });
+        }
       }
     }
     console.log(
@@ -213,6 +236,8 @@ async function syncAllPackages(): Promise<{
   if (emptyCountries.length > 0) {
     console.log(`\n📭 ${emptyCountries.length} countries returned 0 packages: ${emptyCountries.join(',')}`);
   }
+  // Stash sample errors on the return so the caller can surface them.
+  (syncAllPackages as any)._lastSampleErrors = sampleErrors;
 
   const duration = Date.now() - start;
 
@@ -252,11 +277,13 @@ export default async function handler(req: any, res: any) {
 
   try {
     const result = await syncAllPackages();
+    const sampleErrors = (syncAllPackages as any)._lastSampleErrors || [];
 
     return res.status(200).json({
       success: true,
       message: 'eSIM packages synced successfully',
       ...result,
+      sampleErrors,
       synced_at: new Date().toISOString(),
     });
   } catch (err: any) {
