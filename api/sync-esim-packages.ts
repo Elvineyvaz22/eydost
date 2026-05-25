@@ -98,18 +98,26 @@ async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
   return data.data as BotPackage[];
 }
 
-// ── Upsert single country packages (batched single round-trip) ───────────────
+// ── Replace country packages (delete + insert) ───────────────────────────────
+// The esim_packages table has no unique constraint on (country_code,
+// package_code), so we can't rely on UPSERT/ON CONFLICT. Instead, for each
+// country we delete the existing rows and insert the fresh ones in a single
+// batched insert. Total round-trips per country: 2.
 async function upsertPackagesForCountry(
   supabaseAdmin: any,
   countryCode: string,
   packages: BotPackage[]
-): Promise<{ upserted: number; errors: number }> {
-  // Mark all existing packages for this country as potentially inactive
-  await supabaseAdmin
+): Promise<{ upserted: number; errors: number; errorMessage?: string }> {
+  // Wipe out the old rows for this country before inserting fresh ones.
+  const { error: delError } = await supabaseAdmin
     .from('esim_packages')
-    .update({ is_active: false } as any)
-    .eq('country_code', countryCode)
-    .eq('is_active', true);
+    .delete()
+    .eq('country_code', countryCode);
+
+  if (delError) {
+    console.error(`  ✗ ${countryCode} delete: ${delError.message}`);
+    return { upserted: 0, errors: 1, errorMessage: delError.message };
+  }
 
   if (packages.length === 0) {
     return { upserted: 0, errors: 0 };
@@ -117,15 +125,13 @@ async function upsertPackagesForCountry(
 
   const now = new Date().toISOString();
 
-  // Dedupe by (country_code, package_code) within this country to avoid
-  // PostgreSQL's "ON CONFLICT DO UPDATE command cannot affect row a second
-  // time" error when the bot accidentally returns duplicates.
+  // Dedupe by package_code in case the bot returns duplicates.
   const seen = new Set<string>();
   const records: any[] = [];
   for (const pkg of packages) {
-    const key = `${countryCode}|${pkg.package_code}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
+    if (!pkg.package_code) continue;
+    if (seen.has(pkg.package_code)) continue;
+    seen.add(pkg.package_code);
     const isUnlimited = Number(pkg.volume) === 0;
     records.push({
       country_code: countryCode,
@@ -144,18 +150,19 @@ async function upsertPackagesForCountry(
     });
   }
 
-  const { error } = await supabaseAdmin
-    .from('esim_packages')
-    .upsert(records as any, {
-      onConflict: 'country_code,package_code',
-      ignoreDuplicates: false,
-    });
-
-  if (error) {
-    console.error(`  ✗ ${countryCode}: ${error.message}`);
-    return { upserted: 0, errors: records.length, errorMessage: error.message } as any;
+  if (records.length === 0) {
+    return { upserted: 0, errors: 0 };
   }
-  return { upserted: records.length, errors: 0 } as any;
+
+  const { error: insError } = await supabaseAdmin
+    .from('esim_packages')
+    .insert(records as any);
+
+  if (insError) {
+    console.error(`  ✗ ${countryCode} insert: ${insError.message}`);
+    return { upserted: 0, errors: records.length, errorMessage: insError.message };
+  }
+  return { upserted: records.length, errors: 0 };
 }
 
 // ── Main sync function ─────────────────────────────────────────────────────────
