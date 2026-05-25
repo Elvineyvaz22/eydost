@@ -22,18 +22,58 @@ import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-// Dynamic import so that a missing/broken puppeteer install doesn't crash the
-// build at module-load time — we degrade gracefully to "skip prerender".
+// Resolve a Chromium runtime that works both locally (puppeteer with bundled
+// Chromium) AND inside the Vercel build container (where the bundled Chromium
+// is missing system libs). On Vercel/CI we fall back to puppeteer-core +
+// @sparticuz/chromium, which ships a self-contained Linux binary.
 let puppeteer;
-try {
-  ({ default: puppeteer } = await import('puppeteer'));
-} catch (err) {
-  console.warn(
-    '[prerender] puppeteer is not installed in this environment — skipping prerender. ' +
-      'Reason:', err?.message || err
-  );
-  process.exit(0);
+let launchOptions = {
+  headless: 'new',
+  args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+};
+
+const isServerless = !!(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NETLIFY ||
+  process.env.PRERENDER_FORCE_SERVERLESS
+);
+
+async function setupChromium() {
+  if (isServerless) {
+    try {
+      const [{ default: pcore }, { default: chromium }] = await Promise.all([
+        import('puppeteer-core'),
+        import('@sparticuz/chromium'),
+      ]);
+      puppeteer = pcore;
+      const executablePath = await chromium.executablePath();
+      launchOptions = {
+        args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        defaultViewport: chromium.defaultViewport,
+        executablePath,
+        headless: chromium.headless,
+      };
+      console.log('[prerender] Using puppeteer-core + @sparticuz/chromium for serverless build env.');
+      return;
+    } catch (err) {
+      console.warn('[prerender] @sparticuz/chromium not available, will try puppeteer:', err?.message || err);
+    }
+  }
+  // Local dev / CI with full puppeteer install.
+  try {
+    ({ default: puppeteer } = await import('puppeteer'));
+    console.log('[prerender] Using puppeteer with bundled Chromium.');
+  } catch (err) {
+    console.warn(
+      '[prerender] No working Chromium available — skipping prerender. ' +
+        'Reason:', err?.message || err
+    );
+    process.exit(0);
+  }
 }
+
+await setupChromium();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -254,10 +294,7 @@ async function main() {
   const failures = [];
 
   try {
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    });
+    browser = await puppeteer.launch(launchOptions);
 
     const start = Date.now();
     await runWithConcurrency(routes, CONCURRENCY, async (route) => {
