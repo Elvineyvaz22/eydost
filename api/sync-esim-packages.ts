@@ -16,6 +16,12 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+// Vercel Serverless Function runtime config — extend timeout up to 60s so the
+// parallel sync of 210+ countries can finish within a single invocation.
+export const config = {
+  maxDuration: 60,
+};
+
 // ── Config ────────────────────────────────────────────────────────────────────
 const BOT_API = 'https://bot.eydost.az/api/public/packages';
 const BOT_API_KEY = '0283e222ea829a8300d3f2ce4b42855d';
@@ -88,15 +94,12 @@ async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
   return data.data as BotPackage[];
 }
 
-// ── Upsert single country packages ────────────────────────────────────────────
+// ── Upsert single country packages (batched single round-trip) ───────────────
 async function upsertPackagesForCountry(
   supabaseAdmin: any,
   countryCode: string,
   packages: BotPackage[]
 ): Promise<{ upserted: number; errors: number }> {
-  let upserted = 0;
-  let errors = 0;
-
   // Mark all existing packages for this country as potentially inactive
   await supabaseAdmin
     .from('esim_packages')
@@ -105,15 +108,13 @@ async function upsertPackagesForCountry(
     .eq('is_active', true);
 
   if (packages.length === 0) {
-    console.log(`  ${countryCode}: no packages, marked all inactive`);
     return { upserted: 0, errors: 0 };
   }
 
-  // Upsert each package
-  for (const pkg of packages) {
+  const now = new Date().toISOString();
+  const records = packages.map((pkg) => {
     const isUnlimited = Number(pkg.volume) === 0;
-    
-    const record = {
+    return {
       country_code: countryCode,
       package_code: pkg.package_code,
       slug: pkg.slug || null,
@@ -127,25 +128,22 @@ async function upsertPackagesForCountry(
       network_type: null,
       description: pkg.description || pkg.name,
       is_active: true,
-      last_synced_at: new Date().toISOString(),
+      last_synced_at: now,
     };
+  });
 
-    const { error } = await supabaseAdmin
-      .from('esim_packages')
-      .upsert(record as any, {
-        onConflict: 'country_code,package_code',
-        ignoreDuplicates: false,
-      });
+  const { error } = await supabaseAdmin
+    .from('esim_packages')
+    .upsert(records as any, {
+      onConflict: 'country_code,package_code',
+      ignoreDuplicates: false,
+    });
 
-    if (error) {
-      console.error(`  ✗ ${countryCode}/${pkg.package_code}: ${error.message}`);
-      errors++;
-    } else {
-      upserted++;
-    }
+  if (error) {
+    console.error(`  ✗ ${countryCode}: ${error.message}`);
+    return { upserted: 0, errors: records.length };
   }
-
-  return { upserted, errors };
+  return { upserted: records.length, errors: 0 };
 }
 
 // ── Main sync function ─────────────────────────────────────────────────────────
@@ -167,30 +165,53 @@ async function syncAllPackages(): Promise<{
     auth: { persistSession: false }
   });
 
-  console.log('🚀 Starting eSIM packages sync...');
-  console.log(`📡 Fetching from ${BOT_API}`);
-  console.log(`🌍 ${COUNTRIES.length} countries to check\n`);
+  console.log(`🚀 Starting eSIM packages sync (parallel batched)`);
+  console.log(`📡 Bot API: ${BOT_API}`);
+  console.log(`🌍 ${COUNTRIES.length} countries\n`);
 
   let totalCountries = 0;
   let totalPackages = 0;
   let totalErrors = 0;
+  const emptyCountries: string[] = [];
 
-  for (const countryCode of COUNTRIES) {
-    try {
-      console.log(`Fetching ${countryCode}...`);
-      const packages = await fetchBotPackages(countryCode);
-      
-      const { upserted, errors } = await upsertPackagesForCountry(supabase, countryCode, packages);
-      
-      totalCountries++;
-      totalPackages += upserted;
-      totalErrors += errors;
-      
-      console.log(`  ✓ ${countryCode}: ${upserted} packages synced`);
-    } catch (err: any) {
-      console.error(`  ✗ ${countryCode}: ${err.message}`);
-      totalErrors++;
+  // Run in batches of CONCURRENCY to stay under Vercel function timeout.
+  const CONCURRENCY = 20;
+  for (let i = 0; i < COUNTRIES.length; i += CONCURRENCY) {
+    const batch = COUNTRIES.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(
+      batch.map(async (countryCode) => {
+        try {
+          const packages = await fetchBotPackages(countryCode);
+          const { upserted, errors } = await upsertPackagesForCountry(
+            supabase,
+            countryCode,
+            packages
+          );
+          return { countryCode, upserted, errors, ok: true, fetched: packages.length };
+        } catch (err: any) {
+          return { countryCode, upserted: 0, errors: 1, ok: false, message: err?.message };
+        }
+      })
+    );
+
+    for (const r of results) {
+      if (r.ok) {
+        totalCountries++;
+        totalPackages += r.upserted;
+        totalErrors += r.errors;
+        if (r.fetched === 0) emptyCountries.push(r.countryCode);
+      } else {
+        totalErrors++;
+        console.error(`  ✗ ${r.countryCode}: ${r.message}`);
+      }
     }
+    console.log(
+      `  batch ${i / CONCURRENCY + 1}: ${batch.length} countries done (running total: ${totalPackages} packages)`
+    );
+  }
+
+  if (emptyCountries.length > 0) {
+    console.log(`\n📭 ${emptyCountries.length} countries returned 0 packages: ${emptyCountries.join(',')}`);
   }
 
   const duration = Date.now() - start;
