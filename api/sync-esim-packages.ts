@@ -72,30 +72,39 @@ interface BotPackage {
 }
 
 // ── Fetch from bot API ─────────────────────────────────────────────────────────
-async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
+// The bot occasionally returns an empty `data` array (200 OK, no rows) when
+// it gets hit with too many concurrent requests for the same country. To stop
+// these false zeros from clobbering legitimate countries (TR, DE, FR, US, ...)
+// we retry once with a short jittered delay if the first response is empty.
+async function fetchBotPackagesOnce(countryCode: string): Promise<BotPackage[] | null> {
   const url = `${BOT_API}?country_code=${encodeURIComponent(countryCode)}`;
-  
-  const res = await fetch(url, {
-    headers: {
-      'x-api-key': BOT_API_KEY,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  // 4xx/5xx from the bot usually means "no packages for this country" or a
-  // transient hiccup. Treat as empty rather than throwing — that way one bad
-  // country doesn't pollute the error count, and the inject-static fallback
-  // keeps using hardcoded prices for that country.
-  if (!res.ok) {
-    return [];
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'x-api-key': BOT_API_KEY,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.success || !Array.isArray(data.data)) return [];
+    return data.data as BotPackage[];
+  } catch {
+    return null;
   }
+}
 
-  const data = await res.json();
-  if (!data.success || !Array.isArray(data.data)) {
-    return [];
-  }
-
-  return data.data as BotPackage[];
+async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
+  const first = await fetchBotPackagesOnce(countryCode);
+  // If the first call genuinely returned packages, we're done.
+  if (first && first.length > 0) return first;
+  // Otherwise back off briefly (jitter to avoid retrying in lockstep) and try
+  // again. This lets us tell apart "country has no packages" from "bot just
+  // rate-limited us under high concurrency".
+  await new Promise((r) => setTimeout(r, 400 + Math.floor(Math.random() * 600)));
+  const second = await fetchBotPackagesOnce(countryCode);
+  if (second && second.length > 0) return second;
+  return first ?? second ?? [];
 }
 
 // ── Upsert single country packages (compound-unique upsert) ──────────────────
@@ -195,7 +204,9 @@ async function syncAllPackages(): Promise<{
   const perCountry: Record<string, { fetched: number; upserted: number; errors: number; errorMessage?: string }> = {};
 
   // Run in batches of CONCURRENCY to stay under Vercel function timeout.
-  const CONCURRENCY = 20;
+  // 12 keeps the bot happy (no empty-response throttling) and still finishes
+  // 213 countries in ~40-45s with the retry-on-empty fallback.
+  const CONCURRENCY = 12;
   for (let i = 0; i < COUNTRIES.length; i += CONCURRENCY) {
     const batch = COUNTRIES.slice(i, i + CONCURRENCY);
     const results = await Promise.all(
