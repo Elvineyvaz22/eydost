@@ -28,6 +28,79 @@
     <meta name="twitter:description" content="Instant eSIM in 150+ countries & worldwide taxi booking — all through WhatsApp. No app needed." />
     <meta name="twitter:image" content="https://eydost.com/og-image.png" />
 
+    <!-- Hreflang — same URL serves EN/AZ/RU; React updates per-page <link rel="alternate"> below -->
+    <link rel="alternate" hreflang="en" href="https://eydost.com/" />
+    <link rel="alternate" hreflang="az" href="https://eydost.com/" />
+    <link rel="alternate" hreflang="ru" href="https://eydost.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://eydost.com/" />
+
+    <!-- Robots: explicit allow at HTML level (Vercel also sends X-Robots-Tag: all) -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
+
+    <!-- Static structured data — visible to non-JS crawlers (GPTBot, ClaudeBot, PerplexityBot, CCBot…) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Ey Dost",
+      "alternateName": ["Ey Dost — Global eSIM & Taxi", "eydost.com"],
+      "url": "https://eydost.com",
+      "logo": "https://eydost.com/og-image.png",
+      "image": "https://eydost.com/og-image.png",
+      "description": "Ey Dost — Your Global Travel Companion on WhatsApp. Instant eSIM in 150+ countries and taxi booking in 850+ cities across 50+ countries. No app needed.",
+      "areaServed": "Worldwide",
+      "knowsLanguage": ["en", "az", "ru"],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "availableLanguage": ["English", "Azerbaijani", "Russian"],
+        "url": "https://wa.me/994992000444"
+      },
+      "sameAs": [
+        "https://wa.me/994992000444",
+        "https://t.me/eydost_esim_bot"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Ey Dost",
+      "url": "https://eydost.com",
+      "inLanguage": ["en", "az", "ru"],
+      "publisher": { "@type": "Organization", "name": "Ey Dost", "url": "https://eydost.com" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://eydost.com/esim?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "serviceType": "eSIM data plans",
+      "provider": { "@type": "Organization", "name": "Ey Dost", "url": "https://eydost.com" },
+      "areaServed": { "@type": "Place", "name": "Worldwide — 150+ countries" },
+      "url": "https://eydost.com/esim",
+      "description": "Instant prepaid eSIM data plans for 150+ countries, delivered as a QR code via WhatsApp. No physical SIM, no roaming fees, no app to install."
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "serviceType": "Taxi booking",
+      "provider": { "@type": "Organization", "name": "Ey Dost", "url": "https://eydost.com" },
+      "areaServed": { "@type": "Place", "name": "850+ cities across 50+ countries" },
+      "url": "https://eydost.com/taxi",
+      "description": "On-demand taxi booking in 850+ cities across 50+ countries via WhatsApp. Pickup, drop-off and live driver info — all without installing any app."
+    }
+    </script>
+
     <!-- Google Search Console verification -->
     <meta name="google-site-verification" content="vJUcQ9VxHKRGwc-a2Gcmco2aVpUkx6VXgOqf8qYIpkk" />
 
@@ -82,7 +155,21 @@
     </script>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- SEO fallback — visible only when JavaScript is disabled or for non-rendering crawlers.
+           Build-time prerender replaces this with the fully-rendered React tree. -->
+      <noscript>
+        <div style="font-family:Inter,system-ui,sans-serif;max-width:720px;margin:48px auto;padding:24px;line-height:1.6;color:#111827;">
+          <h1 style="font-size:28px;margin:0 0 16px;">Ey Dost — Global eSIM &amp; Taxi Booking via WhatsApp</h1>
+          <p>Ey Dost is your global travel companion on WhatsApp. Buy instant prepaid eSIM data for 150+ countries and book taxis in 850+ cities across 50+ countries — all without installing any app.</p>
+          <h2 style="font-size:20px;margin:24px 0 8px;">eSIM</h2>
+          <p>Pick a country or regional plan, pay through WhatsApp, scan the QR code we send, and your data is live in seconds. No roaming fees, no physical SIM swap.</p>
+          <h2 style="font-size:20px;margin:24px 0 8px;">Taxi</h2>
+          <p>Send your pickup and drop-off via WhatsApp and we connect you with a verified local driver — operating in 850+ cities across 50+ countries.</p>
+          <p>Visit <a href="https://eydost.com/esim">eydost.com/esim</a> for plans and <a href="https://eydost.com/taxi">eydost.com/taxi</a> to book a ride. Contact us on <a href="https://wa.me/994992000444">WhatsApp</a>.</p>
+        </div>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

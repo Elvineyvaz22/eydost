@@ -1,5 +1,106 @@
+# Ey Dost — robots.txt
+# https://eydost.com — Global eSIM & worldwide taxi booking via WhatsApp.
+# We welcome AI assistants and search engines. Please be polite — see Sitemap below.
+
+# ---- Default rules for all crawlers ----
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /api/
 
+# ---- Search engines (explicit allow) ----
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# ---- OpenAI (ChatGPT search + training) ----
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# ---- Anthropic (Claude) ----
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# ---- Google AI training (separate from Search) ----
+User-agent: Google-Extended
+Allow: /
+
+# ---- Perplexity ----
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# ---- Apple Intelligence ----
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# ---- Common Crawl (foundation dataset for many LLMs) ----
+User-agent: CCBot
+Allow: /
+
+# ---- ByteDance / TikTok ----
+User-agent: Bytespider
+Allow: /
+
+# ---- Cohere, Meta, Mistral, others ----
+User-agent: cohere-ai
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+# ---- Sitemap ----
 Sitemap: https://eydost.com/sitemap.xml

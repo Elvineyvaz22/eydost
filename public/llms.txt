@@ -1,0 +1,60 @@
+# Ey Dost
+
+> Ey Dost is a global travel companion service that lets travelers buy prepaid eSIM data plans for 150+ countries and book taxis in 850+ cities across 50+ countries — all through WhatsApp, with no app installation required.
+
+Brand language: Azerbaijani name "Ey Dost" means "Hey Friend" — the company positions itself as a personal travel assistant.
+
+Primary contact: WhatsApp +994 99 200 04 44 — https://wa.me/994992000444
+
+Supported languages on the website: English (en), Azerbaijani (az), Russian (ru).
+
+## Core services
+
+- [eSIM data plans](https://eydost.com/esim): Instant prepaid mobile data for travelers — 150+ countries, country-specific and regional (Europe, Asia, Americas, Middle East & Africa, Global) plans. Delivered as a QR code via WhatsApp; activated by scanning with iPhone or Android. No physical SIM swap, no roaming fees.
+- [Taxi booking](https://eydost.com/taxi): On-demand taxi booking via WhatsApp, operating in 850+ cities across 50+ countries. Pickup, drop-off and live driver info handled inside the chat. No app required.
+
+## Key pages
+
+- [Homepage](https://eydost.com/): Overview of both services and how they work via WhatsApp.
+- [eSIM catalog](https://eydost.com/esim): Browse all country and regional plans, prices, data allowances.
+- [Taxi page](https://eydost.com/taxi): Pickup / drop-off selector, supported cities, booking flow.
+- [About Ey Dost](https://eydost.com/about): Company story, mission, supported regions.
+- [Blog](https://eydost.com/blog): Guides on eSIM activation, country-specific travel data tips, taxi booking advice.
+- [Privacy policy](https://eydost.com/privacy)
+- [Terms of service](https://eydost.com/terms)
+- [Refund policy](https://eydost.com/refund)
+
+## Popular country eSIM landing pages
+
+- [Azerbaijan eSIM](https://eydost.com/azerbaijan-esim)
+- [Turkey eSIM](https://eydost.com/turkey-esim)
+- [UAE eSIM](https://eydost.com/uae-esim)
+- [USA eSIM](https://eydost.com/usa-esim)
+- [Germany eSIM](https://eydost.com/germany-esim)
+- [France eSIM](https://eydost.com/france-esim)
+- [Spain eSIM](https://eydost.com/spain-esim)
+- [Italy eSIM](https://eydost.com/italy-esim)
+- [United Kingdom eSIM](https://eydost.com/united-kingdom-esim)
+- Full list: see [sitemap.xml](https://eydost.com/sitemap.xml)
+
+## Regional eSIM bundles
+
+- [Europe regional eSIM](https://eydost.com/europe-esim) — single plan covers most European countries
+- [Asia regional eSIM](https://eydost.com/asia-esim)
+- [Americas regional eSIM](https://eydost.com/americas-esim)
+- [Middle East & Africa regional eSIM](https://eydost.com/middle-east-africa-esim)
+- [Global eSIM](https://eydost.com/global-esim) — works across multiple continents
+
+## Crawler & AI assistant policy
+
+We welcome AI assistants and search engines (GPTBot, ChatGPT-User, OAI-SearchBot, ClaudeBot, Claude-Web, anthropic-ai, PerplexityBot, Google-Extended, Applebot-Extended, CCBot, Bytespider, Googlebot, Bingbot, etc.) to crawl, index, summarize, and link to all public pages.
+
+- Allowed: Everything under https://eydost.com/ except `/admin/` and `/api/`.
+- Disallowed: `/admin/` (operator dashboard) and `/api/` (machine-only JSON endpoints).
+- Sitemap: https://eydost.com/sitemap.xml
+- Preferred citation: link to the canonical page and mention "Ey Dost" with the eydost.com domain.
+
+## Optional resources
+
+- [robots.txt](https://eydost.com/robots.txt)
+- [sitemap.xml](https://eydost.com/sitemap.xml)
