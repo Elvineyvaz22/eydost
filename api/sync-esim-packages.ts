@@ -98,26 +98,22 @@ async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
   return data.data as BotPackage[];
 }
 
-// ── Replace country packages (delete + insert) ───────────────────────────────
-// The esim_packages table has no unique constraint on (country_code,
-// package_code), so we can't rely on UPSERT/ON CONFLICT. Instead, for each
-// country we delete the existing rows and insert the fresh ones in a single
-// batched insert. Total round-trips per country: 2.
+// ── Upsert single country packages (compound-unique upsert) ──────────────────
+// Requires the migration 20260525000000_fix_esim_packages_constraints.sql
+// to have been applied so that (country_code, package_code) is UNIQUE.
 async function upsertPackagesForCountry(
   supabaseAdmin: any,
   countryCode: string,
   packages: BotPackage[]
 ): Promise<{ upserted: number; errors: number; errorMessage?: string }> {
-  // Wipe out the old rows for this country before inserting fresh ones.
-  const { error: delError } = await supabaseAdmin
+  // Mark all rows for this country inactive first; the upsert below will
+  // flip rows it touches back to active. Anything bot stopped offering for
+  // this country stays inactive.
+  await supabaseAdmin
     .from('esim_packages')
-    .delete()
-    .eq('country_code', countryCode);
-
-  if (delError) {
-    console.error(`  ✗ ${countryCode} delete: ${delError.message}`);
-    return { upserted: 0, errors: 1, errorMessage: delError.message };
-  }
+    .update({ is_active: false } as any)
+    .eq('country_code', countryCode)
+    .eq('is_active', true);
 
   if (packages.length === 0) {
     return { upserted: 0, errors: 0 };
@@ -125,7 +121,7 @@ async function upsertPackagesForCountry(
 
   const now = new Date().toISOString();
 
-  // Dedupe by package_code in case the bot returns duplicates.
+  // Dedupe within this country in case the bot returns duplicates.
   const seen = new Set<string>();
   const records: any[] = [];
   for (const pkg of packages) {
@@ -154,13 +150,16 @@ async function upsertPackagesForCountry(
     return { upserted: 0, errors: 0 };
   }
 
-  const { error: insError } = await supabaseAdmin
+  const { error: upError } = await supabaseAdmin
     .from('esim_packages')
-    .insert(records as any);
+    .upsert(records as any, {
+      onConflict: 'country_code,package_code',
+      ignoreDuplicates: false,
+    });
 
-  if (insError) {
-    console.error(`  ✗ ${countryCode} insert: ${insError.message}`);
-    return { upserted: 0, errors: records.length, errorMessage: insError.message };
+  if (upError) {
+    console.error(`  ✗ ${countryCode} upsert: ${upError.message}`);
+    return { upserted: 0, errors: records.length, errorMessage: upError.message };
   }
   return { upserted: records.length, errors: 0 };
 }
