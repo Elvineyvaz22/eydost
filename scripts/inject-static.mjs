@@ -44,55 +44,81 @@ const SUPABASE_ANON_KEY =
   process.env.VITE_SUPABASE_ANON_KEY ||
   'sb_publishable_fOuAoSKMvfTQeABhSym8kQ_drhFrpeo';
 
-// ── slug ↔ country code (mirrors src/pages/CountryEsim.tsx) ─────────────────
+// ── Load slug ↔ country (+ hardcoded fallback plans) from esimPackages.ts ─
+//
+// The data file is the single source of truth. Every country object has
+//   { countryCode: 'tr', country: 'Turkey', slug: 'turkey-esim',
+//     ..., plans: [{ gb: 1, days: 7, price: '$0.81' }, ...] },
+// or `plans: gZ` where gZ is a shared `Plan[]` defined at the top of the
+// file. We parse both so that countries Supabase has not synced yet still
+// produce enriched static HTML using the file's hardcoded prices.
 
-const SLUG_TO_CODE = {
-  'turkey-esim': 'TR', 'united-states-esim': 'US', 'germany-esim': 'DE',
-  'france-esim': 'FR', 'uk-esim': 'GB', 'italy-esim': 'IT', 'spain-esim': 'ES',
-  'netherlands-esim': 'NL', 'belgium-esim': 'BE', 'switzerland-esim': 'CH',
-  'austria-esim': 'AT', 'poland-esim': 'PL', 'portugal-esim': 'PT', 'sweden-esim': 'SE',
-  'norway-esim': 'NO', 'denmark-esim': 'DK', 'finland-esim': 'FI', 'czech-republic-esim': 'CZ',
-  'hungary-esim': 'HU', 'romania-esim': 'RO', 'bulgaria-esim': 'BG', 'greece-esim': 'GR',
-  'croatia-esim': 'HR', 'slovakia-esim': 'SK', 'slovenia-esim': 'SI', 'estonia-esim': 'EE',
-  'latvia-esim': 'LV', 'lithuania-esim': 'LT', 'ireland-esim': 'IE', 'luxembourg-esim': 'LU',
-  'malta-esim': 'MT', 'cyprus-esim': 'CY', 'azerbaijan-esim': 'AZ', 'georgia-esim': 'GE',
-  'ukraine-esim': 'UA', 'russia-esim': 'RU', 'canada-esim': 'CA', 'mexico-esim': 'MX',
-  'brazil-esim': 'BR', 'argentina-esim': 'AR', 'chile-esim': 'CL', 'colombia-esim': 'CO',
-  'peru-esim': 'PE', 'china-esim': 'CN', 'japan-esim': 'JP', 'south-korea-esim': 'KR',
-  'hong-kong-esim': 'HK', 'taiwan-esim': 'TW', 'singapore-esim': 'SG', 'malaysia-esim': 'MY',
-  'thailand-esim': 'TH', 'indonesia-esim': 'ID', 'philippines-esim': 'PH', 'vietnam-esim': 'VN',
-  'india-esim': 'IN', 'pakistan-esim': 'PK', 'bangladesh-esim': 'BD', 'sri-lanka-esim': 'LK',
-  'australia-esim': 'AU', 'new-zealand-esim': 'NZ', 'uae-esim': 'AE', 'saudi-arabia-esim': 'SA',
-  'israel-esim': 'IL', 'jordan-esim': 'JO', 'kuwait-esim': 'KW', 'qatar-esim': 'QA',
-  'bahrain-esim': 'BH', 'oman-esim': 'OM', 'lebanon-esim': 'LB', 'egypt-esim': 'EG',
-  'south-africa-esim': 'ZA', 'nigeria-esim': 'NG', 'kenya-esim': 'KE', 'ghana-esim': 'GH',
-  'tanzania-esim': 'TZ', 'ethiopia-esim': 'ET', 'morocco-esim': 'MA', 'tunisia-esim': 'TN',
-  'algeria-esim': 'DZ', 'uganda-esim': 'UG', 'moldova-esim': 'MD', 'iceland-esim': 'IS',
-  'albania-esim': 'AL', 'bosnia-esim': 'BA', 'north-macedonia-esim': 'MK', 'serbia-esim': 'RS',
-  'montenegro-esim': 'ME',
-};
+async function loadDataFile() {
+  const dataPath = path.join(projectRoot, 'src', 'data', 'esimPackages.ts');
+  const src = await readFile(dataPath, 'utf8');
 
-const COUNTRY_NAMES = {
-  AZ: 'Azerbaijan', TR: 'Turkey', RU: 'Russia', UA: 'Ukraine', GE: 'Georgia',
-  DE: 'Germany', FR: 'France', GB: 'United Kingdom', IT: 'Italy', ES: 'Spain',
-  NL: 'Netherlands', BE: 'Belgium', CH: 'Switzerland', AT: 'Austria', PL: 'Poland',
-  PT: 'Portugal', SE: 'Sweden', NO: 'Norway', DK: 'Denmark', FI: 'Finland',
-  CZ: 'Czech Republic', HU: 'Hungary', RO: 'Romania', BG: 'Bulgaria', GR: 'Greece',
-  HR: 'Croatia', SK: 'Slovakia', SI: 'Slovenia', EE: 'Estonia', LV: 'Latvia',
-  LT: 'Lithuania', IE: 'Ireland', LU: 'Luxembourg', MT: 'Malta', CY: 'Cyprus',
-  US: 'United States', CA: 'Canada', MX: 'Mexico', BR: 'Brazil', AR: 'Argentina',
-  CL: 'Chile', CO: 'Colombia', PE: 'Peru',
-  CN: 'China', JP: 'Japan', KR: 'South Korea', HK: 'Hong Kong', TW: 'Taiwan',
-  SG: 'Singapore', MY: 'Malaysia', TH: 'Thailand', ID: 'Indonesia', PH: 'Philippines',
-  VN: 'Vietnam', IN: 'India', PK: 'Pakistan', BD: 'Bangladesh', LK: 'Sri Lanka',
-  AU: 'Australia', NZ: 'New Zealand',
-  AE: 'UAE', SA: 'Saudi Arabia', IL: 'Israel', JO: 'Jordan', KW: 'Kuwait',
-  QA: 'Qatar', BH: 'Bahrain', OM: 'Oman', LB: 'Lebanon', EG: 'Egypt',
-  ZA: 'South Africa', NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', TZ: 'Tanzania',
-  ET: 'Ethiopia', MA: 'Morocco', TN: 'Tunisia', DZ: 'Algeria', UG: 'Uganda',
-  IS: 'Iceland', AL: 'Albania', BA: 'Bosnia', MK: 'North Macedonia', RS: 'Serbia',
-  MD: 'Moldova', ME: 'Montenegro',
-};
+  // 1. Extract every shared plan-array constant: `const gZ: Plan[] = [...];`
+  //    The closing `];` is on its own line, so we capture lazily across lines.
+  const sharedPlans = new Map(); // 'gZ' -> [{gb, days, price}]
+  const constRe = /const\s+(_?[a-zA-Z][a-zA-Z0-9]*)\s*:\s*Plan\[\]\s*=\s*\[([\s\S]*?)\];/g;
+  let cm;
+  while ((cm = constRe.exec(src)) !== null) {
+    sharedPlans.set(cm[1], parsePlansLiteral(cm[2]));
+  }
+
+  // 2. Extract every country object. We anchor on `countryCode: 'xx'` and
+  //    walk forward to capture the matching closing `}` of that object.
+  const countries = new Map(); // slug -> { code, name, plans }
+  const countryHeadRe = /countryCode:\s*'([a-z]{2})'\s*,\s*country:\s*'([^']+)'\s*,\s*slug:\s*'([^']+)'/g;
+  let hm;
+  while ((hm = countryHeadRe.exec(src)) !== null) {
+    const [, code, name, slug] = hm;
+    // Find this object's `plans:` payload starting at the head match.
+    // 12 KB window is enough for countries with ~50 inline plans.
+    const tail = src.slice(hm.index, hm.index + 12000);
+    let plans = [];
+    const plansRefMatch = /plans:\s*(_?[a-zA-Z][a-zA-Z0-9]*)\s*[},]/.exec(tail);
+    const plansLitMatch = /plans:\s*\[([\s\S]*?)\]\s*[},]/.exec(tail);
+    if (plansRefMatch && (!plansLitMatch || plansRefMatch.index < plansLitMatch.index)) {
+      plans = sharedPlans.get(plansRefMatch[1]) || [];
+    } else if (plansLitMatch) {
+      plans = parsePlansLiteral(plansLitMatch[1]);
+    }
+    if (!countries.has(slug)) {
+      countries.set(slug, { code: code.toUpperCase(), name, plans });
+    }
+  }
+  return countries;
+}
+
+/** Parse the inside of a `Plan[]` literal — a sequence of `{ gb, days, price }`
+ *  objects where `price` is either a string `'$1.23'` or a `m(N)` call (which
+ *  evaluates to `'$' + (N * 1.75).toFixed(2)`). Plans may have additional
+ *  optional fields after `price`, e.g. `code: 'TR'`, `id: 'CKH265'`. */
+function parsePlansLiteral(body) {
+  const plans = [];
+  // Each plan looks like:
+  //   `{ gb: 1, days: 7, price: m(0.46) },`
+  //   `{ gb: 3, days: 30, price: '$1.42' },`
+  //   `{ gb: 1, days: 7, price: m(1.05), code: 'JE', id: 'PLQZ...' },`
+  // We allow anything up to the next `}` after `price`.
+  const planRe =
+    /\{\s*gb:\s*([\d.]+)\s*,\s*days:\s*(\d+)\s*,\s*price:\s*(?:m\(\s*([\d.]+)\s*\)|'([^']+)')[^}]*\}/g;
+  let pm;
+  while ((pm = planRe.exec(body)) !== null) {
+    const gb = parseFloat(pm[1]);
+    const days = parseInt(pm[2], 10);
+    let price;
+    if (pm[3] !== undefined) {
+      // m(cost) => '$' + (cost * 1.75).toFixed(2)
+      price = '$' + (parseFloat(pm[3]) * 1.75).toFixed(2);
+    } else {
+      price = pm[4];
+    }
+    plans.push({ gb, days, price });
+  }
+  return plans;
+}
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -148,10 +174,35 @@ async function fetchAllPackages() {
 
 // ── per-country page generation ─────────────────────────────────────────────
 
-function buildCountryPage(template, slug, countryCode, packages) {
-  const countryName = COUNTRY_NAMES[countryCode] || countryCode;
-  const cheapest = packages[0]; // sorted asc by price
-  const cheapestUsd = cheapest ? formatPriceUSD(cheapest.sell_price_minor) : null;
+/** Normalise either Supabase rows or hardcoded esimPackages.ts plans into
+ *  one shape: { name, sku, gb, days, priceUSD, isUnlimited } */
+function normalisePackages(supabaseRows, hardcodedPlans, countryName) {
+  if (supabaseRows && supabaseRows.length) {
+    return supabaseRows.map((p) => ({
+      name: p.name || `${countryName} eSIM`,
+      sku: p.package_code,
+      isUnlimited: !!p.is_unlimited,
+      volumeLabel: formatVolume(p),
+      days: p.duration_days || 0,
+      priceUSD: formatPriceUSD(p.sell_price_minor),
+    }));
+  }
+  // Fallback: hardcoded plans from src/data/esimPackages.ts. price is like '$1.23'.
+  return (hardcodedPlans || []).map((p, i) => ({
+    name: `${countryName} ${p.gb}GB ${p.days}Days`,
+    sku: `${countryName.replace(/\s+/g, '').toUpperCase()}_${p.gb}_${p.days}_${i}`,
+    isUnlimited: false,
+    volumeLabel: p.gb < 1 ? `${Math.round(p.gb * 1024)} MB` : `${p.gb} GB`,
+    days: p.days,
+    priceUSD: (p.price || '').replace(/[^0-9.]/g, '') || '0.00',
+  }));
+}
+
+function buildCountryPage(template, slug, countryCode, countryName, packages) {
+  // packages: array of { name, sku, isUnlimited, volumeLabel, days, priceUSD }
+  // already sorted by ascending price.
+  const cheapest = packages[0];
+  const cheapestUsd = cheapest ? cheapest.priceUSD : null;
   const url = `${SITE_URL}/${slug}`;
 
   const title = cheapestUsd
@@ -176,14 +227,14 @@ function buildCountryPage(template, slug, countryCode, packages) {
       position: i + 1,
       item: {
         '@type': 'Product',
-        name: p.name || `${countryName} ${formatVolume(p)} eSIM`,
-        description: `${countryName} eSIM — ${formatVolume(p)} for ${p.duration_days} days. Delivered as a QR code on WhatsApp.`,
+        name: p.name,
+        description: `${countryName} eSIM — ${p.volumeLabel} for ${p.days} days. Delivered as a QR code on WhatsApp.`,
         category: 'eSIM data plan',
-        sku: p.package_code,
+        sku: p.sku,
         brand: { '@type': 'Brand', name: 'Ey Dost' },
         offers: {
           '@type': 'Offer',
-          price: formatPriceUSD(p.sell_price_minor),
+          price: p.priceUSD,
           priceCurrency: 'USD',
           availability: 'https://schema.org/InStock',
           url,
@@ -209,14 +260,14 @@ function buildCountryPage(template, slug, countryCode, packages) {
     .map(
       (p) =>
         `              <tr><td style="padding:6px;border-bottom:1px solid #f3f4f6">${escapeHtml(
-          p.name || ''
+          p.name
         )}</td><td style="padding:6px;text-align:right;border-bottom:1px solid #f3f4f6">${escapeHtml(
-          formatVolume(p)
+          p.volumeLabel
         )}</td><td style="padding:6px;text-align:right;border-bottom:1px solid #f3f4f6">${
-          p.duration_days || '—'
-        } days</td><td style="padding:6px;text-align:right;border-bottom:1px solid #f3f4f6"><strong>$${formatPriceUSD(
-          p.sell_price_minor
-        )}</strong></td></tr>`
+          p.days || '—'
+        } days</td><td style="padding:6px;text-align:right;border-bottom:1px solid #f3f4f6"><strong>$${
+          p.priceUSD
+        }</strong></td></tr>`
     )
     .join('\n');
 
@@ -326,46 +377,70 @@ async function main() {
     return; // soft-fail: do not break the build
   }
 
-  let allPackages = [];
+  let slugMap;
   try {
-    allPackages = await fetchAllPackages();
-    console.log(`[inject] fetched ${allPackages.length} active packages from Supabase`);
+    slugMap = await loadDataFile();
+    console.log(`[inject] loaded ${slugMap.size} country slugs from esimPackages.ts`);
   } catch (err) {
-    console.warn(`[inject] supabase fetch failed (${err.message}) — skipping enrichment`);
-    return; // soft-fail: build still ships, just without enrichment
+    console.error(`[inject] could not parse esimPackages.ts: ${err.message}`);
+    return;
+  }
+
+  let supabasePackages = [];
+  try {
+    supabasePackages = await fetchAllPackages();
+    console.log(`[inject] fetched ${supabasePackages.length} active packages from Supabase`);
+  } catch (err) {
+    console.warn(`[inject] supabase fetch failed (${err.message}) — using hardcoded fallback only`);
   }
 
   const byCountry = new Map();
-  for (const p of allPackages) {
+  for (const p of supabasePackages) {
     if (!p.country_code) continue;
     const cc = p.country_code.toUpperCase();
     if (!byCountry.has(cc)) byCountry.set(cc, []);
     byCountry.get(cc).push(p);
   }
 
-  let written = 0;
-  let skipped = 0;
-  for (const [slug, code] of Object.entries(SLUG_TO_CODE)) {
-    const pkgs = byCountry.get(code);
-    if (!pkgs || pkgs.length === 0) {
-      skipped++;
+  let writtenLive = 0;
+  let writtenFallback = 0;
+  const noPackages = [];
+  const failed = [];
+  for (const [slug, info] of slugMap) {
+    const supaRows = byCountry.get(info.code) || null;
+    const hardcoded = info.plans || [];
+    const packages = normalisePackages(supaRows, hardcoded, info.name);
+
+    if (packages.length === 0) {
+      noPackages.push(slug);
       continue;
     }
+
     try {
-      const html = buildCountryPage(template, slug, code, pkgs);
+      const html = buildCountryPage(template, slug, info.code, info.name, packages);
       const outDir = path.join(distDir, slug);
       await mkdir(outDir, { recursive: true });
       await writeFile(path.join(outDir, 'index.html'), html, 'utf8');
-      written++;
+      if (supaRows && supaRows.length) writtenLive++;
+      else writtenFallback++;
     } catch (err) {
-      console.warn(`[inject] failed for ${slug}: ${err.message}`);
-      skipped++;
+      failed.push(`${slug} (${err.message})`);
     }
   }
 
+  const total = writtenLive + writtenFallback;
   console.log(
-    `[inject] wrote ${written} country pages (${skipped} skipped) into dist/`
+    `[inject] wrote ${total}/${slugMap.size} country pages into dist/ ` +
+      `(${writtenLive} with live Supabase prices, ${writtenFallback} from hardcoded fallback)`
   );
+  if (noPackages.length) {
+    console.log(
+      `[inject] ${noPackages.length} slugs had neither Supabase nor hardcoded plans: ${noPackages.slice(0, 8).join(', ')}${noPackages.length > 8 ? '…' : ''}`
+    );
+  }
+  if (failed.length) {
+    console.warn(`[inject] failed: ${failed.join('; ')}`);
+  }
 }
 
 main().catch((err) => {
