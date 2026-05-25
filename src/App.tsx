@@ -58,25 +58,59 @@ const HOME_JSON_LD = [
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "https://eydost.com/#organization",
     "name": "Ey Dost",
+    "alternateName": ["Ey Dost — Global eSIM & Taxi", "eydost.com", "EyDost"],
     "url": "https://eydost.com",
     "logo": "https://eydost.com/og-image.png",
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "customer support",
-      "availableLanguage": ["Azerbaijani", "English", "Russian"],
-      "contactOption": "TollFree"
-    },
+    "image": "https://eydost.com/og-image.png",
+    "description": "Ey Dost — Your Global Travel Companion on WhatsApp. Two dedicated WhatsApp lines: one for taxi bookings (+994 99 200 04 44) and one for eSIM purchases (+994 99 201 01 17).",
+    "areaServed": "Worldwide",
+    "knowsLanguage": ["en", "az", "ru"],
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "name": "Taxi booking — WhatsApp",
+        "description": "Dedicated WhatsApp line for taxi bookings, ride dispatch, and airport transfers in 850+ cities across 50+ countries.",
+        "contactType": "Reservations",
+        "telephone": "+994992000444",
+        "url": "https://wa.me/994992000444",
+        "areaServed": "Worldwide",
+        "availableLanguage": ["English", "Azerbaijani", "Russian"]
+      },
+      {
+        "@type": "ContactPoint",
+        "name": "eSIM purchase & support — WhatsApp",
+        "description": "Dedicated WhatsApp line for prepaid eSIM data plans, activation help, and plan questions for 150+ countries.",
+        "contactType": "Sales",
+        "productSupported": "eSIM data plans",
+        "telephone": "+994992010117",
+        "url": "https://wa.me/994992010117",
+        "areaServed": "Worldwide",
+        "availableLanguage": ["English", "Azerbaijani", "Russian"]
+      },
+      {
+        "@type": "ContactPoint",
+        "name": "General customer support — Email",
+        "contactType": "customer support",
+        "email": "info@eydost.com",
+        "availableLanguage": ["English", "Azerbaijani", "Russian"]
+      }
+    ],
     "sameAs": [
-      "https://t.me/eydost_esim_bot",
-      "https://wa.me/994992000444"
+      "https://wa.me/994992000444",
+      "https://wa.me/994992010117",
+      "https://t.me/eydost_esim_bot"
     ]
   },
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": "https://eydost.com/#website",
     "name": "Ey Dost",
     "url": "https://eydost.com",
+    "inLanguage": ["en", "az", "ru"],
+    "publisher": { "@id": "https://eydost.com/#organization" },
     "potentialAction": {
       "@type": "SearchAction",
       "target": "https://eydost.com/esim?q={search_term_string}",
@@ -89,42 +123,58 @@ const HOME_JSON_LD = [
     "mainEntity": [
       {
         "@type": "Question",
+        "name": "What is the WhatsApp number for ordering an eSIM from Ey Dost?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For eSIM purchases and activation help, contact Ey Dost on WhatsApp at +994 99 201 01 17 (https://wa.me/994992010117). The line is available 24/7 in English, Azerbaijani, and Russian."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the WhatsApp number for booking a taxi with Ey Dost?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For taxi bookings, ride dispatch, and airport transfers, contact Ey Dost on WhatsApp at +994 99 200 04 44 (https://wa.me/994992000444). The line is available 24/7 in English, Azerbaijani, and Russian, and works in 850+ cities across 50+ countries."
+        }
+      },
+      {
+        "@type": "Question",
         "name": "What is an eSIM and how do I install it?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "An eSIM is a digital SIM. Once you buy a plan via WhatsApp, we send you a QR code. Just scan it with your phone's camera, and your internet will be active in seconds!"
+          "text": "An eSIM is a digital SIM. Order from Ey Dost via WhatsApp +994 99 201 01 17, and we send you a QR code — scan it with your phone's camera and your internet is active in seconds."
         }
       },
       {
         "@type": "Question",
-        "name": "Do I need to download an app?",
+        "name": "Do I need to download an app to use Ey Dost?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "No! Everything from ordering a taxi to buying internet packages is done 100% via WhatsApp. Zero downloads, zero hassle."
+          "text": "No. Everything — both taxi bookings and eSIM purchases — happens 100% on WhatsApp. Use +994 99 200 04 44 for taxi or +994 99 201 01 17 for eSIM. Zero downloads."
         }
       },
       {
         "@type": "Question",
-        "name": "In which European cities is the taxi service available?",
+        "name": "In which cities is the Ey Dost taxi service available?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Our taxi service operates in 850+ cities across 50+ countries — including Azerbaijan, the UAE, the UK, France, Germany, Spain, Italy and many more. Open the Taxi page and book via WhatsApp."
+          "text": "Ey Dost taxi operates in 850+ cities across 50+ countries — including Azerbaijan, the UAE, the UK, France, Germany, Spain, Italy and many more. Open the Taxi page or message WhatsApp +994 99 200 04 44 to book."
         }
       },
       {
         "@type": "Question",
-        "name": "Can I use the eSIM in multiple countries?",
+        "name": "Can I use the Ey Dost eSIM in multiple countries?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes! If you purchase our Regional or Global eSIM packages, you can travel across multiple borders without losing connection or changing your eSIM."
+          "text": "Yes. With our Regional or Global eSIM plans you can travel across multiple borders without losing connection or changing your eSIM. Ask about regional bundles on WhatsApp +994 99 201 01 17."
         }
       },
       {
         "@type": "Question",
-        "name": "Are your services available 24/7?",
+        "name": "Are Ey Dost services available 24/7?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Absolutely. Our WhatsApp automated system and support agents are available around the clock, 24/7/365, to assist you anywhere in the world."
+          "text": "Yes. Both WhatsApp lines (+994 99 200 04 44 for taxi, +994 99 201 01 17 for eSIM) are staffed 24/7/365 with multilingual support."
         }
       }
     ]

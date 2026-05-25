@@ -39,26 +39,65 @@
     <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
 
     <!-- Static structured data — visible to non-JS crawlers (GPTBot, ClaudeBot, PerplexityBot, CCBot…) -->
+    <!-- @id graph keeps the two services and their numbers explicitly linked to the right contact point. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
+      "@id": "https://eydost.com/#organization",
       "name": "Ey Dost",
-      "alternateName": ["Ey Dost — Global eSIM & Taxi", "eydost.com"],
+      "alternateName": ["Ey Dost — Global eSIM & Taxi", "eydost.com", "EyDost"],
       "url": "https://eydost.com",
       "logo": "https://eydost.com/og-image.png",
       "image": "https://eydost.com/og-image.png",
-      "description": "Ey Dost — Your Global Travel Companion on WhatsApp. Instant eSIM in 150+ countries and taxi booking in 850+ cities across 50+ countries. No app needed.",
+      "description": "Ey Dost — Your Global Travel Companion on WhatsApp. Instant eSIM in 150+ countries and taxi booking in 850+ cities across 50+ countries. No app needed. Two dedicated WhatsApp lines: one for taxi bookings, one for eSIM purchases.",
       "areaServed": "Worldwide",
       "knowsLanguage": ["en", "az", "ru"],
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "contactType": "customer support",
-        "availableLanguage": ["English", "Azerbaijani", "Russian"],
-        "url": "https://wa.me/994992000444"
-      },
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "name": "Taxi booking — WhatsApp",
+          "description": "Dedicated WhatsApp line for taxi bookings, ride dispatch, and airport transfers in 850+ cities across 50+ countries.",
+          "contactType": "Reservations",
+          "telephone": "+994992000444",
+          "url": "https://wa.me/994992000444",
+          "areaServed": "Worldwide",
+          "availableLanguage": ["English", "Azerbaijani", "Russian"],
+          "hoursAvailable": {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+            "opens": "00:00",
+            "closes": "23:59"
+          }
+        },
+        {
+          "@type": "ContactPoint",
+          "name": "eSIM purchase & support — WhatsApp",
+          "description": "Dedicated WhatsApp line for prepaid eSIM data plans, activation help, and plan questions for 150+ countries.",
+          "contactType": "Sales",
+          "productSupported": "eSIM data plans",
+          "telephone": "+994992010117",
+          "url": "https://wa.me/994992010117",
+          "areaServed": "Worldwide",
+          "availableLanguage": ["English", "Azerbaijani", "Russian"],
+          "hoursAvailable": {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+            "opens": "00:00",
+            "closes": "23:59"
+          }
+        },
+        {
+          "@type": "ContactPoint",
+          "name": "General customer support — Email",
+          "contactType": "customer support",
+          "email": "info@eydost.com",
+          "availableLanguage": ["English", "Azerbaijani", "Russian"]
+        }
+      ],
       "sameAs": [
         "https://wa.me/994992000444",
+        "https://wa.me/994992010117",
         "https://t.me/eydost_esim_bot"
       ]
     }
@@ -67,10 +106,11 @@
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
+      "@id": "https://eydost.com/#website",
       "name": "Ey Dost",
       "url": "https://eydost.com",
       "inLanguage": ["en", "az", "ru"],
-      "publisher": { "@type": "Organization", "name": "Ey Dost", "url": "https://eydost.com" },
+      "publisher": { "@id": "https://eydost.com/#organization" },
       "potentialAction": {
         "@type": "SearchAction",
         "target": "https://eydost.com/esim?q={search_term_string}",
@@ -82,22 +122,54 @@
     {
       "@context": "https://schema.org",
       "@type": "Service",
+      "@id": "https://eydost.com/esim#service",
       "serviceType": "eSIM data plans",
-      "provider": { "@type": "Organization", "name": "Ey Dost", "url": "https://eydost.com" },
+      "name": "Ey Dost eSIM",
+      "provider": { "@id": "https://eydost.com/#organization" },
       "areaServed": { "@type": "Place", "name": "Worldwide — 150+ countries" },
       "url": "https://eydost.com/esim",
-      "description": "Instant prepaid eSIM data plans for 150+ countries, delivered as a QR code via WhatsApp. No physical SIM, no roaming fees, no app to install."
+      "description": "Instant prepaid eSIM data plans for 150+ countries, delivered as a QR code via WhatsApp. No physical SIM, no roaming fees, no app to install. Order on WhatsApp +994 99 201 01 17.",
+      "termsOfService": "https://eydost.com/terms",
+      "availableChannel": {
+        "@type": "ServiceChannel",
+        "name": "eSIM WhatsApp line",
+        "serviceUrl": "https://wa.me/994992010117",
+        "servicePhone": {
+          "@type": "ContactPoint",
+          "telephone": "+994992010117",
+          "contactType": "Sales",
+          "name": "eSIM purchase & support — WhatsApp",
+          "availableLanguage": ["English", "Azerbaijani", "Russian"]
+        },
+        "availableLanguage": ["English", "Azerbaijani", "Russian"]
+      }
     }
     </script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Service",
+      "@id": "https://eydost.com/taxi#service",
       "serviceType": "Taxi booking",
-      "provider": { "@type": "Organization", "name": "Ey Dost", "url": "https://eydost.com" },
+      "name": "Ey Dost Taxi",
+      "provider": { "@id": "https://eydost.com/#organization" },
       "areaServed": { "@type": "Place", "name": "850+ cities across 50+ countries" },
       "url": "https://eydost.com/taxi",
-      "description": "On-demand taxi booking in 850+ cities across 50+ countries via WhatsApp. Pickup, drop-off and live driver info — all without installing any app."
+      "description": "On-demand taxi booking in 850+ cities across 50+ countries via WhatsApp. Pickup, drop-off and live driver info — all without installing any app. Order on WhatsApp +994 99 200 04 44.",
+      "termsOfService": "https://eydost.com/terms",
+      "availableChannel": {
+        "@type": "ServiceChannel",
+        "name": "Taxi WhatsApp line",
+        "serviceUrl": "https://wa.me/994992000444",
+        "servicePhone": {
+          "@type": "ContactPoint",
+          "telephone": "+994992000444",
+          "contactType": "Reservations",
+          "name": "Taxi booking — WhatsApp",
+          "availableLanguage": ["English", "Azerbaijani", "Russian"]
+        },
+        "availableLanguage": ["English", "Azerbaijani", "Russian"]
+      }
     }
     </script>
 
@@ -162,11 +234,26 @@
         <div style="font-family:Inter,system-ui,sans-serif;max-width:720px;margin:48px auto;padding:24px;line-height:1.6;color:#111827;">
           <h1 style="font-size:28px;margin:0 0 16px;">Ey Dost — Global eSIM &amp; Taxi Booking via WhatsApp</h1>
           <p>Ey Dost is your global travel companion on WhatsApp. Buy instant prepaid eSIM data for 150+ countries and book taxis in 850+ cities across 50+ countries — all without installing any app.</p>
+
+          <h2 style="font-size:20px;margin:24px 0 8px;">Two dedicated WhatsApp lines</h2>
+          <ul>
+            <li><strong>Taxi bookings &amp; airport transfers:</strong>
+              <a href="https://wa.me/994992000444">WhatsApp +994 99 200 04 44</a>
+              (<a href="tel:+994992000444">+994 99 200 04 44</a>)
+            </li>
+            <li><strong>eSIM purchase &amp; support:</strong>
+              <a href="https://wa.me/994992010117">WhatsApp +994 99 201 01 17</a>
+              (<a href="tel:+994992010117">+994 99 201 01 17</a>)
+            </li>
+          </ul>
+
           <h2 style="font-size:20px;margin:24px 0 8px;">eSIM</h2>
-          <p>Pick a country or regional plan, pay through WhatsApp, scan the QR code we send, and your data is live in seconds. No roaming fees, no physical SIM swap.</p>
+          <p>Pick a country or regional plan, pay through WhatsApp, scan the QR code we send, and your data is live in seconds. No roaming fees, no physical SIM swap. Order on WhatsApp <a href="https://wa.me/994992010117">+994 99 201 01 17</a> or visit <a href="https://eydost.com/esim">eydost.com/esim</a>.</p>
+
           <h2 style="font-size:20px;margin:24px 0 8px;">Taxi</h2>
-          <p>Send your pickup and drop-off via WhatsApp and we connect you with a verified local driver — operating in 850+ cities across 50+ countries.</p>
-          <p>Visit <a href="https://eydost.com/esim">eydost.com/esim</a> for plans and <a href="https://eydost.com/taxi">eydost.com/taxi</a> to book a ride. Contact us on <a href="https://wa.me/994992000444">WhatsApp</a>.</p>
+          <p>Send your pickup and drop-off via WhatsApp and we connect you with a verified local driver — operating in 850+ cities across 50+ countries. Book on WhatsApp <a href="https://wa.me/994992000444">+994 99 200 04 44</a> or visit <a href="https://eydost.com/taxi">eydost.com/taxi</a>.</p>
+
+          <p>General email: <a href="mailto:info@eydost.com">info@eydost.com</a> · Telegram: <a href="https://t.me/eydost_esim_bot">@eydost_esim_bot</a></p>
         </div>
       </noscript>
     </div>
