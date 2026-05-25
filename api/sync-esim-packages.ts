@@ -284,6 +284,40 @@ export default async function handler(req: any, res: any) {
     }
   }
 
+  // Debug mode: ?country=XX runs the full pipeline for a single country and
+  // returns the bot payload + supabase result inline. Useful when a country
+  // mysteriously ends up empty in the table.
+  const debugCountry = (req.query?.country || '').toString().toUpperCase();
+  if (debugCountry && /^[A-Z]{2}$/.test(debugCountry)) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      return res.status(500).json({ error: 'Missing SUPABASE env' });
+    }
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    });
+    try {
+      const packages = await fetchBotPackages(debugCountry);
+      const result = await upsertPackagesForCountry(supabase, debugCountry, packages);
+      const { data: rows, error: readErr } = await supabase
+        .from('esim_packages')
+        .select('country_code,package_code,name,is_active')
+        .eq('country_code', debugCountry);
+      return res.status(200).json({
+        country: debugCountry,
+        botFetched: packages.length,
+        botSample: packages[0] || null,
+        upsertResult: result,
+        supabaseRowsAfter: rows?.length ?? 0,
+        supabaseSample: rows?.slice(0, 3) || [],
+        readError: readErr?.message || null,
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err?.message, stack: err?.stack });
+    }
+  }
+
   try {
     const result = await syncAllPackages();
     const sampleErrors = (syncAllPackages as any)._lastSampleErrors || [];
