@@ -204,9 +204,10 @@ async function syncAllPackages(): Promise<{
   const perCountry: Record<string, { fetched: number; upserted: number; errors: number; errorMessage?: string }> = {};
 
   // Run in batches of CONCURRENCY to stay under Vercel function timeout.
-  // 12 keeps the bot happy (no empty-response throttling) and still finishes
-  // 213 countries in ~40-45s with the retry-on-empty fallback.
-  const CONCURRENCY = 12;
+  // 20 finishes 213 countries in ~38-45s. The bot occasionally throttles
+  // under that load by returning an empty 200 — `fetchBotPackages` retries
+  // those once before giving up, so the data still gets through.
+  const CONCURRENCY = 20;
   for (let i = 0; i < COUNTRIES.length; i += CONCURRENCY) {
     const batch = COUNTRIES.slice(i, i + CONCURRENCY);
     const results = await Promise.all(
