@@ -94,8 +94,8 @@
       "src": "/api/esim-packages",
       "dest": "https://bot.eydost.az/api/public/packages"
     },
-    { "handle": "filesystem" },
     { "src": "/([a-z0-9-]+-esim)/?$", "dest": "/$1/index.html" },
+    { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
