@@ -25,7 +25,7 @@ export default function Footer() {
               <li><a href="/esim" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.features}</a></li>
               <li><a href="#faq" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.faq}</a></li>
               <li><a href="#contact" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.contact}</a></li>
-              <li><Link to="/blog" className="text-gray-400 hover:text-cyan-400 transition-colors">Blog</Link></li>
+              <li><Link to="/blog" className="text-gray-400 hover:text-cyan-400 transition-colors">{(t.footer as Record<string, string>).blog}</Link></li>
             </ul>
           </div>
 
@@ -51,17 +51,17 @@ export default function Footer() {
               <p><span className="text-gray-500">{t.footer.addressLabel}:</span> AZ5000, Sumqay&#305;t, N&#601;riman N&#601;rimanov 7/16</p>
               <div className="pt-2 space-y-1.5">
                 <Link to="/about" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
-                  About / Haqqımızda
+                  {(t.footer as Record<string, string>).about}
                 </Link>
                 <Link to="/privacy" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
                   <Shield className="w-4 h-4" />
-                  Privacy Policy
+                  {(t.footer as Record<string, string>).privacy}
                 </Link>
                 <Link to="/terms" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
-                  Terms of Service
+                  {(t.footer as Record<string, string>).terms}
                 </Link>
                 <Link to="/refund" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
-                  Refund Policy
+                  {(t.footer as Record<string, string>).refund}
                 </Link>
               </div>
             </div>

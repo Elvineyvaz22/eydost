@@ -13,18 +13,6 @@ const categoryColors: Record<string, string> = {
   travel: 'bg-orange-100 text-orange-700',
 };
 
-const categoryLabels: Record<string, Record<string, string>> = {
-  esim:   { en: 'eSIM', az: 'eSIM', ru: 'eSIM' },
-  taxi:   { en: 'Taxi', az: 'Taksi', ru: 'Такси' },
-  travel: { en: 'Travel Tips', az: 'Səyahət', ru: 'Советы' },
-};
-
-const uiText = {
-  en: { title: 'Ey Dost Blog', subtitle: 'eSIM guides, travel tips and connectivity advice for smart travellers.', readMin: 'min read' },
-  az: { title: 'Ey Dost Blog', subtitle: 'Ağıllı səyahətçilər üçün eSIM bələdçiləri, səyahət məsləhətləri.', readMin: 'dəq oxu' },
-  ru: { title: 'Блог Ey Dost', subtitle: 'Руководства по eSIM, советы для путешественников.', readMin: 'мин чтения' },
-};
-
 function getLang(language: string): 'en' | 'az' | 'ru' {
   if (language === 'az') return 'az';
   if (language === 'ru') return 'ru';
@@ -32,9 +20,20 @@ function getLang(language: string): 'en' | 'az' | 'ru' {
 }
 
 export default function Blog() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const lang = getLang(language);
-  const ui = uiText[lang];
+  const blogT = (t as Record<string, Record<string, string>>).blog;
+  const ui = {
+    title: blogT?.title ?? 'Ey Dost Blog',
+    subtitle: blogT?.subtitle ?? '',
+    readMin: blogT?.readMin ?? 'min read',
+    readMore: blogT?.readMore ?? 'Read more',
+  };
+  const categoryLabels: Record<string, string> = {
+    esim: blogT?.categoryEsim ?? 'eSIM',
+    taxi: blogT?.categoryTaxi ?? 'Taxi',
+    travel: blogT?.categoryTravel ?? 'Travel Tips',
+  };
 
   const sorted = [...blogPosts].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 
@@ -60,7 +59,7 @@ export default function Blog() {
             {sorted.map((post) => {
               const content = lang === 'az' ? post.az : lang === 'ru' ? post.ru : post.en;
               const catColor = categoryColors[post.category] || 'bg-gray-100 text-gray-600';
-              const catLabel = categoryLabels[post.category]?.[lang] || post.category;
+              const catLabel = categoryLabels[post.category] || post.category;
 
               return (
                 <Link
@@ -85,7 +84,7 @@ export default function Blog() {
                   </p>
 
                   <div className="flex items-center text-sm font-semibold text-blue-600 group-hover:translate-x-1 transition-transform">
-                    {lang === 'az' ? 'Oxu' : lang === 'ru' ? 'Читать' : 'Read more'} <ArrowRight className="w-4 h-4 ml-1" />
+                    {ui.readMore} <ArrowRight className="w-4 h-4 ml-1" />
                   </div>
                 </Link>
               );

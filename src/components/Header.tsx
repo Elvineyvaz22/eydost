@@ -21,7 +21,7 @@ export default function Header() {
   const isPackagesPage = location.pathname === '/esim';
   const isEsimPage = isEsimRoute(location.pathname);
 
-  const blogLabel = { en: 'Blog', az: 'Blog', ru: 'Блог' }[language as 'en'|'az'|'ru'] ?? 'Blog';
+  const blogLabel = (t.nav as Record<string, string>).blog ?? 'Blog';
 
   const navLinks = [
     { href: '/esim', label: t.nav.esim },

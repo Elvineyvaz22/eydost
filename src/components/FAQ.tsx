@@ -5,42 +5,41 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 type Tab = 'taxi' | 'esim' | 'general';
 
+type FaqItem = { q: string; a: string };
+
 export default function FAQ() {
   const { t } = useLanguage();
-  const faqT = t.faq as Record<string, string>;
+  const faqT = t.faq as unknown as {
+    title: string;
+    subtitle: string;
+    tabTaxi: string;
+    tabEsim: string;
+    tabGeneral: string;
+    showLess: string;
+    viewAllTaxi: string;
+    viewAllEsim: string;
+    viewAllGeneral: string;
+    ctaTitle: string;
+    ctaSubtitle: string;
+    ctaButton: string;
+    taxiList: FaqItem[];
+    esimList: FaqItem[];
+    generalList: FaqItem[];
+  };
   const [activeTab, setActiveTab] = useState<Tab>('taxi');
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [showAll, setShowAll] = useState(false);
 
-  const faqs = {
-    taxi: [
-      { q: "In which European cities is the taxi service available?", a: "We operate in 500+ cities across Europe including London, Paris, Berlin, Amsterdam, Barcelona, Rome, Vienna, Prague, Warsaw, Budapest and many more. Just open the Taxi page, enter your location, and we'll connect you with a local driver." },
-      { q: "How do I book a ride?", a: "Open our Taxi page, select your pickup and drop-off on the map, choose your car class, and tap 'Order via WhatsApp'. Our dispatch system connects you with a verified local driver instantly." },
-      { q: "How do I pay for the taxi?", a: "You can pay securely via a payment link sent to you on WhatsApp, or pay the driver directly with cash or card depending on the city." },
-      { q: "Can I schedule a ride in advance?", a: "Yes! Message our WhatsApp agents to pre-book for a specific date and time — ideal for early morning airport transfers across Europe." },
-      { q: "How do I recognize my driver?", a: "Once confirmed, we send the driver's name, car model, and license plate directly to your WhatsApp." },
-      { q: "What happens if my flight is delayed?", a: "Give us your flight number when booking. Our drivers track flights and adjust pickup time automatically — at no extra cost." },
-      { q: "Are the prices fixed or metered?", a: "We provide an estimated or fixed upfront price before you confirm, so there are no surprises — typical of major European cities." },
-      { q: "Can I order a ride for someone else?", a: "Absolutely! Share their pickup location and contact via WhatsApp and we arrange everything for them." },
-      { q: "Is it safe?", a: "We partner only with licensed, verified local fleets and highly-rated drivers across every European city we serve." },
-      { q: "Can I cancel a ride?", a: "Yes, message us to cancel. A cancellation fee may apply if the driver is already en route to your location." },
-    ],
-    esim: [
-      { q: "What is an eSIM and how do I install it?", a: "An eSIM is a digital SIM. Once you buy a plan via WhatsApp, we send you a QR code. Just scan it with your phone's camera, and your internet will be active in seconds!" },
-      { q: "Do I get a phone number with the eSIM?", a: "Our global eSIMs are data-only. This means you get fast internet for WhatsApp, Maps, and browsing, but no traditional phone number for SMS or calls." },
-      { q: "Can I use the eSIM in multiple countries?", a: "Yes! If you purchase our Regional or Global eSIM packages, you can travel across multiple borders without losing connection or changing your eSIM." },
-      { q: "Is my phone compatible with eSIM?", a: "Most modern smartphones (iPhone XS and newer, Samsung Galaxy S20 and newer, Google Pixel 3 and newer) support eSIM. You can ask our WhatsApp bot to check your specific model." },
-      { q: "When does my eSIM data plan start?", a: "The validity period typically begins the moment your eSIM connects to a supported network in your destination country." },
-      { q: "Can I keep my WhatsApp number?", a: "Yes! Your WhatsApp number remains exactly the same. You can continue chatting with your original number while using our eSIM for internet data." },
-      { q: "What if I run out of data?", a: "We will send you a warning on WhatsApp when you are low on data. You can easily top up or buy a new package instantly by messaging us." },
-      { q: "Do I need to remove my physical SIM card?", a: "No, you can keep your physical SIM inside your phone. Just make sure to select the eSIM for 'Cellular Data' in your phone's settings to avoid roaming charges." },
-      { q: "Can I share my internet via Hotspot?", a: "Yes, tethering and mobile hotspot sharing are fully supported on our eSIM plans, allowing you to connect your laptop or tablet." },
-      { q: "What should I do if my eSIM isn't working?", a: "Ensure data roaming is turned on for the eSIM in your phone settings. If you still have issues, our 24/7 WhatsApp support is ready to help you troubleshoot." },
-    ],
-    general: [
-      { q: "Do I need to download an app?", a: "No! That's our biggest advantage. Everything from ordering a taxi to buying internet packages is done 100% via WhatsApp. Zero downloads, zero hassle." },
-      { q: "Are your services available 24/7?", a: "Absolutely. Our WhatsApp automated system and support agents are available around the clock, 24/7/365, to assist you anywhere in the world." },
-    ]
+  const faqs: Record<Tab, FaqItem[]> = {
+    taxi: faqT.taxiList ?? [],
+    esim: faqT.esimList ?? [],
+    general: faqT.generalList ?? [],
+  };
+
+  const viewAllLabel: Record<Tab, string> = {
+    taxi: faqT.viewAllTaxi,
+    esim: faqT.viewAllEsim,
+    general: faqT.viewAllGeneral,
   };
 
   const handleTabChange = (tab: Tab) => {
@@ -68,7 +67,7 @@ export default function FAQ() {
                 activeTab === 'taxi' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <Car className="w-4 h-4" /> Taxi
+              <Car className="w-4 h-4" /> {faqT.tabTaxi}
             </button>
             <button
               onClick={() => handleTabChange('esim')}
@@ -76,7 +75,7 @@ export default function FAQ() {
                 activeTab === 'esim' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <Wifi className="w-4 h-4" /> eSIM
+              <Wifi className="w-4 h-4" /> {faqT.tabEsim}
             </button>
             <button
               onClick={() => handleTabChange('general')}
@@ -84,7 +83,7 @@ export default function FAQ() {
                 activeTab === 'general' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <MessageCircle className="w-4 h-4" /> General
+              <MessageCircle className="w-4 h-4" /> {faqT.tabGeneral}
             </button>
           </div>
         </div>
@@ -121,7 +120,7 @@ export default function FAQ() {
               onClick={() => setShowAll(!showAll)}
               className="inline-flex items-center gap-2 border border-gray-300 bg-white rounded-full px-6 py-2.5 text-sm font-bold text-gray-700 hover:border-gray-400 hover:text-gray-900 transition-all shadow-sm"
             >
-              {showAll ? "Show Less" : `View All ${activeTab === 'taxi' ? 'Taxi' : 'eSIM'} Questions`}
+              {showAll ? faqT.showLess : viewAllLabel[activeTab]}
               <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showAll ? 'rotate-180' : ''}`} />
             </button>
           </div>

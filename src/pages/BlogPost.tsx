@@ -9,18 +9,25 @@ import { Clock, ArrowLeft, ArrowRight, Wifi } from 'lucide-react';
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const lang: 'en' | 'az' | 'ru' = language === 'az' ? 'az' : language === 'ru' ? 'ru' : 'en';
 
   const post = slug ? getPost(slug) : undefined;
   if (!post) return <Navigate to="/blog" replace />;
 
   const content = lang === 'az' ? post.az : lang === 'ru' ? post.ru : post.en;
+  const blogT = (t as Record<string, Record<string, string>>).blog ?? {};
 
-  const readLabel = { en: 'min read', az: 'dəq oxu', ru: 'мин чтения' }[lang];
-  const backLabel = { en: 'Back to Blog', az: 'Bloqa qayıt', ru: 'Назад в блог' }[lang];
-  const ctaTitle = { en: 'Ready to get connected?', az: 'Bağlanmağa hazırsınız?', ru: 'Готовы подключиться?' }[lang];
-  const ctaBtn = { en: 'Get eSIM on WhatsApp', az: 'WhatsApp-da eSIM Al', ru: 'Получить eSIM в WhatsApp' }[lang];
+  const readLabel = blogT.readMin ?? 'min read';
+  const backLabel = blogT.backToBlog ?? 'Back to Blog';
+  const ctaTitle = blogT.ctaTitle ?? 'Ready to get connected?';
+  const ctaBtn = blogT.ctaButton ?? 'Get eSIM on WhatsApp';
+  const categoryLabels: Record<string, string> = {
+    esim: blogT.categoryEsim ?? 'eSIM',
+    taxi: blogT.categoryTaxi ?? 'Taxi',
+    travel: blogT.categoryTravel ?? 'Travel',
+  };
+  const catLabel = categoryLabels[post.category] ?? post.category;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -57,7 +64,7 @@ export default function BlogPost() {
               <ArrowLeft className="w-4 h-4" /> {backLabel}
             </Link>
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/20 text-blue-300">{post.category.toUpperCase()}</span>
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/20 text-blue-300">{catLabel}</span>
               <span className="text-xs text-gray-400 flex items-center gap-1">
                 <Clock className="w-3 h-3" /> {post.readingMinutes} {readLabel}
               </span>
