@@ -12,6 +12,7 @@
     "prerender": "node scripts/prerender.mjs",
     "vercel-build": "npm run build:no-prerender && node scripts/inject-static.mjs",
     "inject-static": "node scripts/inject-static.mjs",
+    "dump-countries": "node scripts/dump-countries.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"

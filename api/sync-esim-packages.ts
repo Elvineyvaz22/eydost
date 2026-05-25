@@ -20,21 +20,36 @@ import { createClient } from '@supabase/supabase-js';
 const BOT_API = 'https://bot.eydost.az/api/public/packages';
 const BOT_API_KEY = '0283e222ea829a8300d3f2ce4b42855d';
 
-// Bütün ölkə kodları
+// Every country code that has a page in src/data/esimPackages.ts (210 entries)
+// plus a few legacy codes (LY/IR/CI) that the bot may still serve. Keep this
+// list in sync with the data file by running `npm run dump-countries`.
+//
+// IMPORTANT: this list determines what the daily Vercel cron asks the bot for.
+// Anything not in here will never appear on the live site with current prices —
+// the build-time inject-static.mjs falls back to hardcoded prices instead.
 const COUNTRIES = [
-  'TR', 'AZ', 'RU', 'UA', 'GE', 'DE', 'FR', 'GB', 'IT', 'ES',
-  'NL', 'BE', 'CH', 'AT', 'PL', 'PT', 'SE', 'NO', 'DK', 'FI',
-  'CZ', 'HU', 'RO', 'BG', 'GR', 'HR', 'SK', 'SI', 'EE', 'LT',
-  'LV', 'IE', 'LU', 'MT', 'CY', 'US', 'CA', 'MX', 'BR', 'AR',
-  'CL', 'CO', 'PE', 'VE', 'EC', 'CN', 'JP', 'KR', 'HK', 'TW',
-  'SG', 'MY', 'TH', 'ID', 'PH', 'VN', 'IN', 'PK', 'BD', 'LK',
-  'AU', 'NZ', 'AE', 'SA', 'IL', 'JO', 'KW', 'QA', 'BH', 'OM',
-  'LB', 'EG', 'ZA', 'NG', 'KE', 'GH', 'TZ', 'ET', 'MA', 'TN',
-  'DZ', 'UG', 'MO', 'KH', 'KZ', 'UZ', 'AM', 'IS', 'AL', 'BA',
-  'MK', 'RS', 'MD', 'MN', 'MM', 'NP', 'LY', 'IQ', 'IR', 'AF',
-  'JM', 'TT', 'PR', 'CR', 'PA', 'GT', 'HN', 'SV', 'NI', 'DO',
-  'CU', 'BO', 'PY', 'UY', 'GY', 'SR', 'BY', 'MZ', 'ZW', 'ZM',
-  'AO', 'CM', 'SN', 'CI', 'ML', 'GL', 'XK', 'ME',
+  'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AR', 'AS',
+  'AT', 'AU', 'AX', 'AZ', 'BA', 'BB', 'BD', 'BE', 'BF', 'BG',
+  'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BR', 'BS', 'BT',
+  'BW', 'BY', 'BZ', 'CA', 'CD', 'CF', 'CG', 'CH', 'CI', 'CL',
+  'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CY', 'CZ', 'DE',
+  'DK', 'DM', 'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ES', 'ET',
+  'FI', 'FJ', 'FO', 'FR', 'GA', 'GB', 'GD', 'GE', 'GF', 'GG',
+  'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GR', 'GT', 'GU', 'GW',
+  'GY', 'HK', 'HN', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IM',
+  'IN', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP', 'KE',
+  'KG', 'KH', 'KI', 'KN', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB',
+  'LC', 'LI', 'LK', 'LR', 'LT', 'LU', 'LV', 'LY', 'MA', 'MC',
+  'MD', 'ME', 'MF', 'MG', 'MK', 'ML', 'MM', 'MN', 'MO', 'MQ',
+  'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ', 'NA',
+  'NC', 'NE', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NZ', 'OM',
+  'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PR', 'PS', 'PT',
+  'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB',
+  'SC', 'SD', 'SE', 'SG', 'SI', 'SK', 'SL', 'SM', 'SN', 'SO',
+  'SR', 'SV', 'SZ', 'TC', 'TD', 'TG', 'TH', 'TJ', 'TN', 'TO',
+  'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'US', 'UY', 'UZ',
+  'VA', 'VC', 'VE', 'VG', 'VN', 'VU', 'WS', 'XK', 'YE', 'YT',
+  'ZA', 'ZM', 'ZW',
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -196,9 +211,22 @@ async function syncAllPackages(): Promise<{
 
 // ── Vercel Cron Handler ───────────────────────────────────────────────────────
 export default async function handler(req: any, res: any) {
-  // Only allow cron (or local dev)
-  if (process.env.NODE_ENV === 'production' && req.headers['x-vercel-cron'] !== '1') {
-    return res.status(403).json({ error: 'Forbidden — cron only' });
+  // Allow:
+  //   1. The Vercel cron itself (sets `x-vercel-cron: 1`)
+  //   2. Manual triggers carrying `Authorization: Bearer <CRON_SECRET>`
+  //      so we can run a sync on demand without waiting for 06:00 UTC.
+  //   3. Local dev (NODE_ENV !== 'production')
+  if (process.env.NODE_ENV === 'production') {
+    const isCron = req.headers['x-vercel-cron'] === '1';
+    const cronSecret = process.env.CRON_SECRET;
+    const authHeader = req.headers['authorization'] || '';
+    const isAuthorised =
+      cronSecret &&
+      typeof authHeader === 'string' &&
+      authHeader === `Bearer ${cronSecret}`;
+    if (!isCron && !isAuthorised) {
+      return res.status(403).json({ error: 'Forbidden — cron or bearer token only' });
+    }
   }
 
   try {
