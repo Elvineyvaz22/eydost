@@ -95,6 +95,7 @@
       "dest": "https://bot.eydost.az/api/public/packages"
     },
     { "handle": "filesystem" },
+    { "src": "/([a-z0-9-]+-esim)/?$", "dest": "/$1/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
