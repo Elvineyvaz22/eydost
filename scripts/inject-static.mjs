@@ -153,23 +153,35 @@ function formatVolume(p) {
 // ── data fetching ───────────────────────────────────────────────────────────
 
 async function fetchAllPackages() {
-  const url =
-    `${SUPABASE_URL}/rest/v1/esim_packages` +
-    `?is_active=eq.true` +
-    `&select=country_code,package_code,slug,name,volume_bytes,duration_days,sell_price_minor,currency_code,is_unlimited` +
-    `&order=sell_price_minor.asc`;
+  // PostgREST defaults to a max-rows cap of 1000; we now have 2000+ active
+  // packages, so we have to paginate explicitly.
+  const PAGE_SIZE = 1000;
+  const all = [];
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const url =
+      `${SUPABASE_URL}/rest/v1/esim_packages` +
+      `?is_active=eq.true` +
+      `&select=country_code,package_code,slug,name,volume_bytes,duration_days,sell_price_minor,currency_code,is_unlimited` +
+      `&order=sell_price_minor.asc` +
+      `&limit=${PAGE_SIZE}` +
+      `&offset=${offset}`;
 
-  const res = await fetch(url, {
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Supabase ${res.status} ${res.statusText}: ${body.slice(0, 200)}`);
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Supabase ${res.status} ${res.statusText}: ${body.slice(0, 200)}`);
+    }
+    const page = await res.json();
+    if (!Array.isArray(page) || page.length === 0) break;
+    all.push(...page);
+    if (page.length < PAGE_SIZE) break;
   }
-  return res.json();
+  return all;
 }
 
 // ── per-country page generation ─────────────────────────────────────────────
