@@ -82,8 +82,12 @@ async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
     },
   });
 
+  // 4xx/5xx from the bot usually means "no packages for this country" or a
+  // transient hiccup. Treat as empty rather than throwing — that way one bad
+  // country doesn't pollute the error count, and the inject-static fallback
+  // keeps using hardcoded prices for that country.
   if (!res.ok) {
-    throw new Error(`Bot API error for ${countryCode}: ${res.status}`);
+    return [];
   }
 
   const data = await res.json();
@@ -134,7 +138,6 @@ async function upsertPackagesForCountry(
       currency_code: pkg.currency || 'USD',
       is_unlimited: isUnlimited,
       speed: pkg.speed || '4G',
-      network_type: null,
       description: pkg.description || pkg.name,
       is_active: true,
       last_synced_at: now,
