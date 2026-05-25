@@ -108,7 +108,7 @@ const HOME_JSON_LD = [
         "name": "In which European cities is the taxi service available?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Our taxi service operates in 850+ cities across 50+ countries — including Azerbaijan, Turkey, the UAE, the UK, France, Germany, Spain, Italy and many more. Open the Taxi page and book via WhatsApp."
+          "text": "Our taxi service operates in 850+ cities across 50+ countries — including Azerbaijan, the UAE, the UK, France, Germany, Spain, Italy and many more. Open the Taxi page and book via WhatsApp."
         }
       },
       {
