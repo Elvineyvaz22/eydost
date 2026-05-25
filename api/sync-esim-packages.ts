@@ -192,6 +192,7 @@ async function syncAllPackages(): Promise<{
   let totalErrors = 0;
   const emptyCountries: string[] = [];
   const sampleErrors: Array<{ country: string; message: string }> = [];
+  const perCountry: Record<string, { fetched: number; upserted: number; errors: number; errorMessage?: string }> = {};
 
   // Run in batches of CONCURRENCY to stay under Vercel function timeout.
   const CONCURRENCY = 20;
@@ -229,12 +230,24 @@ async function syncAllPackages(): Promise<{
         if (r.errorMessage && sampleErrors.length < 5) {
           sampleErrors.push({ country: r.countryCode, message: r.errorMessage });
         }
+        perCountry[r.countryCode] = {
+          fetched: (r as any).fetched ?? 0,
+          upserted: r.upserted,
+          errors: r.errors,
+          errorMessage: r.errorMessage,
+        };
       } else {
         totalErrors++;
         console.error(`  ✗ ${r.countryCode}: ${r.message}`);
         if (sampleErrors.length < 5) {
           sampleErrors.push({ country: r.countryCode, message: r.message || 'unknown' });
         }
+        perCountry[r.countryCode] = {
+          fetched: 0,
+          upserted: 0,
+          errors: 1,
+          errorMessage: r.message,
+        };
       }
     }
     console.log(
@@ -247,6 +260,7 @@ async function syncAllPackages(): Promise<{
   }
   // Stash sample errors on the return so the caller can surface them.
   (syncAllPackages as any)._lastSampleErrors = sampleErrors;
+  (syncAllPackages as any)._lastPerCountry = perCountry;
 
   const duration = Date.now() - start;
 
@@ -321,12 +335,40 @@ export default async function handler(req: any, res: any) {
   try {
     const result = await syncAllPackages();
     const sampleErrors = (syncAllPackages as any)._lastSampleErrors || [];
+    const perCountry = (syncAllPackages as any)._lastPerCountry || {};
+    const detail = req.query?.detail === '1';
+
+    // Snapshot Supabase right after sync so we can compare upserted vs visible
+    // rows per country (catches anything getting silently nuked downstream).
+    let supabaseCounts: Record<string, number> = {};
+    if (detail) {
+      try {
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (supabaseUrl && supabaseKey) {
+          const supabase = createClient(supabaseUrl, supabaseKey, {
+            auth: { persistSession: false },
+          });
+          const { data } = await supabase
+            .from('esim_packages')
+            .select('country_code')
+            .eq('is_active', true);
+          if (Array.isArray(data)) {
+            for (const row of data as any[]) {
+              const c = row.country_code;
+              supabaseCounts[c] = (supabaseCounts[c] || 0) + 1;
+            }
+          }
+        }
+      } catch (_) {}
+    }
 
     return res.status(200).json({
       success: true,
       message: 'eSIM packages synced successfully',
       ...result,
       sampleErrors,
+      ...(detail ? { perCountry, supabaseCounts } : {}),
       synced_at: new Date().toISOString(),
     });
   } catch (err: any) {
