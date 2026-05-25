@@ -7,7 +7,7 @@
     "dev": "vite",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "prebuild": "npm run sitemap",
-    "build": "vite build && npm run prerender",
+    "build": "vite build && node scripts/prerender-runner.mjs",
     "build:no-prerender": "vite build",
     "prerender": "node scripts/prerender.mjs",
     "vercel-build": "npm run build",

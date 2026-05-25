@@ -21,7 +21,19 @@ import http from 'node:http';
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import puppeteer from 'puppeteer';
+
+// Dynamic import so that a missing/broken puppeteer install doesn't crash the
+// build at module-load time — we degrade gracefully to "skip prerender".
+let puppeteer;
+try {
+  ({ default: puppeteer } = await import('puppeteer'));
+} catch (err) {
+  console.warn(
+    '[prerender] puppeteer is not installed in this environment — skipping prerender. ' +
+      'Reason:', err?.message || err
+  );
+  process.exit(0);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
