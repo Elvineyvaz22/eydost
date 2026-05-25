@@ -36,7 +36,7 @@ export default function Terms() {
             <p>Ey Dost provides:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li><strong>eSIM data packages</strong> — digital mobile data plans for 150+ countries, delivered via WhatsApp as a QR code.</li>
-              <li><strong>Taxi booking</strong> — ride facilitation service in 500+ European cities, coordinated through WhatsApp with third-party local fleet partners.</li>
+              <li><strong>Taxi booking</strong> — ride facilitation service in 850+ cities across 50+ countries, coordinated through WhatsApp with third-party local fleet partners.</li>
             </ul>
           </section>
 
@@ -57,7 +57,7 @@ export default function Terms() {
               <li>Ey Dost acts as an intermediary connecting customers with independent local taxi operators.</li>
               <li>Prices shown are estimates. Final fare may vary due to traffic, tolls, or airport fees.</li>
               <li>Ey Dost is not liable for driver conduct, vehicle condition, or delays caused by third-party operators.</li>
-              <li>Taxi service is currently available in 500+ cities across Europe. Availability may vary by location.</li>
+              <li>Taxi service is currently available in 850+ cities across 50+ countries. Availability may vary by location.</li>
               <li>For safety, driver details (name, vehicle, plate) are provided via WhatsApp upon booking confirmation.</li>
             </ul>
           </section>

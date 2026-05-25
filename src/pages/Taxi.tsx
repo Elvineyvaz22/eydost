@@ -546,7 +546,7 @@ export default function Taxi() {
       <div className="h-[100dvh] bg-[#0A0F1C] flex flex-col font-sans overflow-hidden">
         <Seo
           title="Global Taxi Booking via WhatsApp"
-          description="Book reliable taxi rides in 500+ cities across 50+ countries — all through WhatsApp. No app needed. Instant confirmation."
+          description="Book reliable taxi rides in 850+ cities across 50+ countries — wherever Bolt-style ride-hailing is active. All via WhatsApp. No app needed."
           canonicalPath="/taxi"
         />
         <Header />
