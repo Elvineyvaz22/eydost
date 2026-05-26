@@ -14,7 +14,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Search,
   ChevronRight,
@@ -31,13 +31,21 @@ import {
   CheckCircle2,
   AlertCircle,
   QrCode,
+  Loader2,
+  Eye,
 } from 'lucide-react';
 import Header from '../components/Header';
 import Seo from '../components/Seo';
 import FlagImage from '../components/FlagImage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePackages } from '../contexts/PackagesContext';
-import { ESIM_BOT_WHATSAPP_URL } from '../services/esimAccountApi';
+import {
+  ESIM_BOT_WHATSAPP_URL,
+  getCustomerEsims,
+  getCustomerOrders,
+  type EsimResponse,
+  type OrderResponse,
+} from '../services/esimAccountApi';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 
 // ── Static config ───────────────────────────────────────────────────────────
@@ -531,31 +539,200 @@ function ShopView({
   );
 }
 
-function EsimsView({ lang, onShop }: { lang: Lang; onShop: () => void }) {
-  const activeEsims = MOCK_ESIMS;
+// ── Identity banner ─────────────────────────────────────────────────────────
+
+function IdentityBanner({
+  lang,
+  waId,
+}: {
+  lang: Lang;
+  waId: string | null;
+}) {
+  if (!waId) {
+    return (
+      <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-full text-[11px] text-amber-800">
+        <Eye className="w-3.5 h-3.5 flex-shrink-0" />
+        <span className="font-semibold">{tr(lang, 'Demo mode', 'Demo rejimi')}</span>
+        <span className="opacity-75">·</span>
+        <span className="opacity-75 truncate">
+          {tr(
+            lang,
+            'sample data — log in via WhatsApp link',
+            'nümunə data — WhatsApp linkindən aç',
+          )}
+        </span>
+      </div>
+    );
+  }
   return (
-    <div className="max-w-2xl w-full mx-auto px-4 pt-6">
+    <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-full text-[11px] text-blue-800">
+      <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+      <span className="font-semibold">
+        {tr(lang, 'Signed in as', 'Daxil olub')}
+      </span>
+      <span className="font-mono">+{waId}</span>
+    </div>
+  );
+}
+
+// ── Data fetch hook ─────────────────────────────────────────────────────────
+
+interface CustomerData {
+  esims: EsimResponse[] | null;
+  orders: OrderResponse[] | null;
+  loading: boolean;
+  error: string | null;
+}
+
+function useCustomerData(waId: string | null): CustomerData {
+  const [state, setState] = useState<CustomerData>({
+    esims: null,
+    orders: null,
+    loading: !!waId,
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!waId) {
+      setState({ esims: null, orders: null, loading: false, error: null });
+      return;
+    }
+    let cancelled = false;
+    setState({ esims: null, orders: null, loading: true, error: null });
+
+    Promise.allSettled([getCustomerEsims(waId), getCustomerOrders(waId)]).then(
+      ([esimsRes, ordersRes]) => {
+        if (cancelled) return;
+        const esims = esimsRes.status === 'fulfilled' ? esimsRes.value : [];
+        const orders = ordersRes.status === 'fulfilled' ? ordersRes.value : [];
+        const errMsg =
+          esimsRes.status === 'rejected'
+            ? (esimsRes.reason?.message ?? 'Failed to load eSIMs')
+            : ordersRes.status === 'rejected'
+              ? (ordersRes.reason?.message ?? 'Failed to load orders')
+              : null;
+        setState({ esims, orders, loading: false, error: errMsg });
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [waId]);
+
+  return state;
+}
+
+// ── Real-data card (compact) ────────────────────────────────────────────────
+
+function RealEsimCard({ esim, lang }: { esim: EsimResponse; lang: Lang }) {
+  const statusRaw = (esim.status || 'unknown').toLowerCase();
+  const isActive = ['active', 'in_use', 'installed'].includes(statusRaw);
+  const isExpired = ['expired', 'depleted', 'cancelled'].includes(statusRaw);
+  const statusCls = isActive
+    ? 'bg-green-100 text-green-700 border-green-200'
+    : isExpired
+      ? 'bg-gray-100 text-gray-500 border-gray-200'
+      : 'bg-amber-100 text-amber-700 border-amber-200';
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <Wifi className="w-5 h-5 text-blue-600" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-bold text-gray-900 truncate">
+              eSIM #{esim.id}
+            </div>
+            <div className="text-[11px] text-gray-400 mt-0.5 font-mono">
+              {esim.iccid
+                ? `ICCID …${esim.iccid.slice(-6)}`
+                : tr(lang, 'No ICCID yet', 'ICCID hələ yox')}
+            </div>
+          </div>
+        </div>
+        <div
+          className={`px-2 py-1 rounded-full text-[11px] font-semibold border ${statusCls} flex-shrink-0`}
+        >
+          {esim.status || tr(lang, 'unknown', 'naməlum')}
+        </div>
+      </div>
+      {esim.short_url && (
+        <a
+          href={esim.short_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-semibold transition-colors"
+        >
+          <QrCode className="w-3.5 h-3.5" />
+          {tr(lang, 'Open activation QR', 'Aktivləşmə QR-ı aç')}
+        </a>
+      )}
+    </div>
+  );
+}
+
+// ── eSIMs tab view ──────────────────────────────────────────────────────────
+
+function EsimsView({
+  lang,
+  waId,
+  onShop,
+}: {
+  lang: Lang;
+  waId: string | null;
+  onShop: () => void;
+}) {
+  const { esims, loading, error } = useCustomerData(waId);
+
+  // Demo path: no wa_id → mock data
+  const isDemo = !waId;
+  const realEsims = esims ?? [];
+
+  return (
+    <div className="max-w-2xl w-full mx-auto px-4 pt-5">
+      <IdentityBanner lang={lang} waId={waId} />
+
       <div className="flex items-center justify-between mb-4 px-1">
         <h1 className="text-2xl font-extrabold text-gray-900">
           {tr(lang, 'My eSIMs', 'eSIMlərim')}
         </h1>
-        <div className="text-xs text-gray-400 font-semibold">
-          {activeEsims.length} {tr(lang, 'active', 'aktiv')}
-        </div>
+        {!loading && (
+          <div className="text-xs text-gray-400 font-semibold">
+            {isDemo ? MOCK_ESIMS.length : realEsims.length}{' '}
+            {tr(lang, 'active', 'aktiv')}
+          </div>
+        )}
       </div>
 
-      {activeEsims.length === 0 ? (
+      {loading ? (
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <Loader2 className="w-6 h-6 text-blue-500 mx-auto animate-spin mb-2" />
+          <div className="text-xs text-gray-500">
+            {tr(lang, 'Loading your eSIMs…', 'eSIM-lər yüklənir…')}
+          </div>
+        </div>
+      ) : isDemo ? (
+        <div className="space-y-3">
+          {MOCK_ESIMS.map((e) => (
+            <EsimCard key={e.id} esim={e} lang={lang} />
+          ))}
+        </div>
+      ) : realEsims.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
           <Smartphone className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <div className="text-sm font-semibold text-gray-700 mb-1">
             {tr(lang, 'No active eSIMs', 'Aktiv eSIM yoxdur')}
           </div>
           <div className="text-xs text-gray-400 mb-5">
-            {tr(
-              lang,
-              'Buy your first eSIM in the Shop tab.',
-              'İlk eSIM-ni Mağaza tabından al.',
-            )}
+            {error
+              ? error
+              : tr(
+                  lang,
+                  'Buy your first eSIM in the Shop tab.',
+                  'İlk eSIM-ni Mağaza tabından al.',
+                )}
           </div>
           <button
             onClick={onShop}
@@ -567,8 +744,8 @@ function EsimsView({ lang, onShop }: { lang: Lang; onShop: () => void }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {activeEsims.map((e) => (
-            <EsimCard key={e.id} esim={e} lang={lang} />
+          {realEsims.map((e) => (
+            <RealEsimCard key={e.id} esim={e} lang={lang} />
           ))}
         </div>
       )}
@@ -588,18 +765,30 @@ function EsimsView({ lang, onShop }: { lang: Lang; onShop: () => void }) {
   );
 }
 
-function BalanceView({ lang }: { lang: Lang }) {
-  const totalRemainingGB = MOCK_ESIMS.reduce(
+function BalanceView({ lang, waId }: { lang: Lang; waId: string | null }) {
+  const { esims, orders, loading } = useCustomerData(waId);
+  const isDemo = !waId;
+
+  const mockTotalRemainingGB = MOCK_ESIMS.reduce(
     (sum, e) => sum + Math.max(0, e.dataTotalGB - e.dataUsedGB),
     0,
   );
-  const totalSpentUSD = MOCK_ORDERS.filter((o) => o.status === 'paid').reduce(
+  const mockTotalSpentUSD = MOCK_ORDERS.filter((o) => o.status === 'paid').reduce(
     (sum, o) => sum + (parseFloat(o.price.replace(/[^\d.]/g, '')) || 0),
     0,
   );
 
+  const realOrders = orders ?? [];
+  const realEsims = esims ?? [];
+  const realTotalSpentUSD = realOrders.reduce(
+    (s, o) => s + (parseFloat((o.sell_price || '').replace(/[^\d.]/g, '')) || 0),
+    0,
+  );
+
   return (
-    <div className="max-w-2xl w-full mx-auto px-4 pt-6">
+    <div className="max-w-2xl w-full mx-auto px-4 pt-5">
+      <IdentityBanner lang={lang} waId={waId} />
+
       <h1 className="text-2xl font-extrabold text-gray-900 mb-4 px-1">
         {tr(lang, 'Balance & history', 'Balans və tarixçə')}
       </h1>
@@ -609,26 +798,48 @@ function BalanceView({ lang }: { lang: Lang }) {
         <div className="text-xs text-blue-100 uppercase tracking-wider mb-1">
           {tr(lang, 'Total data remaining', 'Ümumi qalan data')}
         </div>
-        <div className="text-4xl font-extrabold leading-none mb-1">
-          {totalRemainingGB.toFixed(1)} <span className="text-2xl">GB</span>
-        </div>
-        <div className="text-xs text-blue-100">
-          {tr(lang, 'across', 'ümumilikdə')} {MOCK_ESIMS.length}{' '}
-          {tr(lang, 'active eSIMs', 'aktiv eSIM')}
-        </div>
+        {loading ? (
+          <div className="text-3xl font-extrabold leading-none mb-1 opacity-50">
+            …
+          </div>
+        ) : isDemo ? (
+          <>
+            <div className="text-4xl font-extrabold leading-none mb-1">
+              {mockTotalRemainingGB.toFixed(1)} <span className="text-2xl">GB</span>
+            </div>
+            <div className="text-xs text-blue-100">
+              {tr(lang, 'across', 'ümumilikdə')} {MOCK_ESIMS.length}{' '}
+              {tr(lang, 'active eSIMs', 'aktiv eSIM')}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-4xl font-extrabold leading-none mb-1">
+              — <span className="text-2xl">GB</span>
+            </div>
+            <div className="text-xs text-blue-100">
+              {realEsims.length}{' '}
+              {tr(lang, 'active eSIMs · per-eSIM usage soon', 'aktiv eSIM · istifadə tezliklə')}
+            </div>
+          </>
+        )}
 
         <div className="grid grid-cols-2 gap-3 mt-5 pt-4 border-t border-white/15">
           <div>
             <div className="text-[10px] text-blue-200 uppercase tracking-wider">
               {tr(lang, 'Orders', 'Sifariş')}
             </div>
-            <div className="text-xl font-bold">{MOCK_ORDERS.length}</div>
+            <div className="text-xl font-bold">
+              {isDemo ? MOCK_ORDERS.length : realOrders.length}
+            </div>
           </div>
           <div>
             <div className="text-[10px] text-blue-200 uppercase tracking-wider">
               {tr(lang, 'Total spent', 'Ümumi xərc')}
             </div>
-            <div className="text-xl font-bold">${totalSpentUSD.toFixed(2)}</div>
+            <div className="text-xl font-bold">
+              ${(isDemo ? mockTotalSpentUSD : realTotalSpentUSD).toFixed(2)}
+            </div>
           </div>
         </div>
       </div>
@@ -638,32 +849,79 @@ function BalanceView({ lang }: { lang: Lang }) {
         <h2 className="text-base font-bold text-gray-900">
           {tr(lang, 'Recent orders', 'Son sifarişlər')}
         </h2>
-        <span className="text-xs text-gray-400">{MOCK_ORDERS.length}</span>
+        <span className="text-xs text-gray-400">
+          {isDemo ? MOCK_ORDERS.length : realOrders.length}
+        </span>
       </div>
-      <div className="space-y-2 mb-6">
-        {MOCK_ORDERS.map((o) => (
-          <div
-            key={o.id}
-            className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3"
-          >
-            <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
-              <FlagImage countryCode={o.countryCode} size="full" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-gray-900 truncate">
-                {o.country} · {o.planName}
+
+      {loading ? (
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mb-6">
+          <Loader2 className="w-5 h-5 text-blue-500 mx-auto animate-spin" />
+        </div>
+      ) : isDemo ? (
+        <div className="space-y-2 mb-6">
+          {MOCK_ORDERS.map((o) => (
+            <div
+              key={o.id}
+              className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3"
+            >
+              <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
+                <FlagImage countryCode={o.countryCode} size="full" />
               </div>
-              <div className="text-[11px] text-gray-400 mt-0.5">{o.date}</div>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <div className="text-sm font-bold text-gray-900">{o.price}</div>
-              <div className="text-[10px] text-green-600 font-semibold uppercase">
-                {tr(lang, 'Paid', 'Ödənilib')}
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-gray-900 truncate">
+                  {o.country} · {o.planName}
+                </div>
+                <div className="text-[11px] text-gray-400 mt-0.5">{o.date}</div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <div className="text-sm font-bold text-gray-900">{o.price}</div>
+                <div className="text-[10px] text-green-600 font-semibold uppercase">
+                  {tr(lang, 'Paid', 'Ödənilib')}
+                </div>
               </div>
             </div>
+          ))}
+        </div>
+      ) : realOrders.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center mb-6">
+          <Wallet className="w-9 h-9 text-gray-300 mx-auto mb-2" />
+          <div className="text-sm text-gray-500">
+            {tr(lang, 'No orders yet', 'Hələ sifariş yoxdur')}
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="space-y-2 mb-6">
+          {realOrders.map((o) => (
+            <div
+              key={o.id}
+              className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3"
+            >
+              <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
+                <FlagImage countryCode={o.country_code} size="full" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-gray-900 truncate">
+                  {o.country_code} · {o.package_code}
+                </div>
+                <div className="text-[11px] text-gray-400 mt-0.5 font-mono">
+                  #{o.transaction_id?.slice(-8) ?? o.id}
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <div className="text-sm font-bold text-gray-900">
+                  {o.sell_price
+                    ? `${o.currency === 'USD' ? '$' : ''}${o.sell_price}`
+                    : '—'}
+                </div>
+                <div className="text-[10px] text-gray-500 font-semibold uppercase">
+                  {o.status}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <a
         href={ESIM_BOT_WHATSAPP_URL}
@@ -758,6 +1016,8 @@ export default function EsimShopDemo() {
   const lang = (language as Lang) ?? 'en';
   const { packages, regionalPackages, globalPackage } = usePackages();
   const [tab, setTab] = useState<TabId>('shop');
+  const [searchParams] = useSearchParams();
+  const waId = (searchParams.get('wa_id') || '').trim() || null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col pt-16 lg:pt-20">
@@ -778,8 +1038,10 @@ export default function EsimShopDemo() {
             globalPackage={globalPackage}
           />
         )}
-        {tab === 'esims' && <EsimsView lang={lang} onShop={() => setTab('shop')} />}
-        {tab === 'balance' && <BalanceView lang={lang} />}
+        {tab === 'esims' && (
+          <EsimsView lang={lang} waId={waId} onShop={() => setTab('shop')} />
+        )}
+        {tab === 'balance' && <BalanceView lang={lang} waId={waId} />}
       </main>
 
       <BottomTabBar tab={tab} setTab={setTab} lang={lang} />
