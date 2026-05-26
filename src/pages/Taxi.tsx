@@ -287,7 +287,7 @@ export default function Taxi() {
         return;
       }
       if (!pickupCountryCode) {
-        alert(language === 'az' ? 'Pickup ölkəsi təyin olunmayıb.' : 'Pickup country not set.');
+        alert(language === 'az' ? 'Pickup ölkəsi təyin olunmayıb.' : language === 'ru' ? 'Страна отправления не определена.' : 'Pickup country not set.');
         return;
       }
       const car = CAR_CLASSES.find(c => c.id === selectedCar);

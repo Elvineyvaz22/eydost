@@ -27,6 +27,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Seo from '../components/Seo';
 import FlagImage from '../components/FlagImage';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   ESIM_BOT_WHATSAPP_URL,
   getCustomerEsims,
@@ -36,6 +37,118 @@ import {
   type OrderResponse,
   type UsageResponse,
 } from '../services/esimAccountApi';
+
+type Lang = 'en' | 'az' | 'ru';
+
+function pickLang(language: string): Lang {
+  return language === 'az' || language === 'ru' ? (language as Lang) : 'en';
+}
+
+const STRINGS: Record<Lang, {
+  myEsims: string;
+  demoTag: string;
+  profileUnavailable: string;
+  backendNote: string;
+  totalRemaining: string;
+  acrossPackages: (n: number) => string;
+  activePackages: string;
+  noActive: string;
+  orderHint: string;
+  orderNewTitle: string;
+  orderNewSub: string;
+  orderHistory: string;
+  noOrders: string;
+  noPrevious: string;
+  alsoExpired: (n: number) => string;
+  footerHelp: string;
+  chatOnWa: string;
+  remaining: string;
+  daysLeft: string;
+  used: string;
+  ofLabel: string;
+  pctRemaining: string;
+  usageUnavailable: string;
+  unknown: string;
+}> = {
+  en: {
+    myEsims: 'My eSIMs',
+    demoTag: 'Demo',
+    profileUnavailable: 'Profile data unavailable',
+    backendNote: 'Backend endpoints are not deployed yet.',
+    totalRemaining: 'Total remaining',
+    acrossPackages: (n) => `Across ${n} active package${n === 1 ? '' : 's'}`,
+    activePackages: 'Active packages',
+    noActive: 'No active eSIM packages yet.',
+    orderHint: 'Order one on WhatsApp and it will appear here.',
+    orderNewTitle: 'Order a new eSIM on WhatsApp',
+    orderNewSub: 'Chat with the bot — payment and QR delivered there.',
+    orderHistory: 'Order history',
+    noOrders: 'No orders yet.',
+    noPrevious: 'No previous orders.',
+    alsoExpired: (n) => `Also ${n} expired eSIM${n === 1 ? '' : 's'} in your account.`,
+    footerHelp: 'Need help with installation, top-ups, or refunds?',
+    chatOnWa: 'Chat with us on WhatsApp',
+    remaining: 'Remaining',
+    daysLeft: 'Days left',
+    used: 'Used',
+    ofLabel: 'of',
+    pctRemaining: 'remaining',
+    usageUnavailable: 'Usage temporarily unavailable',
+    unknown: 'unknown',
+  },
+  az: {
+    myEsims: 'eSIMlərim',
+    demoTag: 'Demo',
+    profileUnavailable: 'Profil məlumatı əlçatan deyil',
+    backendNote: 'Backend endpointləri hələ aktiv deyil.',
+    totalRemaining: 'Ümumi qalıq',
+    acrossPackages: (n) => `${n} aktiv paketdə`,
+    activePackages: 'Aktiv paketlər',
+    noActive: 'Aktiv eSIM paketi yoxdur.',
+    orderHint: 'WhatsApp-da sifariş verin — burada görünəcək.',
+    orderNewTitle: 'WhatsApp-da yeni eSIM sifariş et',
+    orderNewSub: 'Botla yazışın — ödəniş və QR oradan gəlir.',
+    orderHistory: 'Sifariş tarixçəsi',
+    noOrders: 'Hələ sifariş yoxdur.',
+    noPrevious: 'Əvvəlki sifariş yoxdur.',
+    alsoExpired: (n) => `Hesabda həmçinin ${n} keçmiş eSIM var.`,
+    footerHelp: 'Quraşdırma, doldurma və ya geri qaytarmada kömək lazımdır?',
+    chatOnWa: 'WhatsApp-da bizimlə yazışın',
+    remaining: 'Qalıq',
+    daysLeft: 'Qalan gün',
+    used: 'İstifadə',
+    ofLabel: '/',
+    pctRemaining: 'qalıb',
+    usageUnavailable: 'İstifadə məlumatı müvəqqəti əlçatan deyil',
+    unknown: 'naməlum',
+  },
+  ru: {
+    myEsims: 'Мои eSIM',
+    demoTag: 'Demo',
+    profileUnavailable: 'Данные профиля недоступны',
+    backendNote: 'Бэкенд-эндпойнты пока не развёрнуты.',
+    totalRemaining: 'Всего осталось',
+    acrossPackages: (n) => `В ${n} активн. пакет${n === 1 ? 'е' : 'ах'}`,
+    activePackages: 'Активные пакеты',
+    noActive: 'Активных eSIM пока нет.',
+    orderHint: 'Закажите в WhatsApp — пакет появится здесь.',
+    orderNewTitle: 'Заказать новый eSIM в WhatsApp',
+    orderNewSub: 'Напишите боту — оплата и QR придут туда.',
+    orderHistory: 'История заказов',
+    noOrders: 'Заказов пока нет.',
+    noPrevious: 'Предыдущих заказов нет.',
+    alsoExpired: (n) => `Также ${n} истёкших eSIM в аккаунте.`,
+    footerHelp: 'Нужна помощь с установкой, пополнением или возвратом?',
+    chatOnWa: 'Напишите нам в WhatsApp',
+    remaining: 'Осталось',
+    daysLeft: 'Дней',
+    used: 'Использовано',
+    ofLabel: 'из',
+    pctRemaining: 'осталось',
+    usageUnavailable: 'Статистика временно недоступна',
+    unknown: 'неизв.',
+  },
+};
 
 // ── Enrichment ────────────────────────────────────────────────────────────────
 // Real backend (`/customers/by-wa/{wa_id}/esims`) hələ paket/ölkə adlarını
@@ -134,9 +247,11 @@ function formatDate(iso?: string): string {
 function StatusBadge({
   status,
   flavour,
+  unknownLabel = 'unknown',
 }: {
   status?: string | null;
   flavour: 'order' | 'esim';
+  unknownLabel?: string;
 }) {
   const lower = (status || '').toLowerCase();
   const isOk =
@@ -167,7 +282,7 @@ function StatusBadge({
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}
     >
       {Icon && <Icon className="w-3 h-3" />}
-      {status || 'unknown'}
+      {status || unknownLabel}
     </span>
   );
 }
@@ -175,9 +290,11 @@ function StatusBadge({
 function UsageBar({
   remainingBytes,
   totalBytes,
+  remainingLabel = 'remaining',
 }: {
   remainingBytes: number | null;
   totalBytes: number | null;
+  remainingLabel?: string;
 }) {
   let pct: number | null = null;
   if (remainingBytes !== null && totalBytes && totalBytes > 0) {
@@ -201,14 +318,14 @@ function UsageBar({
       </div>
       {pct !== null && (
         <div className="mt-1 text-[10px] text-gray-400 text-right">
-          {pct.toFixed(0)}% remaining
+          {pct.toFixed(0)}% {remainingLabel}
         </div>
       )}
     </div>
   );
 }
 
-function ActiveEsimCard({ esim }: { esim: EnrichedEsim }) {
+function ActiveEsimCard({ esim, s }: { esim: EnrichedEsim; s: typeof STRINGS['en'] }) {
   const remaining = toBytes(esim.usage?.remain_volume);
   const total =
     toBytes(esim.usage?.total_volume) ?? esim.package_volume_bytes ?? null;
@@ -245,14 +362,14 @@ function ActiveEsimCard({ esim }: { esim: EnrichedEsim }) {
             <div className="text-xs text-gray-400 truncate">{subtitle}</div>
           </div>
         </div>
-        <StatusBadge status={esim.status} flavour="esim" />
+        <StatusBadge status={esim.status} flavour="esim" unknownLabel={s.unknown} />
       </div>
 
       <div className="mb-3">
         <div className="flex items-baseline justify-between mb-2">
           <div>
             <div className="text-[10px] text-gray-400 uppercase tracking-wider">
-              Remaining
+              {s.remaining}
             </div>
             <div className="text-2xl font-extrabold text-gray-900 leading-tight">
               {esim.usageError ? '—' : formatVolume(remaining)}
@@ -260,11 +377,11 @@ function ActiveEsimCard({ esim }: { esim: EnrichedEsim }) {
           </div>
           {total !== null && (
             <div className="text-xs text-gray-400">
-              of {formatVolume(total)}
+              {s.ofLabel} {formatVolume(total)}
             </div>
           )}
         </div>
-        <UsageBar remainingBytes={remaining} totalBytes={total} />
+        <UsageBar remainingBytes={remaining} totalBytes={total} remainingLabel={s.pctRemaining} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-50 text-sm">
@@ -272,16 +389,16 @@ function ActiveEsimCard({ esim }: { esim: EnrichedEsim }) {
           <Clock className="w-4 h-4 text-gray-400" />
           <div>
             <div className="text-[10px] text-gray-400 uppercase tracking-wider">
-              Days left
+              {s.daysLeft}
             </div>
             <div className="font-semibold text-gray-900">
-              {days === null ? '—' : `${days} day${days === 1 ? '' : 's'}`}
+              {days === null ? '—' : `${days}`}
             </div>
           </div>
         </div>
         <div>
           <div className="text-[10px] text-gray-400 uppercase tracking-wider">
-            Used
+            {s.used}
           </div>
           <div className="font-semibold text-gray-900">
             {used === null ? '—' : formatVolume(used)}
@@ -291,14 +408,14 @@ function ActiveEsimCard({ esim }: { esim: EnrichedEsim }) {
 
       {esim.usageError && (
         <div className="mt-3 text-xs text-amber-600">
-          Usage temporarily unavailable: {esim.usageError}
+          {s.usageUnavailable}: {esim.usageError}
         </div>
       )}
     </div>
   );
 }
 
-function OrderRow({ order }: { order: EnrichedOrder }) {
+function OrderRow({ order, unknownLabel }: { order: EnrichedOrder; unknownLabel: string }) {
   const title =
     order.package_name ||
     `${order.country_code} · ${order.package_code}`;
@@ -324,7 +441,7 @@ function OrderRow({ order }: { order: EnrichedOrder }) {
         <div className="text-sm font-semibold text-gray-900">
           {order.sell_price ?? '—'} {order.currency ?? ''}
         </div>
-        <StatusBadge status={order.status} flavour="order" />
+        <StatusBadge status={order.status} flavour="order" unknownLabel={unknownLabel} />
       </div>
     </div>
   );
@@ -333,6 +450,8 @@ function OrderRow({ order }: { order: EnrichedOrder }) {
 // ── Page ────────────────────────────────────────────────────────────────────
 
 export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
+  const { language } = useLanguage();
+  const s = STRINGS[pickLang(language)];
   const [esims, setEsims] = useState<EnrichedEsim[] | null>(
     demoData ? demoData.esims : null,
   );
@@ -420,7 +539,7 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Seo
-        title="My eSIMs"
+        title={s.myEsims}
         description="Your active eSIM packages and order history at Ey Dost."
         noIndex
         canonicalPath="/esim"
@@ -431,13 +550,13 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
         {/* Greeting */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            My eSIMs
+            {s.myEsims}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             WhatsApp ID <span className="font-mono">{waId}</span>
             {demoData && (
               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-purple-100 text-purple-700">
-                Demo
+                {s.demoTag}
               </span>
             )}
           </p>
@@ -455,14 +574,9 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-amber-800">
-              <div className="font-semibold mb-1">Profile data unavailable</div>
+              <div className="font-semibold mb-1">{s.profileUnavailable}</div>
               <div className="text-amber-700">{error}</div>
-              <div className="text-xs text-amber-600 mt-2">
-                Backend endpoints{' '}
-                <code>/customers/by-wa/&#123;wa_id&#125;/esims</code> and{' '}
-                <code>/customers/by-wa/&#123;wa_id&#125;/orders</code> are not
-                deployed yet.
-              </div>
+              <div className="text-xs text-amber-600 mt-2">{s.backendNote}</div>
             </div>
           </div>
         )}
@@ -475,14 +589,13 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-wider text-blue-200">
-                      Total remaining
+                      {s.totalRemaining}
                     </div>
                     <div className="text-3xl font-extrabold mt-1">
                       {formatVolume(totalRemainingBytes)}
                     </div>
                     <div className="text-xs text-blue-100 mt-1">
-                      Across {activeEsims.length} active package
-                      {activeEsims.length === 1 ? '' : 's'}
+                      {s.acrossPackages(activeEsims.length)}
                     </div>
                   </div>
                   <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
@@ -496,7 +609,7 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
             <section className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Active packages
+                  {s.activePackages}
                   {activeEsims.length > 0 && (
                     <span className="ml-2 text-sm font-normal text-gray-400">
                       ({activeEsims.length})
@@ -507,17 +620,13 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
               {activeEsims.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-8 text-center">
                   <Wifi className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                  <div className="text-sm text-gray-500">
-                    No active eSIM packages yet.
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Order one on WhatsApp and it will appear here.
-                  </div>
+                  <div className="text-sm text-gray-500">{s.noActive}</div>
+                  <div className="text-xs text-gray-400 mt-1">{s.orderHint}</div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {activeEsims.map((e) => (
-                    <ActiveEsimCard key={e.id} esim={e} />
+                    <ActiveEsimCard key={e.id} esim={e} s={s} />
                   ))}
                 </div>
               )}
@@ -537,12 +646,8 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
                       <MessageCircle className="w-6 h-6" />
                     </div>
                     <div className="min-w-0">
-                      <div className="font-bold">
-                        Order a new eSIM on WhatsApp
-                      </div>
-                      <div className="text-xs text-white/90 truncate">
-                        Chat with the bot — payment and QR delivered there.
-                      </div>
+                      <div className="font-bold">{s.orderNewTitle}</div>
+                      <div className="text-xs text-white/90 truncate">{s.orderNewSub}</div>
                     </div>
                   </div>
                   <div className="text-xs font-bold tracking-wider opacity-90 flex-shrink-0">
@@ -555,7 +660,7 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
             {/* Order history */}
             <section>
               <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                Order history
+                {s.orderHistory}
                 {orders && orders.length > 0 && (
                   <span className="ml-2 text-sm font-normal text-gray-400">
                     ({orders.length})
@@ -565,29 +670,28 @@ export default function EsimAccount({ waId, demoData }: EsimAccountProps) {
               <div className="bg-white rounded-2xl border border-gray-100 px-4">
                 {!orders || orders.length === 0 ? (
                   <div className="py-8 text-center text-sm text-gray-400">
-                    {hasAnyData ? 'No previous orders.' : 'No orders yet.'}
+                    {hasAnyData ? s.noPrevious : s.noOrders}
                   </div>
                 ) : (
                   <div>
                     {orders.map((o) => (
-                      <OrderRow key={o.id} order={o} />
+                      <OrderRow key={o.id} order={o} unknownLabel={s.unknown} />
                     ))}
                   </div>
                 )}
               </div>
               {pastEsims.length > 0 && (
                 <p className="text-xs text-gray-400 mt-3 text-center">
-                  Also {pastEsims.length} expired eSIM
-                  {pastEsims.length === 1 ? '' : 's'} in your account.
+                  {s.alsoExpired(pastEsims.length)}
                 </p>
               )}
             </section>
 
             {/* Footer note */}
             <p className="text-[11px] text-gray-400 text-center mt-8 leading-relaxed">
-              Need help with installation, top-ups, or refunds?
+              {s.footerHelp}
               <br />
-              Chat with us on WhatsApp{' '}
+              {s.chatOnWa}{' '}
               <a
                 href={ESIM_BOT_WHATSAPP_URL}
                 className="text-blue-600 hover:underline"

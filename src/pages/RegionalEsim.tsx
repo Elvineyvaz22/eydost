@@ -147,7 +147,14 @@ export default function RegionalEsim() {
           code: plan.code || pkg.name.toUpperCase(),
           id: plan.id || `${plan.gb}GB`,
         });
-        alert('Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.');
+        alert(
+        trMsg(
+          orderLang,
+          'Your order has been sent to WhatsApp! Please return to your chat.',
+          'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.',
+          'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.',
+        ),
+      );
       } finally {
         setIsOrdering(false);
       }

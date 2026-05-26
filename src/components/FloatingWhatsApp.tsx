@@ -8,7 +8,7 @@ import { isEsimRoute } from '../utils/routes';
 
 export default function FloatingWhatsApp() {
   const { pathname } = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   if (isEsimRoute(pathname)) return null;
   const [isOrdering, setIsOrdering] = useState(false);
@@ -28,17 +28,34 @@ export default function FloatingWhatsApp() {
       try {
         await createOrder({
           wa_id: waId,
-          type: 'taxi', // Using taxi type for generic message handling in this mock
-          details: 'Salam! Kömək lazımdır.',
+          type: 'taxi',
+          details:
+            language === 'az'
+              ? 'Salam! Kömək lazımdır.'
+              : language === 'ru'
+                ? 'Здравствуйте! Мне нужна помощь.'
+                : 'Hi! I need help.',
         });
-        alert('Mesajınız WhatsApp-a göndərildi! Teat bölməsinə qayıdın.');
+        alert(
+          language === 'az'
+            ? 'Mesajınız WhatsApp-a göndərildi! Çat bölməsinə qayıdın.'
+            : language === 'ru'
+              ? 'Ваше сообщение отправлено в WhatsApp! Вернитесь в чат.'
+              : 'Your message has been sent to WhatsApp! Please return to your chat.',
+        );
       } finally {
         setIsOrdering(false);
       }
     }
   };
 
-      const genericMsg = encodeURIComponent("Hi! I have a question about EyDost service.");
+  const genericMsg = encodeURIComponent(
+    language === 'az'
+      ? 'Salam! EyDost xidməti haqqında sualım var.'
+      : language === 'ru'
+        ? 'Здравствуйте! У меня есть вопрос об услуге EyDost.'
+        : 'Hi! I have a question about EyDost service.',
+  );
 
   return (
     <a
@@ -52,7 +69,13 @@ export default function FloatingWhatsApp() {
     >
       <MessageCircle className="w-5 h-5" />
       <span className="text-sm font-semibold hidden sm:inline">
-        {isOrdering ? 'Göndərilir...' : t.whatsappButton}
+        {isOrdering
+          ? language === 'az'
+            ? 'Göndərilir...'
+            : language === 'ru'
+              ? 'Отправка...'
+              : 'Sending...'
+          : t.whatsappButton}
       </span>
     </a>
   );

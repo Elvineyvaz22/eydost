@@ -134,7 +134,13 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
       setIsOrdering(true);
       try {
         await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
-        showToast('Sifarisiniz WhatsApp-a gonderildi! Zehmet olmasa cat bolmesine qayidin.');
+        showToast(
+          language === 'az'
+            ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
+            : language === 'ru'
+              ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
+              : 'Your order has been sent to WhatsApp! Please return to your chat.',
+        );
       } finally {
         setIsOrdering(false);
       }
@@ -225,7 +231,13 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
       setIsOrdering(true);
       try {
         await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
-        showToast('Sifarisiniz WhatsApp-a gonderildi! Zehmet olmasa cat bolmesine qayidin.');
+        showToast(
+          language === 'az'
+            ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
+            : language === 'ru'
+              ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
+              : 'Your order has been sent to WhatsApp! Please return to your chat.',
+        );
       } finally {
         setIsOrdering(false);
       }

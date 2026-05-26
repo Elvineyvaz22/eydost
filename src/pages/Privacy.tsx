@@ -130,7 +130,9 @@ export default function Privacy() {
           </div>
 
           <div className="bg-cyan-600 rounded-3xl p-8 md:p-12 text-white text-center shadow-xl shadow-cyan-100">
-            <h2 className="text-2xl font-bold mb-4">Razılıq</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              {language === 'az' ? 'Razılıq' : language === 'ru' ? 'Согласие' : 'Consent'}
+            </h2>
             <p className="text-cyan-50 opacity-90 leading-relaxed">
               {t.consent}
             </p>

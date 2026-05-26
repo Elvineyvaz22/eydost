@@ -31,6 +31,9 @@ const content = {
     companyName: 'NURTEL ELEKTRİK MMC',
     companyAddress: 'AZ5000, Sumqayıt, Nəriman Nərimanov 7/16, Azerbaijan',
     companyEmail: 'info@eydost.com',
+    companyLabel: 'Company',
+    addressLabel: 'Address',
+    emailLabel: 'Email',
     ctaTitle: 'Ready to travel smarter?',
     ctaButton: 'Get eSIM on WhatsApp',
     ctaTaxi: 'Book a Taxi',
@@ -59,6 +62,9 @@ const content = {
     companyName: 'NURTEL ELEKTRİK MMC',
     companyAddress: 'AZ5000, Sumqayıt, Nəriman Nərimanov 7/16, Azərbaycan',
     companyEmail: 'info@eydost.com',
+    companyLabel: 'Şirkət',
+    addressLabel: 'Ünvan',
+    emailLabel: 'E-poçt',
     ctaTitle: 'Daha ağıllı səfərə hazırsınız?',
     ctaButton: 'WhatsApp-da eSIM Al',
     ctaTaxi: 'Taksi Sifariş Et',
@@ -87,6 +93,9 @@ const content = {
     companyName: 'NURTEL ELEKTRİK MMC',
     companyAddress: 'AZ5000, Сумгайыт, Нариман Нариманов 7/16, Азербайджан',
     companyEmail: 'info@eydost.com',
+    companyLabel: 'Компания',
+    addressLabel: 'Адрес',
+    emailLabel: 'Эл. почта',
     ctaTitle: 'Готовы путешествовать умнее?',
     ctaButton: 'Получить eSIM в WhatsApp',
     ctaTaxi: 'Заказать такси',
@@ -159,9 +168,9 @@ export default function About() {
         <section className="py-12 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-extrabold text-gray-900 mb-6">{c.companyTitle}</h2>
           <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-2 text-sm text-gray-600">
-            <p><span className="font-semibold text-gray-800">Company:</span> {c.companyName}</p>
-            <p><span className="font-semibold text-gray-800">Address:</span> {c.companyAddress}</p>
-            <p><span className="font-semibold text-gray-800">Email:</span>{' '}
+            <p><span className="font-semibold text-gray-800">{c.companyLabel}:</span> {c.companyName}</p>
+            <p><span className="font-semibold text-gray-800">{c.addressLabel}:</span> {c.companyAddress}</p>
+            <p><span className="font-semibold text-gray-800">{c.emailLabel}:</span>{' '}
               <a href={`mailto:${c.companyEmail}`} className="text-blue-600 hover:underline">{c.companyEmail}</a>
             </p>
           </div>
