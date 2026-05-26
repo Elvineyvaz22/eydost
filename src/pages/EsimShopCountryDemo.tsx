@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   MessageCircle,
   Check,
+  Sparkles,
   Clock,
   Zap,
   ShieldCheck,
@@ -261,17 +262,17 @@ function LimitedPlanCard({
           : 'border-gray-100 hover:border-blue-200'
       }`}
     >
-      {/* Check icon — gray normally, blue when selected */}
+      {/* Sparkles icon — gray normally, white-on-blue when selected */}
       <div
         className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
           selected ? 'bg-blue-600' : 'bg-gray-100'
         }`}
       >
-        <Check
+        <Sparkles
           className={`w-5 h-5 transition-colors ${
             selected ? 'text-white' : 'text-gray-400'
           }`}
-          strokeWidth={3}
+          strokeWidth={2.2}
         />
       </div>
       <div className="flex-1 min-w-0">
@@ -330,7 +331,7 @@ function UnlimitedGroupCard({
           }`}
         >
           {hasSelected ? (
-            <Check className="w-5 h-5 text-white" strokeWidth={3} />
+            <Sparkles className="w-5 h-5 text-white" strokeWidth={2.2} />
           ) : (
             <InfinityIcon className="w-5 h-5 text-purple-600" />
           )}
