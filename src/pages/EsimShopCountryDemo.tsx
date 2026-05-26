@@ -321,7 +321,7 @@ function TypeTabs({
             : 'text-gray-600 hover:text-gray-900'
         }`}
       >
-        <Wifi className="w-4 h-4" />
+        <Check className="w-4 h-4" strokeWidth={3} />
         <span>{tr(lang, 'Limited', 'Limitli')}</span>
         <span
           className={`text-[10px] font-bold px-1.5 rounded-full ${
