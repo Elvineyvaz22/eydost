@@ -90,6 +90,7 @@
     { "src": "/api/taxi-link-data", "dest": "/api/taxi-link-data.ts" },
     { "src": "/api/geo-country", "dest": "/api/geo-country.ts" },
     { "src": "/api/sync-esim-packages", "dest": "/api/sync-esim-packages.ts" },
+    { "src": "/api/esim-proxy", "dest": "/api/esim-proxy.ts" },
     {
       "src": "/api/esim-packages",
       "dest": "https://bot.eydost.az/api/public/packages"

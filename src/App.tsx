@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AdminProvider } from './contexts/AdminContext';
@@ -19,6 +19,8 @@ import RegionalEsim from './pages/RegionalEsim';
 import Taxi from './pages/Taxi';
 import TaxiOrderTest from './pages/TaxiOrderTest';
 import AllPackages from './pages/AllPackages';
+import EsimAccount from './pages/EsimAccount';
+import EsimCatalog from './pages/EsimCatalog';
 import Privacy from './pages/Privacy';
 import About from './pages/About';
 import Terms from './pages/Terms';
@@ -42,6 +44,13 @@ function EsimRouter() {
   const { slug } = useParams<{ slug: string }>();
   if (slug && REGIONAL_SLUGS.has(slug)) return <RegionalEsim />;
   return <CountryEsim />;
+}
+
+function EsimRootRouter() {
+  const [params] = useSearchParams();
+  const waId = params.get('wa_id');
+  if (waId) return <EsimAccount waId={waId} />;
+  return <AllPackages />;
 }
 
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -224,7 +233,8 @@ function App() {
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/" element={<HomePage />} />
-                <Route path="/esim" element={<AllPackages />} />
+                <Route path="/esim" element={<EsimRootRouter />} />
+                <Route path="/esim/catalog" element={<EsimCatalog />} />
                 <Route path="/taxi" element={<Taxi />} />
                 <Route path="/taxi-order" element={<TaxiOrderTest />} />
                 <Route

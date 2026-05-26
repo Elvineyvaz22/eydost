@@ -1,4 +1,9 @@
+import os
 import urllib.request, ssl, json
+
+API_KEY = os.environ.get("ESIM_BOT_API_KEY")
+if not API_KEY:
+    raise SystemExit("Set ESIM_BOT_API_KEY env var first")
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
@@ -30,7 +35,7 @@ for cc in countries:
         headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'application/json',
-            'x-api-key': '0283e222ea829a8300d3f2ce4b42855d',
+            'x-api-key': API_KEY,
         }
     )
     try:

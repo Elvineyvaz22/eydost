@@ -23,8 +23,10 @@ export const config = {
 };
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const BOT_API = 'https://bot.eydost.az/api/public/packages';
-const BOT_API_KEY = '0283e222ea829a8300d3f2ce4b42855d';
+const BOT_API = process.env.ESIM_BOT_BASE_URL
+  ? `${process.env.ESIM_BOT_BASE_URL.replace(/\/+$/, '')}/api/public/packages`
+  : 'https://bot.eydost.az/api/public/packages';
+const BOT_API_KEY = process.env.ESIM_BOT_API_KEY;
 
 // Every country code that has a page in src/data/esimPackages.ts (210 entries)
 // plus a few legacy codes (LY/IR/CI) that the bot may still serve. Keep this
@@ -81,7 +83,7 @@ async function fetchBotPackagesOnce(countryCode: string): Promise<BotPackage[] |
   try {
     const res = await fetch(url, {
       headers: {
-        'x-api-key': BOT_API_KEY,
+        'x-api-key': BOT_API_KEY ?? '',
         'Content-Type': 'application/json',
       },
     });
@@ -292,6 +294,11 @@ async function syncAllPackages(): Promise<{
 
 // ── Vercel Cron Handler ───────────────────────────────────────────────────────
 export default async function handler(req: any, res: any) {
+  if (!BOT_API_KEY) {
+    console.error('[sync-esim-packages] ESIM_BOT_API_KEY env var is missing');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
   // Allow:
   //   1. The Vercel cron itself (sets `x-vercel-cron: 1`)
   //   2. Manual triggers carrying `Authorization: Bearer <CRON_SECRET>`

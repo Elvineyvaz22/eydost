@@ -1,10 +1,16 @@
-import urllib.request, ssl, json
+import os
+import ssl
+import json
+import urllib.request
+
+API_KEY = os.environ.get("ESIM_BOT_API_KEY")
+if not API_KEY:
+    raise SystemExit("Set ESIM_BOT_API_KEY env var first")
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
-# Try the public packages endpoint from esimApi.ts
 endpoints = [
     '/api/public/packages?country_code=TR',
     '/api/public/packages',
@@ -18,7 +24,7 @@ for ep in endpoints:
         headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'application/json',
-            'x-api-key': '0283e222ea829a8300d3f2ce4b42855d',
+            'x-api-key': API_KEY,
         }
     )
     try:
@@ -28,7 +34,7 @@ for ep in endpoints:
         try:
             data = json.loads(body)
             print(json.dumps(data, indent=2, ensure_ascii=False)[:2000])
-        except:
+        except Exception:
             print(body[:500])
         print('---')
     except Exception as e:

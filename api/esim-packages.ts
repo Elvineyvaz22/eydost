@@ -1,7 +1,14 @@
-const BOT_API = 'https://bot.eydost.az/api/public/packages';
-const BOT_API_KEY = '0283e222ea829a8300d3f2ce4b42855d';
+const BOT_API = process.env.ESIM_BOT_BASE_URL
+  ? `${process.env.ESIM_BOT_BASE_URL.replace(/\/+$/, '')}/api/public/packages`
+  : 'https://bot.eydost.az/api/public/packages';
+const BOT_API_KEY = process.env.ESIM_BOT_API_KEY;
 
 export default async function handler(req: any, res: any) {
+  if (!BOT_API_KEY) {
+    console.error('[esim-packages] ESIM_BOT_API_KEY env var is missing');
+    return res.status(500).json({ success: false, error: { message: 'Server configuration error' } });
+  }
+
   const { country_code } = req.query || {};
 
   if (!country_code || typeof country_code !== 'string') {
