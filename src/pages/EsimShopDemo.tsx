@@ -1,15 +1,16 @@
 /**
  * EsimShopDemo
  * =============
- * Mobile-first eSIM shop demo. Route: `/esim-shop-demo`.
+ * Mobile-first eSIM shop demo with Airalo-style bottom tab bar.
+ * Route: `/esim-shop-demo`.
  *
- * Məqsəd: WhatsApp daxili brauzerdə açılarkən sürətli, təmiz, telefon-uyğun
- * paket seçim ekranı. Hazırkı `/esim` (AllPackages) — masaüstü-yönəli, çox
- * dolu. Bu demo onun yerinə yeni dizayn təklif edir.
+ * Tabs:
+ *  - Shop      — country browsing + search
+ *  - My eSIMs  — active subscriptions (mock for demo)
+ *  - Balance   — overall data + history summary (mock for demo)
  *
- * Real data: `usePackages()` (Supabase + static fallback).
- * Heç bir backend dəyişikliyi tələb olunmur — istifadəçi paket kartına
- * basanda mövcud `/<slug>` səhifəsinə yönlənir.
+ * Heç bir backend dəyişikliyi tələb etmir. Real inteqrasiya hazır olduqda
+ * eSIMs/Balance view-ları `esimAccountApi.ts` çağırışları ilə dolduracaq.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -22,6 +23,14 @@ import {
   Globe2,
   X,
   Plane,
+  ShoppingBag,
+  Smartphone,
+  Wallet,
+  Wifi,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  QrCode,
 } from 'lucide-react';
 import Header from '../components/Header';
 import Seo from '../components/Seo';
@@ -31,14 +40,15 @@ import { usePackages } from '../contexts/PackagesContext';
 import { ESIM_BOT_WHATSAPP_URL } from '../services/esimAccountApi';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 
-// Top destinations — bot trafikinin əksəriyyəti bunlardandır.
+// ── Static config ───────────────────────────────────────────────────────────
+
 const POPULAR_CODES = [
   'TR', 'GE', 'AE', 'RU', 'DE', 'GB', 'US', 'FR', 'IT', 'ES',
 ];
-
 const QUICK_CHIP_CODES = ['TR', 'GE', 'AE', 'RU', 'DE', 'GB'];
 
 type Lang = 'en' | 'az' | 'ru';
+type TabId = 'shop' | 'esims' | 'balance';
 
 const tr = (lang: Lang, en: string, az: string, ru?: string) => {
   if (lang === 'az') return az;
@@ -46,21 +56,102 @@ const tr = (lang: Lang, en: string, az: string, ru?: string) => {
   return en;
 };
 
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
 function priceOf(p: { price: string }) {
   return parseFloat(p.price.replace(/[^\d.]/g, '')) || Infinity;
 }
-
 function findCheapest(plans: PackageData['plans']) {
   if (!plans || plans.length === 0) return null;
   return plans.reduce((a, b) => (priceOf(a) < priceOf(b) ? a : b));
 }
-
 function formatGB(gb: number) {
   if (gb < 1) return `${Math.round(gb * 1000)} MB`;
   return `${gb} GB`;
 }
 
-// ── Atom components ──────────────────────────────────────────────────────────
+// ── Mock data for eSIMs + Balance tabs ──────────────────────────────────────
+
+interface MockEsim {
+  id: string;
+  country: string;
+  countryCode: string;
+  planName: string;
+  dataUsedGB: number;
+  dataTotalGB: number;
+  daysLeft: number;
+  totalDays: number;
+  status: 'active' | 'expiring' | 'expired';
+  iccid: string;
+}
+
+const MOCK_ESIMS: MockEsim[] = [
+  {
+    id: 'esim-1',
+    country: 'Turkey',
+    countryCode: 'TR',
+    planName: '5 GB · 30 days',
+    dataUsedGB: 1.8,
+    dataTotalGB: 5,
+    daysLeft: 18,
+    totalDays: 30,
+    status: 'active',
+    iccid: '89014104272 1100 4502',
+  },
+  {
+    id: 'esim-2',
+    country: 'Georgia',
+    countryCode: 'GE',
+    planName: '3 GB · 15 days',
+    dataUsedGB: 2.7,
+    dataTotalGB: 3,
+    daysLeft: 2,
+    totalDays: 15,
+    status: 'expiring',
+    iccid: '89014104272 1100 4519',
+  },
+];
+
+interface MockOrder {
+  id: string;
+  country: string;
+  countryCode: string;
+  planName: string;
+  price: string;
+  date: string;
+  status: 'paid' | 'pending';
+}
+const MOCK_ORDERS: MockOrder[] = [
+  {
+    id: 'ord-001',
+    country: 'Turkey',
+    countryCode: 'TR',
+    planName: '5 GB · 30 days',
+    price: '$7.05',
+    date: '14 May 2026',
+    status: 'paid',
+  },
+  {
+    id: 'ord-002',
+    country: 'Georgia',
+    countryCode: 'GE',
+    planName: '3 GB · 15 days',
+    price: '$3.85',
+    date: '8 May 2026',
+    status: 'paid',
+  },
+  {
+    id: 'ord-003',
+    country: 'UAE',
+    countryCode: 'AE',
+    planName: '1 GB · 7 days',
+    price: '$5.95',
+    date: '22 Apr 2026',
+    status: 'paid',
+  },
+];
+
+// ── Atom components ─────────────────────────────────────────────────────────
 
 function QuickChip({ pkg }: { pkg: PackageData }) {
   return (
@@ -84,12 +175,9 @@ function CountryCard({ pkg, lang }: { pkg: PackageData; lang: Lang }) {
       to={`/${pkg.slug}`}
       className="group flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3 hover:border-blue-200 hover:shadow-md active:scale-[0.99] transition-all"
     >
-      {/* Flag */}
       <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 shadow-sm">
         <FlagImage countryCode={pkg.countryCode} size="full" />
       </div>
-
-      {/* Name + meta */}
       <div className="flex-1 min-w-0">
         <div className="font-bold text-gray-900 truncate text-[15px] leading-tight">
           {pkg.country}
@@ -104,8 +192,6 @@ function CountryCard({ pkg, lang }: { pkg: PackageData; lang: Lang }) {
             : tr(lang, 'No plans', 'Paket yoxdur')}
         </div>
       </div>
-
-      {/* Price chip */}
       {cheapest ? (
         <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
           <div className="flex items-baseline gap-1 px-3 py-1.5 bg-green-50 rounded-full border border-green-100 group-hover:bg-green-100 transition-colors">
@@ -125,13 +211,7 @@ function CountryCard({ pkg, lang }: { pkg: PackageData; lang: Lang }) {
   );
 }
 
-function RegionCard({
-  region,
-  lang,
-}: {
-  region: RegionalPackage;
-  lang: Lang;
-}) {
+function RegionCard({ region, lang }: { region: RegionalPackage; lang: Lang }) {
   const cheapest = findCheapest(region.plans);
   return (
     <Link
@@ -166,18 +246,106 @@ function RegionCard({
   );
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────
+function EsimCard({ esim, lang }: { esim: MockEsim; lang: Lang }) {
+  const pct = Math.min(100, (esim.dataUsedGB / esim.dataTotalGB) * 100);
+  const remaining = Math.max(0, esim.dataTotalGB - esim.dataUsedGB);
+  const statusMap = {
+    active: {
+      label: tr(lang, 'Active', 'Aktiv'),
+      cls: 'bg-green-100 text-green-700 border-green-200',
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+    },
+    expiring: {
+      label: tr(lang, 'Expiring soon', 'Tezliklə bitir'),
+      cls: 'bg-amber-100 text-amber-700 border-amber-200',
+      icon: <AlertCircle className="w-3.5 h-3.5" />,
+    },
+    expired: {
+      label: tr(lang, 'Expired', 'Bitib'),
+      cls: 'bg-gray-100 text-gray-500 border-gray-200',
+      icon: <Clock className="w-3.5 h-3.5" />,
+    },
+  } as const;
+  const st = statusMap[esim.status];
+  const barColor =
+    esim.status === 'expiring'
+      ? 'bg-amber-500'
+      : esim.status === 'expired'
+        ? 'bg-gray-300'
+        : 'bg-green-500';
 
-export default function EsimShopDemo() {
-  const { language } = useLanguage();
-  const lang = (language as Lang) ?? 'en';
-  const { packages, regionalPackages, globalPackage } = usePackages();
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 shadow-sm flex-shrink-0">
+            <FlagImage countryCode={esim.countryCode} size="full" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-bold text-gray-900 truncate">{esim.country}</div>
+            <div className="text-xs text-gray-500 mt-0.5">{esim.planName}</div>
+          </div>
+        </div>
+        <div
+          className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold border ${st.cls} flex-shrink-0`}
+        >
+          {st.icon}
+          <span>{st.label}</span>
+        </div>
+      </div>
 
+      {/* Data bar */}
+      <div className="mb-3">
+        <div className="flex items-baseline justify-between mb-1.5">
+          <span className="text-xs text-gray-500">
+            {tr(lang, 'Data left', 'Qalan data')}
+          </span>
+          <span className="text-sm font-bold text-gray-900">
+            {formatGB(remaining)} / {formatGB(esim.dataTotalGB)}
+          </span>
+        </div>
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${barColor} transition-all rounded-full`}
+            style={{ width: `${100 - pct}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Days */}
+      <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5" />
+          <span>
+            {esim.daysLeft} {tr(lang, 'days left', 'gün qaldı')}
+          </span>
+        </div>
+        <div className="font-mono text-[10px] text-gray-400">
+          ICCID …{esim.iccid.slice(-4)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Tab views ───────────────────────────────────────────────────────────────
+
+function ShopView({
+  lang,
+  packages,
+  regionalPackages,
+  globalPackage,
+}: {
+  lang: Lang;
+  packages: PackageData[];
+  regionalPackages: RegionalPackage[];
+  globalPackage: RegionalPackage;
+}) {
   const [search, setSearch] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Sticky search shadow when scrolled
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -221,16 +389,8 @@ export default function EsimShopDemo() {
   const showSearchResults = search.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col pt-16 lg:pt-20">
-      <Seo
-        title="eSIM packages"
-        description="Buy global eSIM data plans on WhatsApp."
-        noIndex
-        canonicalPath="/esim-shop-demo"
-      />
-      <Header />
-
-      {/* Sticky search header — sits below the fixed Header (h-16 lg:h-20) */}
+    <>
+      {/* Sticky search */}
       <div
         className={`sticky top-16 lg:top-20 z-20 bg-gradient-to-b from-gray-50 to-gray-50/95 backdrop-blur-md transition-shadow ${
           scrolled ? 'shadow-sm' : ''
@@ -272,23 +432,17 @@ export default function EsimShopDemo() {
         </div>
       </div>
 
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 pb-32 pt-2">
-        {/* ── Search results (replaces everything when typing) ─────────── */}
+      <div className="max-w-2xl w-full mx-auto px-4 pt-2">
         {showSearchResults ? (
           <section className="space-y-2">
             <h2 className="text-sm font-semibold text-gray-500 mb-2 px-1">
-              {filteredCountries.length}{' '}
-              {tr(lang, 'results', 'nəticə')} · "{search}"
+              {filteredCountries.length} {tr(lang, 'results', 'nəticə')} · "{search}"
             </h2>
             {filteredCountries.length === 0 ? (
               <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-8 text-center">
                 <Globe2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                 <div className="text-sm text-gray-500">
-                  {tr(
-                    lang,
-                    'No country matches',
-                    'Uyğun ölkə tapılmadı',
-                  )}
+                  {tr(lang, 'No country matches', 'Uyğun ölkə tapılmadı')}
                 </div>
               </div>
             ) : (
@@ -299,7 +453,7 @@ export default function EsimShopDemo() {
           </section>
         ) : (
           <>
-            {/* ── Hero ─────────────────────────────────────────────────── */}
+            {/* Hero */}
             <section className="pt-4 pb-6 text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold mb-3">
                 <Plane className="w-3.5 h-3.5" />
@@ -317,7 +471,6 @@ export default function EsimShopDemo() {
               </p>
             </section>
 
-            {/* ── Quick chips ──────────────────────────────────────────── */}
             <section className="mb-6">
               <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
                 {quickChips.map((p) => (
@@ -326,7 +479,6 @@ export default function EsimShopDemo() {
               </div>
             </section>
 
-            {/* ── Popular destinations ──────────────────────────────────── */}
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-3 px-1">
                 <Sparkles className="w-4 h-4 text-amber-500" />
@@ -341,7 +493,6 @@ export default function EsimShopDemo() {
               </div>
             </section>
 
-            {/* ── Regional ──────────────────────────────────────────────── */}
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-3 px-1">
                 <Globe2 className="w-4 h-4 text-blue-600" />
@@ -356,7 +507,6 @@ export default function EsimShopDemo() {
               </div>
             </section>
 
-            {/* ── Browse all countries (linked, not inlined to keep mobile light) */}
             <section className="mb-8">
               <Link
                 to="/esim"
@@ -376,33 +526,263 @@ export default function EsimShopDemo() {
             </section>
           </>
         )}
+      </div>
+    </>
+  );
+}
 
-        {/* Trust footer line */}
-        <div className="text-center text-[11px] text-gray-400 mt-8 leading-relaxed">
-          {tr(
-            lang,
-            'Payment and activation happen on WhatsApp +994 99 201 01 17.',
-            'Ödəniş və aktivləşmə WhatsApp +994 99 201 01 17-də.',
-          )}
-        </div>
-      </main>
-
-      {/* ── Sticky bottom WhatsApp CTA ────────────────────────────────────── */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-white via-white to-white/0 pt-6 pb-3 px-4 pointer-events-none">
-        <div className="max-w-2xl mx-auto pointer-events-auto">
-          <a
-            href={ESIM_BOT_WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#25D366] to-[#1ebd5b] hover:from-[#1ebd5b] hover:to-[#179c4d] active:scale-[0.98] text-white font-bold rounded-full py-4 px-6 shadow-lg shadow-green-500/20 transition-all"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span>
-              {tr(lang, 'Order on WhatsApp', 'WhatsApp-da sifariş ver')}
-            </span>
-          </a>
+function EsimsView({ lang, onShop }: { lang: Lang; onShop: () => void }) {
+  const activeEsims = MOCK_ESIMS;
+  return (
+    <div className="max-w-2xl w-full mx-auto px-4 pt-6">
+      <div className="flex items-center justify-between mb-4 px-1">
+        <h1 className="text-2xl font-extrabold text-gray-900">
+          {tr(lang, 'My eSIMs', 'eSIMlərim')}
+        </h1>
+        <div className="text-xs text-gray-400 font-semibold">
+          {activeEsims.length} {tr(lang, 'active', 'aktiv')}
         </div>
       </div>
+
+      {activeEsims.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
+          <Smartphone className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <div className="text-sm font-semibold text-gray-700 mb-1">
+            {tr(lang, 'No active eSIMs', 'Aktiv eSIM yoxdur')}
+          </div>
+          <div className="text-xs text-gray-400 mb-5">
+            {tr(
+              lang,
+              'Buy your first eSIM in the Shop tab.',
+              'İlk eSIM-ni Mağaza tabından al.',
+            )}
+          </div>
+          <button
+            onClick={onShop}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-full transition-colors"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            {tr(lang, 'Go to Shop', 'Mağazaya keç')}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {activeEsims.map((e) => (
+            <EsimCard key={e.id} esim={e} lang={lang} />
+          ))}
+        </div>
+      )}
+
+      <div className="mt-6 mb-4">
+        <a
+          href={ESIM_BOT_WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-gray-200 hover:border-green-300 rounded-2xl text-sm font-semibold text-gray-700 active:scale-[0.99] transition-all"
+        >
+          <QrCode className="w-4 h-4 text-green-600" />
+          {tr(lang, 'Get QR / Support on WhatsApp', 'QR / Dəstək — WhatsApp')}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function BalanceView({ lang }: { lang: Lang }) {
+  const totalRemainingGB = MOCK_ESIMS.reduce(
+    (sum, e) => sum + Math.max(0, e.dataTotalGB - e.dataUsedGB),
+    0,
+  );
+  const totalSpentUSD = MOCK_ORDERS.filter((o) => o.status === 'paid').reduce(
+    (sum, o) => sum + (parseFloat(o.price.replace(/[^\d.]/g, '')) || 0),
+    0,
+  );
+
+  return (
+    <div className="max-w-2xl w-full mx-auto px-4 pt-6">
+      <h1 className="text-2xl font-extrabold text-gray-900 mb-4 px-1">
+        {tr(lang, 'Balance & history', 'Balans və tarixçə')}
+      </h1>
+
+      {/* Summary card */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-sm mb-6">
+        <div className="text-xs text-blue-100 uppercase tracking-wider mb-1">
+          {tr(lang, 'Total data remaining', 'Ümumi qalan data')}
+        </div>
+        <div className="text-4xl font-extrabold leading-none mb-1">
+          {totalRemainingGB.toFixed(1)} <span className="text-2xl">GB</span>
+        </div>
+        <div className="text-xs text-blue-100">
+          {tr(lang, 'across', 'ümumilikdə')} {MOCK_ESIMS.length}{' '}
+          {tr(lang, 'active eSIMs', 'aktiv eSIM')}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mt-5 pt-4 border-t border-white/15">
+          <div>
+            <div className="text-[10px] text-blue-200 uppercase tracking-wider">
+              {tr(lang, 'Orders', 'Sifariş')}
+            </div>
+            <div className="text-xl font-bold">{MOCK_ORDERS.length}</div>
+          </div>
+          <div>
+            <div className="text-[10px] text-blue-200 uppercase tracking-wider">
+              {tr(lang, 'Total spent', 'Ümumi xərc')}
+            </div>
+            <div className="text-xl font-bold">${totalSpentUSD.toFixed(2)}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Order history */}
+      <div className="mb-2 flex items-center justify-between px-1">
+        <h2 className="text-base font-bold text-gray-900">
+          {tr(lang, 'Recent orders', 'Son sifarişlər')}
+        </h2>
+        <span className="text-xs text-gray-400">{MOCK_ORDERS.length}</span>
+      </div>
+      <div className="space-y-2 mb-6">
+        {MOCK_ORDERS.map((o) => (
+          <div
+            key={o.id}
+            className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3"
+          >
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
+              <FlagImage countryCode={o.countryCode} size="full" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-gray-900 truncate">
+                {o.country} · {o.planName}
+              </div>
+              <div className="text-[11px] text-gray-400 mt-0.5">{o.date}</div>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <div className="text-sm font-bold text-gray-900">{o.price}</div>
+              <div className="text-[10px] text-green-600 font-semibold uppercase">
+                {tr(lang, 'Paid', 'Ödənilib')}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <a
+        href={ESIM_BOT_WHATSAPP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-gray-200 hover:border-green-300 rounded-2xl text-sm font-semibold text-gray-700 active:scale-[0.99] transition-all mb-4"
+      >
+        <MessageCircle className="w-4 h-4 text-green-600" />
+        {tr(lang, 'Contact support on WhatsApp', 'Dəstək — WhatsApp')}
+      </a>
+    </div>
+  );
+}
+
+// ── Bottom tab bar ──────────────────────────────────────────────────────────
+
+function BottomTabBar({
+  tab,
+  setTab,
+  lang,
+}: {
+  tab: TabId;
+  setTab: (t: TabId) => void;
+  lang: Lang;
+}) {
+  const items: Array<{ id: TabId; label: string; icon: typeof ShoppingBag }> = [
+    {
+      id: 'shop',
+      label: tr(lang, 'Shop', 'Mağaza'),
+      icon: ShoppingBag,
+    },
+    {
+      id: 'esims',
+      label: tr(lang, 'My eSIMs', 'eSIMlərim'),
+      icon: Wifi,
+    },
+    {
+      id: 'balance',
+      label: tr(lang, 'Balance', 'Balansım'),
+      icon: Wallet,
+    },
+  ];
+
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.08)]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
+    >
+      <div className="max-w-2xl mx-auto grid grid-cols-3">
+        {items.map((it) => {
+          const Icon = it.icon;
+          const active = tab === it.id;
+          return (
+            <button
+              key={it.id}
+              onClick={() => {
+                setTab(it.id);
+                window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+              }}
+              className={`flex flex-col items-center justify-center gap-1 py-2.5 transition-colors ${
+                active ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'
+              }`}
+              aria-current={active ? 'page' : undefined}
+            >
+              <div
+                className={`relative flex items-center justify-center transition-transform ${
+                  active ? 'scale-110' : ''
+                }`}
+              >
+                <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 2} />
+                {active && (
+                  <span className="absolute -top-1.5 w-1 h-1 rounded-full bg-blue-600" />
+                )}
+              </div>
+              <span
+                className={`text-[10px] ${active ? 'font-bold' : 'font-medium'}`}
+              >
+                {it.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+// ── Page shell ──────────────────────────────────────────────────────────────
+
+export default function EsimShopDemo() {
+  const { language } = useLanguage();
+  const lang = (language as Lang) ?? 'en';
+  const { packages, regionalPackages, globalPackage } = usePackages();
+  const [tab, setTab] = useState<TabId>('shop');
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col pt-16 lg:pt-20">
+      <Seo
+        title="eSIM packages"
+        description="Buy global eSIM data plans on WhatsApp."
+        noIndex
+        canonicalPath="/esim-shop-demo"
+      />
+      <Header />
+
+      <main className="flex-1 pb-24">
+        {tab === 'shop' && (
+          <ShopView
+            lang={lang}
+            packages={packages}
+            regionalPackages={regionalPackages}
+            globalPackage={globalPackage}
+          />
+        )}
+        {tab === 'esims' && <EsimsView lang={lang} onShop={() => setTab('shop')} />}
+        {tab === 'balance' && <BalanceView lang={lang} />}
+      </main>
+
+      <BottomTabBar tab={tab} setTab={setTab} lang={lang} />
     </div>
   );
 }
