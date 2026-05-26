@@ -23,24 +23,24 @@ const PackagesContext = createContext<PackagesContextType | undefined>(undefined
 
 export function PackagesProvider({ children }: { children: ReactNode }) {
   // ── Static (admin-editable) data ──────────────────────────────────────────
+  // Note: source of truth is `src/data/esimPackages.ts` (static) + Supabase live
+  // prices. We intentionally do NOT read from localStorage anymore because a
+  // stale admin editor snapshot was masking the full country list (e.g. Germany
+  // disappearing). Admin EsimEditor edits stay in-memory only.
   const [packages, setPackages] = useState<PackageData[]>(initialPackages);
   const [regionalPackages] = useState<RegionalPackage[]>(initialRegional);
   const [globalPackage] = useState<RegionalPackage>(initialGlobal);
 
   useEffect(() => {
-    const saved = localStorage.getItem('eydost_esim_data');
-    if (saved) {
-      try {
-        setPackages(JSON.parse(saved));
-      } catch {
-        localStorage.removeItem('eydost_esim_data');
-      }
+    try {
+      localStorage.removeItem('eydost_esim_data');
+    } catch {
+      /* ignore */
     }
   }, []);
 
   const updatePackages = (newPackages: PackageData[]) => {
     setPackages(newPackages);
-    localStorage.setItem('eydost_esim_data', JSON.stringify(newPackages));
   };
 
   // ── Live API data ─────────────────────────────────────────────────────────
