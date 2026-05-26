@@ -27,12 +27,9 @@ import {
   Smartphone,
   Wallet,
   Wifi,
-  Clock,
   CheckCircle2,
-  AlertCircle,
   QrCode,
   Loader2,
-  Eye,
 } from 'lucide-react';
 import Header from '../components/Header';
 import Seo from '../components/Seo';
@@ -56,7 +53,7 @@ const POPULAR_CODES = [
 const QUICK_CHIP_CODES = ['TR', 'GE', 'AE', 'RU', 'DE', 'GB'];
 
 type Lang = 'en' | 'az' | 'ru';
-type TabId = 'shop' | 'esims' | 'balance';
+type TabId = 'shop' | 'esims' | 'history';
 
 const tr = (lang: Lang, en: string, az: string, ru?: string) => {
   if (lang === 'az') return az;
@@ -77,87 +74,6 @@ function formatGB(gb: number) {
   if (gb < 1) return `${Math.round(gb * 1000)} MB`;
   return `${gb} GB`;
 }
-
-// ── Mock data for eSIMs + Balance tabs ──────────────────────────────────────
-
-interface MockEsim {
-  id: string;
-  country: string;
-  countryCode: string;
-  planName: string;
-  dataUsedGB: number;
-  dataTotalGB: number;
-  daysLeft: number;
-  totalDays: number;
-  status: 'active' | 'expiring' | 'expired';
-  iccid: string;
-}
-
-const MOCK_ESIMS: MockEsim[] = [
-  {
-    id: 'esim-1',
-    country: 'Turkey',
-    countryCode: 'TR',
-    planName: '5 GB · 30 days',
-    dataUsedGB: 1.8,
-    dataTotalGB: 5,
-    daysLeft: 18,
-    totalDays: 30,
-    status: 'active',
-    iccid: '89014104272 1100 4502',
-  },
-  {
-    id: 'esim-2',
-    country: 'Georgia',
-    countryCode: 'GE',
-    planName: '3 GB · 15 days',
-    dataUsedGB: 2.7,
-    dataTotalGB: 3,
-    daysLeft: 2,
-    totalDays: 15,
-    status: 'expiring',
-    iccid: '89014104272 1100 4519',
-  },
-];
-
-interface MockOrder {
-  id: string;
-  country: string;
-  countryCode: string;
-  planName: string;
-  price: string;
-  date: string;
-  status: 'paid' | 'pending';
-}
-const MOCK_ORDERS: MockOrder[] = [
-  {
-    id: 'ord-001',
-    country: 'Turkey',
-    countryCode: 'TR',
-    planName: '5 GB · 30 days',
-    price: '$7.05',
-    date: '14 May 2026',
-    status: 'paid',
-  },
-  {
-    id: 'ord-002',
-    country: 'Georgia',
-    countryCode: 'GE',
-    planName: '3 GB · 15 days',
-    price: '$3.85',
-    date: '8 May 2026',
-    status: 'paid',
-  },
-  {
-    id: 'ord-003',
-    country: 'UAE',
-    countryCode: 'AE',
-    planName: '1 GB · 7 days',
-    price: '$5.95',
-    date: '22 Apr 2026',
-    status: 'paid',
-  },
-];
 
 // ── Atom components ─────────────────────────────────────────────────────────
 
@@ -251,89 +167,6 @@ function RegionCard({ region, lang }: { region: RegionalPackage; lang: Lang }) {
         </div>
       )}
     </Link>
-  );
-}
-
-function EsimCard({ esim, lang }: { esim: MockEsim; lang: Lang }) {
-  const pct = Math.min(100, (esim.dataUsedGB / esim.dataTotalGB) * 100);
-  const remaining = Math.max(0, esim.dataTotalGB - esim.dataUsedGB);
-  const statusMap = {
-    active: {
-      label: tr(lang, 'Active', 'Aktiv'),
-      cls: 'bg-green-100 text-green-700 border-green-200',
-      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-    },
-    expiring: {
-      label: tr(lang, 'Expiring soon', 'Tezliklə bitir'),
-      cls: 'bg-amber-100 text-amber-700 border-amber-200',
-      icon: <AlertCircle className="w-3.5 h-3.5" />,
-    },
-    expired: {
-      label: tr(lang, 'Expired', 'Bitib'),
-      cls: 'bg-gray-100 text-gray-500 border-gray-200',
-      icon: <Clock className="w-3.5 h-3.5" />,
-    },
-  } as const;
-  const st = statusMap[esim.status];
-  const barColor =
-    esim.status === 'expiring'
-      ? 'bg-amber-500'
-      : esim.status === 'expired'
-        ? 'bg-gray-300'
-        : 'bg-green-500';
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 shadow-sm flex-shrink-0">
-            <FlagImage countryCode={esim.countryCode} size="full" />
-          </div>
-          <div className="min-w-0">
-            <div className="font-bold text-gray-900 truncate">{esim.country}</div>
-            <div className="text-xs text-gray-500 mt-0.5">{esim.planName}</div>
-          </div>
-        </div>
-        <div
-          className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold border ${st.cls} flex-shrink-0`}
-        >
-          {st.icon}
-          <span>{st.label}</span>
-        </div>
-      </div>
-
-      {/* Data bar */}
-      <div className="mb-3">
-        <div className="flex items-baseline justify-between mb-1.5">
-          <span className="text-xs text-gray-500">
-            {tr(lang, 'Data left', 'Qalan data')}
-          </span>
-          <span className="text-sm font-bold text-gray-900">
-            {formatGB(remaining)} / {formatGB(esim.dataTotalGB)}
-          </span>
-        </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className={`h-full ${barColor} transition-all rounded-full`}
-            style={{ width: `${100 - pct}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Days */}
-      <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5" />
-          <span>
-            {esim.daysLeft} {tr(lang, 'days left', 'gün qaldı')}
-          </span>
-        </div>
-        <div className="font-mono text-[10px] text-gray-400">
-          ICCID …{esim.iccid.slice(-4)}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -548,22 +381,7 @@ function IdentityBanner({
   lang: Lang;
   waId: string | null;
 }) {
-  if (!waId) {
-    return (
-      <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-full text-[11px] text-amber-800">
-        <Eye className="w-3.5 h-3.5 flex-shrink-0" />
-        <span className="font-semibold">{tr(lang, 'Demo mode', 'Demo rejimi')}</span>
-        <span className="opacity-75">·</span>
-        <span className="opacity-75 truncate">
-          {tr(
-            lang,
-            'sample data — log in via WhatsApp link',
-            'nümunə data — WhatsApp linkindən aç',
-          )}
-        </span>
-      </div>
-    );
-  }
+  if (!waId) return null;
   return (
     <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-full text-[11px] text-blue-800">
       <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
@@ -572,6 +390,26 @@ function IdentityBanner({
       </span>
       <span className="font-mono">+{waId}</span>
     </div>
+  );
+}
+
+function SignInHint({ lang }: { lang: Lang }) {
+  return (
+    <a
+      href={ESIM_BOT_WHATSAPP_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mb-4 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-50 border border-green-200 hover:bg-green-100 rounded-2xl text-[12px] text-green-800 font-semibold transition-colors active:scale-[0.99]"
+    >
+      <MessageCircle className="w-4 h-4 flex-shrink-0" />
+      <span className="truncate">
+        {tr(
+          lang,
+          'Open via WhatsApp to see your eSIMs',
+          'eSIM-lərini görmək üçün WhatsApp-dan aç',
+        )}
+      </span>
+    </a>
   );
 }
 
@@ -685,23 +523,19 @@ function EsimsView({
   onShop: () => void;
 }) {
   const { esims, loading, error } = useCustomerData(waId);
-
-  // Demo path: no wa_id → mock data
-  const isDemo = !waId;
   const realEsims = esims ?? [];
 
   return (
     <div className="max-w-2xl w-full mx-auto px-4 pt-5">
-      <IdentityBanner lang={lang} waId={waId} />
+      {waId ? <IdentityBanner lang={lang} waId={waId} /> : <SignInHint lang={lang} />}
 
       <div className="flex items-center justify-between mb-4 px-1">
         <h1 className="text-2xl font-extrabold text-gray-900">
           {tr(lang, 'My eSIMs', 'eSIMlərim')}
         </h1>
-        {!loading && (
+        {!loading && waId && (
           <div className="text-xs text-gray-400 font-semibold">
-            {isDemo ? MOCK_ESIMS.length : realEsims.length}{' '}
-            {tr(lang, 'active', 'aktiv')}
+            {realEsims.length} {tr(lang, 'active', 'aktiv')}
           </div>
         )}
       </div>
@@ -712,12 +546,6 @@ function EsimsView({
           <div className="text-xs text-gray-500">
             {tr(lang, 'Loading your eSIMs…', 'eSIM-lər yüklənir…')}
           </div>
-        </div>
-      ) : isDemo ? (
-        <div className="space-y-3">
-          {MOCK_ESIMS.map((e) => (
-            <EsimCard key={e.id} esim={e} lang={lang} />
-          ))}
         </div>
       ) : realEsims.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
@@ -765,21 +593,9 @@ function EsimsView({
   );
 }
 
-function BalanceView({ lang, waId }: { lang: Lang; waId: string | null }) {
-  const { esims, orders, loading } = useCustomerData(waId);
-  const isDemo = !waId;
-
-  const mockTotalRemainingGB = MOCK_ESIMS.reduce(
-    (sum, e) => sum + Math.max(0, e.dataTotalGB - e.dataUsedGB),
-    0,
-  );
-  const mockTotalSpentUSD = MOCK_ORDERS.filter((o) => o.status === 'paid').reduce(
-    (sum, o) => sum + (parseFloat(o.price.replace(/[^\d.]/g, '')) || 0),
-    0,
-  );
-
+function HistoryView({ lang, waId }: { lang: Lang; waId: string | null }) {
+  const { orders, loading } = useCustomerData(waId);
   const realOrders = orders ?? [];
-  const realEsims = esims ?? [];
   const realTotalSpentUSD = realOrders.reduce(
     (s, o) => s + (parseFloat((o.sell_price || '').replace(/[^\d.]/g, '')) || 0),
     0,
@@ -787,107 +603,60 @@ function BalanceView({ lang, waId }: { lang: Lang; waId: string | null }) {
 
   return (
     <div className="max-w-2xl w-full mx-auto px-4 pt-5">
-      <IdentityBanner lang={lang} waId={waId} />
+      {waId ? <IdentityBanner lang={lang} waId={waId} /> : <SignInHint lang={lang} />}
 
-      <h1 className="text-2xl font-extrabold text-gray-900 mb-4 px-1">
-        {tr(lang, 'Balance & history', 'Balans və tarixçə')}
-      </h1>
-
-      {/* Summary card */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-sm mb-6">
-        <div className="text-xs text-blue-100 uppercase tracking-wider mb-1">
-          {tr(lang, 'Total data remaining', 'Ümumi qalan data')}
-        </div>
-        {loading ? (
-          <div className="text-3xl font-extrabold leading-none mb-1 opacity-50">
-            …
+      <div className="flex items-center justify-between mb-4 px-1">
+        <h1 className="text-2xl font-extrabold text-gray-900">
+          {tr(lang, 'Order history', 'Tarixçə')}
+        </h1>
+        {!loading && waId && (
+          <div className="text-xs text-gray-400 font-semibold">
+            {realOrders.length} {tr(lang, 'orders', 'sifariş')}
           </div>
-        ) : isDemo ? (
-          <>
-            <div className="text-4xl font-extrabold leading-none mb-1">
-              {mockTotalRemainingGB.toFixed(1)} <span className="text-2xl">GB</span>
-            </div>
-            <div className="text-xs text-blue-100">
-              {tr(lang, 'across', 'ümumilikdə')} {MOCK_ESIMS.length}{' '}
-              {tr(lang, 'active eSIMs', 'aktiv eSIM')}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="text-4xl font-extrabold leading-none mb-1">
-              — <span className="text-2xl">GB</span>
-            </div>
-            <div className="text-xs text-blue-100">
-              {realEsims.length}{' '}
-              {tr(lang, 'active eSIMs · per-eSIM usage soon', 'aktiv eSIM · istifadə tezliklə')}
-            </div>
-          </>
         )}
+      </div>
 
-        <div className="grid grid-cols-2 gap-3 mt-5 pt-4 border-t border-white/15">
-          <div>
-            <div className="text-[10px] text-blue-200 uppercase tracking-wider">
-              {tr(lang, 'Orders', 'Sifariş')}
+      {/* Summary card — only show when there is actual data */}
+      {!loading && realOrders.length > 0 && (
+        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-sm mb-6">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-[10px] text-blue-200 uppercase tracking-wider">
+                {tr(lang, 'Total orders', 'Ümumi sifariş')}
+              </div>
+              <div className="text-2xl font-extrabold">{realOrders.length}</div>
             </div>
-            <div className="text-xl font-bold">
-              {isDemo ? MOCK_ORDERS.length : realOrders.length}
-            </div>
-          </div>
-          <div>
-            <div className="text-[10px] text-blue-200 uppercase tracking-wider">
-              {tr(lang, 'Total spent', 'Ümumi xərc')}
-            </div>
-            <div className="text-xl font-bold">
-              ${(isDemo ? mockTotalSpentUSD : realTotalSpentUSD).toFixed(2)}
+            <div>
+              <div className="text-[10px] text-blue-200 uppercase tracking-wider">
+                {tr(lang, 'Total spent', 'Ümumi xərc')}
+              </div>
+              <div className="text-2xl font-extrabold">
+                ${realTotalSpentUSD.toFixed(2)}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Order history */}
-      <div className="mb-2 flex items-center justify-between px-1">
-        <h2 className="text-base font-bold text-gray-900">
-          {tr(lang, 'Recent orders', 'Son sifarişlər')}
-        </h2>
-        <span className="text-xs text-gray-400">
-          {isDemo ? MOCK_ORDERS.length : realOrders.length}
-        </span>
-      </div>
+      )}
 
       {loading ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mb-6">
-          <Loader2 className="w-5 h-5 text-blue-500 mx-auto animate-spin" />
-        </div>
-      ) : isDemo ? (
-        <div className="space-y-2 mb-6">
-          {MOCK_ORDERS.map((o) => (
-            <div
-              key={o.id}
-              className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3"
-            >
-              <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
-                <FlagImage countryCode={o.countryCode} size="full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-gray-900 truncate">
-                  {o.country} · {o.planName}
-                </div>
-                <div className="text-[11px] text-gray-400 mt-0.5">{o.date}</div>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <div className="text-sm font-bold text-gray-900">{o.price}</div>
-                <div className="text-[10px] text-green-600 font-semibold uppercase">
-                  {tr(lang, 'Paid', 'Ödənilib')}
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center mb-6">
+          <Loader2 className="w-6 h-6 text-blue-500 mx-auto animate-spin mb-2" />
+          <div className="text-xs text-gray-500">
+            {tr(lang, 'Loading history…', 'Tarixçə yüklənir…')}
+          </div>
         </div>
       ) : realOrders.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center mb-6">
-          <Wallet className="w-9 h-9 text-gray-300 mx-auto mb-2" />
-          <div className="text-sm text-gray-500">
-            {tr(lang, 'No orders yet', 'Hələ sifariş yoxdur')}
+          <Wallet className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <div className="text-sm font-semibold text-gray-700 mb-1">
+            {tr(lang, 'No history yet', 'Hələ tarixçə yoxdur')}
+          </div>
+          <div className="text-xs text-gray-400">
+            {tr(
+              lang,
+              'Your purchases will appear here.',
+              'Aldığın paketlər burada görsənəcək.',
+            )}
           </div>
         </div>
       ) : (
@@ -959,8 +728,8 @@ function BottomTabBar({
       icon: Wifi,
     },
     {
-      id: 'balance',
-      label: tr(lang, 'Balance', 'Balansım'),
+      id: 'history',
+      label: tr(lang, 'History', 'Tarixçə'),
       icon: Wallet,
     },
   ];
@@ -1041,7 +810,7 @@ export default function EsimShopDemo() {
         {tab === 'esims' && (
           <EsimsView lang={lang} waId={waId} onShop={() => setTab('shop')} />
         )}
-        {tab === 'balance' && <BalanceView lang={lang} waId={waId} />}
+        {tab === 'history' && <HistoryView lang={lang} waId={waId} />}
       </main>
 
       <BottomTabBar tab={tab} setTab={setTab} lang={lang} />
