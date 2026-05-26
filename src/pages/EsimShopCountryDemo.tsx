@@ -181,17 +181,56 @@ function extractFup(name: string): string | null {
 }
 
 // ── WhatsApp deep link ──────────────────────────────────────────────────────
+//
+// `[ESIM_ORDER]`, `Code:`, `ID:` saxlanılır — bot bu açar sözləri tanıyır.
+// Salam mesajı və etiketlər istifadəçinin seçdiyi dildə göndərilir.
+
+function formatPlanForMessage(pkg: ESIMPackageRaw, lang: Lang): string {
+  const daysLabel = tr(
+    lang,
+    pkg.duration === 1 ? 'day' : 'days',
+    'gün',
+    pkg.duration === 1 ? 'день' : 'дн.',
+  );
+  if (isUnlimitedPlan(pkg)) {
+    const daily = extractDailyAllowance(pkg.name);
+    const fup = extractFup(pkg.name);
+    const dayWord = tr(lang, 'day', 'gün', 'день');
+    return [
+      tr(lang, 'Unlimited', 'Limitsiz', 'Безлимит'),
+      daily ? `${daily}/${dayWord}` : null,
+      `${pkg.duration} ${daysLabel}`,
+      fup ? `FUP ${fup}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  }
+  return `${formatVolume(pkg.volume)} · ${pkg.duration} ${daysLabel}`;
+}
 
 function buildWhatsAppLink(opts: {
   country: string;
   pkg: ESIMPackageRaw;
+  lang: Lang;
 }) {
-  const { country, pkg } = opts;
+  const { country, pkg, lang } = opts;
+
+  const greeting = tr(
+    lang,
+    'Hi! I want to buy an eSIM.',
+    'Salam! eSIM almaq istəyirəm.',
+    'Здравствуйте! Я хочу купить eSIM.',
+  );
+  const countryLabel = tr(lang, 'Country', 'Ölkə', 'Страна');
+  const planLabel = tr(lang, 'Plan', 'Paket', 'Тариф');
+  const priceLabel = tr(lang, 'Price', 'Qiymət', 'Цена');
+
   const lines = [
     '[ESIM_ORDER]',
-    'Hi! I want to buy an eSIM.',
-    `Country: ${country}`,
-    `Plan: ${pkg.name}`,
+    greeting,
+    `${countryLabel}: ${country}`,
+    `${planLabel}: ${formatPlanForMessage(pkg, lang)}`,
+    `${priceLabel}: ${formatPrice(pkg.sell_price_minor, pkg.currencyCode)}`,
     `Code: ${pkg.packageCode}`,
     `ID: ${pkg.slug}`,
   ];
@@ -701,7 +740,7 @@ export default function EsimShopCountryDemo() {
               </div>
             </div>
             <a
-              href={buildWhatsAppLink({ country: countryName, pkg: selectedPkg })}
+              href={buildWhatsAppLink({ country: countryName, pkg: selectedPkg, lang })}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#25D366] to-[#1ebd5b] hover:from-[#1ebd5b] hover:to-[#179c4d] active:scale-95 text-white font-bold rounded-full shadow-lg shadow-green-500/20 transition-all flex-shrink-0"
