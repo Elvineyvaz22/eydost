@@ -20,7 +20,6 @@ import Taxi from './pages/Taxi';
 import TaxiOrderTest from './pages/TaxiOrderTest';
 import AllPackages from './pages/AllPackages';
 import EsimAccount from './pages/EsimAccount';
-import EsimCatalog from './pages/EsimCatalog';
 import Privacy from './pages/Privacy';
 import About from './pages/About';
 import Terms from './pages/Terms';
@@ -234,7 +233,6 @@ function App() {
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/esim" element={<EsimRootRouter />} />
-                <Route path="/esim/catalog" element={<EsimCatalog />} />
                 <Route path="/taxi" element={<Taxi />} />
                 <Route path="/taxi-order" element={<TaxiOrderTest />} />
                 <Route

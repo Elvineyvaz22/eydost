@@ -1,67 +1,55 @@
 # Komanda üçün: eSIM — bot linki açılanda müştərini tanımaq
 
 **Məhsul:** Ey Dost  
-**Kanallar:** WhatsApp bot (`bot.eydost.az`) → veb (`eydost.com/esim`) → bot (ödəniş)  
+**Kanallar:** WhatsApp bot (`bot.eydost.az`) → veb (`eydost.com/esim`)  
 **Auditoriya:** Bot/backend komandası + veb (eydost.com) komandası
 
-> Bu sənəd `team-taxi-customer-id-brief-az.md` ilə paralel quruluşdadır. Taksidən fərqli olaraq eSIM-də **ödəniş botda yekunlaşır**, sayt yalnız profil və paket seçimi göstərir.
+> Bu sənəd `team-taxi-customer-id-brief-az.md` ilə paralel quruluşdadır. Sayt yalnız balans/sifariş görünüşü göstərir — alış və ödəniş tamamilə WhatsApp botunda qalır.
 
 ---
 
 ## Nə istəyirik (xülasə)
 
-Müştəri **WhatsApp eSIM botuna** (+994 99 201 01 17) yazanda bot ona link göndərir. Linki açanda **sayt onu tanımalıdır**: keçmiş eSIM-ləri, aktiv paketləri və qalan trafiki göstərməli, "yeni paket al" axını da eyni `wa_id` altında olmalıdır. Ödəniş üçün isə istifadəçi **yenidən bota qaytarılır**.
+Müştəri WhatsApp eSIM botuna (+994 99 201 01 17) yazır, eSIM-i alır, ödəyir. Daha sonra **balansa baxmaq istəyəndə** bot ona link göndərir:
 
-**Stabil identifikator:** `whatsapp_user_id` (qısa: `wa_id`).  
-Ayrıca `customer_id` yaradılmır — backend onsuz da `whatsapp_user_id` ilə işləyir (`AssistantMessageRequest`, `CreateOrderRequest`, `TopupCreateRequest` modellərində bu sahə var).
-
----
-
-## İstifadəçi yolu (hədəf)
-
-1. Müştəri **eSIM botuna** WhatsApp-da yazır (+994 99 201 01 17).
-2. Bot link göndərir:  
-   `https://eydost.com/esim?wa_id={whatsapp_user_id}`
-3. Müştəri linki açır → sayt **profil ekranını** yükləyir:
-   - Aktiv paketlər (status, qalan MB, qalan gün)
-   - Keçmiş sifarişlər
-   - "Yeni paket al" düyməsi
-4. "Yeni paket al" → ölkə seçimi → paket seçimi → **"Botda ödə"** düyməsi.
-5. Sayt `POST /api/public/orders` çağırır, `order_id` alır.
-6. Sayt istifadəçini bota yönləndirir:  
-   `https://wa.me/994992010117?text=PAY%20{order_id}`
-7. Bot `PAY {order_id}` mesajını tanıyır → ödəniş linkini göndərir → ödəniş → fulfillment → QR.
-
----
-
-## Bu günkü problemlər (Swagger təhlilinə əsasən)
-
-| Problem | Təsir |
-|---------|--------|
-| `wa_id`-yə görə müştərinin sifariş siyahısını gətirən endpoint **yoxdur** | Profil ekranı qura bilmirik |
-| `wa_id`-yə görə müştərinin eSIM siyahısı **yoxdur** | "Aktiv paketlər" göstərə bilmirik |
-| `order_id` və ya `esim_id` olmadan heç nə sorğulamaq mümkün deyil | Sayta gələn yeni sessiya istifadəçini "tanıya" bilmir |
-
-Mövcud endpoint-lər (uyğun olanlar):
-
-- `GET /api/public/packages?country_code=TR` — kataloq
-- `POST /api/public/orders` (qəbul edir `whatsapp_user_id`) — sifariş yaratmaq
-- `GET /api/public/orders/{order_id}` — bir sifariş
-- `GET /api/public/orders/{order_id}/esim` — bir eSIM detalı
-- `GET /api/public/esims/{esim_id}/usage` — istifadə statistikası
-
----
-
-## Bot / backend komandasından xahiş (prioritet)
-
-**Tələb 1 — Çatışmayan 2 endpoint əlavə edin:**
-
-```http
-GET /api/public/customers/by-wa/{whatsapp_user_id}/orders
-Headers: x-api-key: <key>
-Response: ApiEnvelope[list[OrderResponse]]
-  # yeni-ən-köhnə sıralı; minimum sahələr: id, status, country_code, package_code, created_at, sell_price, currency
 ```
+https://eydost.com/esim?wa_id={whatsapp_user_id}
+```
+
+Bu linki açanda sayt **`wa_id`-yə görə backend-dən** müştərinin eSIM-lərini, qalan trafikini və sifariş tarixçəsini çəkir və göstərir.
+
+**Sayt heç vaxt yeni sifariş yaratmır, ödəniş etmir, mesaj formatı göndərmir.** Yeni paket almaq istəsə, sadəcə `wa.me/994992010117` linkinə yönlənir — bot orada normal şəkildə davam edir.
+
+**Stabil identifikator:** `whatsapp_user_id` (qısa: `wa_id`).
+
+---
+
+## İstifadəçi yolu
+
+1. Müştəri WhatsApp botuna yazır (+994 99 201 01 17), eSIM alır, ödəyir (hər şey botda).
+2. Müştəri "balansa baxmaq" istəyəndə bot link göndərir:  
+   `https://eydost.com/esim?wa_id=994558878889`
+3. Müştəri linki açır → sayt URL-dən `wa_id` oxuyur.
+4. Sayt 2 sorğu göndərir (öz `x-api-key`-i ilə, server tərəfdən):
+   - `GET /api/public/customers/by-wa/994558878889/esims`
+   - `GET /api/public/customers/by-wa/994558878889/orders`
+5. Hər aktiv eSIM üçün:
+   - `GET /api/public/esims/{esim_id}/usage`
+6. Ekranda: aktiv paketlər (qalan MB, qalan gün) + tarixçə.
+
+---
+
+## Bu günkü problem
+
+Hazırkı `bot.eydost.az` API-də (`/openapi.json`) **`wa_id`-yə görə müştərinin sifarişlərini/eSIM-lərini siyahılayan endpoint yoxdur** — hər şey `order_id` və `esim_id` ilə işləyir.
+
+DB-də `orders.whatsapp_user_id` artıq saxlanır (çünki `CreateOrderRequest` bu sahəni qəbul edir) — sadəcə yeni 2 read route lazımdır.
+
+---
+
+## Bot / backend komandasından xahiş
+
+**2 yeni read-only endpoint əlavə edin:**
 
 ```http
 GET /api/public/customers/by-wa/{whatsapp_user_id}/esims
@@ -71,69 +59,66 @@ Response: ApiEnvelope[list[EsimResponse]]
   # opsional: hər biri üçün usage snapshot (remain_volume, expired_time)
 ```
 
-Modellər mövcuddur (`OrderResponse`, `EsimResponse`, `UsageResponse`) — sadəcə yeni 2 route lazımdır. DB-də `orders.whatsapp_user_id` artıq saxlanır (çünki `CreateOrderRequest` bu sahəni qəbul edir).
+```http
+GET /api/public/customers/by-wa/{whatsapp_user_id}/orders
+Headers: x-api-key: <key>
+Response: ApiEnvelope[list[OrderResponse]]
+  # yeni-ən-köhnə sıralı; minimum sahələr: id, status, country_code,
+  # package_code, created_at, sell_price, currency
+```
 
-**Tələb 2 — Mövcud endpoint-lərdə davranış təsdiqi:**
+Modellər mövcuddur (`OrderResponse`, `EsimResponse`, `UsageResponse`) — sadəcə filterli SELECT.
 
-- `POST /api/public/orders` çağıranda `whatsapp_user_id: "{wa_id}"`, `transport: "web"` ötürəcəyik. Bu vəziyyətdə bot ödəniş linkini avtomatik göndərmir, doğrudur? (Sayt istifadəçini bota redirect edir, ödəniş link sorğusu mesajla başlayır.)
-- `GET /api/public/orders/{order_id}?whatsapp_user_id=...` — `whatsapp_user_id` parametri **avtorizasiya rolunu oynayır** (yəni başqa istifadəçinin sifarişinə girmək mümkün deyil), doğrudur?
-
-**Tələb 3 — Bot tərəfdə mesaj tanıma:**
-
-Bot `PAY {order_id}` formatlı mesaj gəlsə, həmin `order_id` üçün ödəniş linkini göndərməlidir (mövcud `/api/public/orders/{order_id}/payment` endpoint-i istifadə edərək). Format dəyişməsi lazımdırsa, alternativ təklif edin (məsələn `pay_<id>`, `/pay <id>`).
+**Bot tərəfində heç bir başqa dəyişiklik tələb olunmur.** Yeni mesaj formatı, yeni webhook, yeni mesaj-tanıma — bunların heç biri lazım deyil.
 
 ---
 
-## Veb tərəf (eydost.com) — artıq yazılır
+## Veb tərəf (eydost.com) — artıq deploy olunub
 
 1. `/esim` route-u: URL-də `wa_id` varsa → profil ekranı, yoxsa → mövcud kataloq.
-2. Vercel proxy: `api/esim-proxy.ts` — `x-api-key` Vercel env-də qalır, frontend-də sızmır.
-3. Endpoint-lərə müraciət ardıcıllığı (proxy vasitəsilə):
-   - `GET /api/public/customers/by-wa/{wa_id}/esims` → aktiv siyahısı
-   - `GET /api/public/esims/{esim_id}/usage` → hər aktiv üçün qalan
-   - `GET /api/public/customers/by-wa/{wa_id}/orders` → tarixçə
-   - `GET /api/public/packages?country_code=XX` → kataloq
-   - `POST /api/public/orders` → draft order yaratmaq
-4. "Botda ödə" → `window.location = https://wa.me/994992010117?text=PAY%20{order_id}`
+2. Vercel proxy: `api/esim-proxy.ts` — `x-api-key` Vercel env-də (`ESIM_BOT_API_KEY`) qalır, brauzerə heç vaxt sızmır.
+3. Whitelisted proxy endpoint-ləri (yalnız 3):
+   - `customer-esims` → `GET /api/public/customers/by-wa/{wa_id}/esims`
+   - `customer-orders` → `GET /api/public/customers/by-wa/{wa_id}/orders`
+   - `esim-usage` → `GET /api/public/esims/{esim_id}/usage`
+4. "Yeni eSIM al" düyməsi → `https://wa.me/994992010117` (parametrsiz).
+
+Yuxarıdakı 2 endpoint deploy olunan kimi sayt avtomatik dolacaq — **veb tərəfdə heç bir kod dəyişikliyi lazım deyil**.
 
 ---
 
 ## Razılaşdığımız texniki qaydalar
 
-- **Identifikator:** yalnız `whatsapp_user_id`. Telefon nömrəsi URL-də açıq yazılmır.
-- **Auth:** `x-api-key` header — yalnız serverdən (Vercel proxy), brauzerdə deyil.
-- **Bot nömrələri:**
-  - eSIM: **+994 99 201 01 17** → `https://wa.me/994992010117`
-  - Taksi: +994 99 200 04 44 (bu briefdə deyil, qarışdırmamaq üçün qeyd)
+- **Identifikator:** yalnız `whatsapp_user_id` (Meta formatı, `+` olmadan, məs. `994558878889`). Telefon nömrəsi URL-də açıq yazılmır — `wa_id` öz formasındadır.
+- **Auth:** `x-api-key` header — yalnız serverdə (Vercel proxy), brauzerdə deyil.
+- **Bot nömrəsi:** **+994 99 201 01 17** → `https://wa.me/994992010117`
 - **Məxfilik:** Privacy Policy-də `wa_id`-nin emalı qeyd olunmalıdır.
 
 ---
 
 ## Uğur meyarları
 
-- [ ] Eyni `wa_id` → həmişə eyni profil, eyni eSIM siyahısı
+- [ ] Eyni `wa_id` → həmişə eyni profil və eyni eSIM siyahısı
 - [ ] `GET /customers/by-wa/{wa_id}/esims` < 500 ms
 - [ ] `GET /customers/by-wa/{wa_id}/orders` < 500 ms
 - [ ] Sayt heç bir vaxt brauzerdə `x-api-key`-i ifşa etmir
-- [ ] "Botda ödə" düyməsi həmişə `order_id`-ni mesaj kimi bota gətirir
-- [ ] Bot `PAY {order_id}` mesajına ödəniş linki ilə cavab verir
+- [ ] Sayt heç vaxt `POST /api/public/orders` çağırmır (alış WhatsApp-da qalır)
 
 ---
 
 ## 1-ci mərhələdə yox (sonra mümkün)
 
-- Saytda birbaşa ödəniş (PCI-clean qalmaq üçün hazırda botda saxlanılır)
 - `wa_id` əvəzinə qısamüddətli imzalı token (təhlükəsizlik upgrade-i)
-- Saytdan birbaşa top-up alışı (mövcud `/api/public/esims/{esim_id}/topups` istifadə edərək) — frontend hazır olandan sonra
+- Saytdan birbaşa top-up alışı (mövcud `/api/public/esims/{esim_id}/topups`)
+- Birgə profil ekranı (eSIM + taksi tarixçəsi)
 
 ---
 
 ## Bot komandasına suallar (cavab gözləyirik)
 
-1. Yuxarıdakı **2 yeni endpoint** (`/customers/by-wa/{wa_id}/orders` + `/esims`) bu həftə əlavə oluna bilərmi?
-2. `PAY {order_id}` formatı bot tərəfdə işləyəcəkmi, yoxsa başqa format daha rahatdır?
-3. Production üçün `x-api-key` (Vercel env-də `ESIM_BOT_API_KEY` adı ilə saxlayacağıq) yeniləməyə ehtiyac var, yoxsa hazırda istifadə etdiyimiz açar (sizə ayrıca verdiyimiz) qüvvədə qalır?
+1. Yuxarıdakı **2 yeni endpoint** (`/customers/by-wa/{wa_id}/{esims,orders}`) bu həftə əlavə oluna bilərmi?
+2. `wa_id` formatı: bizim ötürəcəyimiz dəyər (məs. `994558878889`) DB-də saxlanan formatla 1:1 uyğundurmu? `+` olmadan beynəlxalq formatdır?
+3. Test üçün staging/production-da bir nümunə `wa_id` ver (məs. `994558878889`) ki, axını yoxlayaq.
 4. Rate-limit varsa, limitlər nələrdir? (`/customers/by-wa/*` hər `wa_id` üçün dəqiqədə neçə sorğu?)
-5. Staging URL varsa, link verin (test üçün).
 
 Təşəkkürlər.

@@ -1,10 +1,14 @@
 /**
- * eSIM Account Service
- * ====================
- * `bot.eydost.az` API-sinə Vercel proxy (`/api/esim-proxy`) vasitəsilə müraciət.
+ * eSIM Account Service (read-only)
+ * =================================
+ * `bot.eydost.az`-a Vercel proxy (`/api/esim-proxy`) vasitəsilə müraciət.
  *
  * Stabil identifikator: `whatsapp_user_id` (qısa: `wa_id`).
  * `x-api-key` brauzerdə YOXDUR — yalnız serverdə (Vercel function env-də).
+ *
+ * Sayt yalnız müştərinin sifariş/balans məlumatını göstərir; satış və ödəniş
+ * WhatsApp botunda baş verir, ona görə də burada heç bir create-order/payment
+ * çağırışı yoxdur.
  *
  * Backend OpenAPI: https://bot.eydost.az/openapi.json
  */
@@ -53,18 +57,6 @@ export interface UsageResponse {
   status?: string | null;
 }
 
-export interface PackageResponse {
-  package_code: string;
-  slug?: string | null;
-  name: string;
-  country_code?: string | null;
-  currency: string;
-  sell_price: string;
-  sell_price_minor: number;
-  volume?: string | null;
-  duration?: number | null;
-}
-
 // ── Aşağı səviyyəli helper ────────────────────────────────────────────────────
 
 class EsimApiError extends Error {
@@ -79,7 +71,6 @@ class EsimApiError extends Error {
 async function callProxy<T>(
   endpoint: string,
   params: Record<string, string | undefined>,
-  init?: { method?: 'GET' | 'POST'; body?: unknown },
 ): Promise<T> {
   const search = new URLSearchParams({ endpoint });
   for (const [k, v] of Object.entries(params)) {
@@ -87,9 +78,8 @@ async function callProxy<T>(
   }
 
   const res = await fetch(`${PROXY_BASE}?${search.toString()}`, {
-    method: init?.method ?? 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+    method: 'GET',
+    headers: { Accept: 'application/json' },
   });
 
   let json: ApiEnvelope<T> | { error?: { message?: string } } | null = null;
@@ -112,17 +102,17 @@ async function callProxy<T>(
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-/** Bütün eSIM-lər (aktiv + keçmiş) — backend hələ əlavə etməlidir. */
+/** Bütün eSIM-lər (aktiv + keçmiş). Backend `/customers/by-wa/{wa_id}/esims`. */
 export function getCustomerEsims(waId: string): Promise<EsimResponse[]> {
   return callProxy<EsimResponse[]>('customer-esims', { wa_id: waId });
 }
 
-/** Bütün sifarişlər — backend hələ əlavə etməlidir. */
+/** Bütün sifarişlər. Backend `/customers/by-wa/{wa_id}/orders`. */
 export function getCustomerOrders(waId: string): Promise<OrderResponse[]> {
   return callProxy<OrderResponse[]>('customer-orders', { wa_id: waId });
 }
 
-/** Bir eSIM üçün istifadə statistikası. */
+/** Bir eSIM üçün istifadə statistikası (qalan trafik / gün). */
 export function getEsimUsage(esimId: number | string, waId?: string): Promise<UsageResponse> {
   return callProxy<UsageResponse>('esim-usage', {
     esim_id: String(esimId),
@@ -130,50 +120,10 @@ export function getEsimUsage(esimId: number | string, waId?: string): Promise<Us
   });
 }
 
-/** Ölkəyə görə paket kataloqu. */
-export function listPackages(
-  countryCode: string,
-  packageCode?: string,
-): Promise<PackageResponse[]> {
-  return callProxy<PackageResponse[]>('packages', {
-    country_code: countryCode,
-    package_code: packageCode,
-  });
-}
-
-/** Draft order — "Botda ödə" düyməsi üçün. */
-export interface DraftOrderInput {
-  waId: string;
-  countryCode: string;
-  packageCode: string;
-  languageCode?: string;
-  fullName?: string;
-}
-
-export function createDraftOrder(input: DraftOrderInput): Promise<OrderResponse> {
-  return callProxy<OrderResponse>(
-    'create-order',
-    { wa_id: input.waId },
-    {
-      method: 'POST',
-      body: {
-        country_code: input.countryCode,
-        package_code: input.packageCode,
-        language_code: input.languageCode,
-        full_name: input.fullName,
-      },
-    },
-  );
-}
-
-// ── Bota ödəniş üçün yönləndirmə ──────────────────────────────────────────────
+// ── eSIM bot WhatsApp linki (yeni paket almaq üçün) ───────────────────────────
 
 export const ESIM_BOT_WHATSAPP_NUMBER = '994992010117';
-
-export function buildPayInBotUrl(orderId: number | string): string {
-  const text = encodeURIComponent(`PAY ${orderId}`);
-  return `https://wa.me/${ESIM_BOT_WHATSAPP_NUMBER}?text=${text}`;
-}
+export const ESIM_BOT_WHATSAPP_URL = `https://wa.me/${ESIM_BOT_WHATSAPP_NUMBER}`;
 
 // ── Backwards-compatible export ───────────────────────────────────────────────
 

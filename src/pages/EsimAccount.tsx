@@ -1,23 +1,25 @@
 /**
- * EsimAccount
- * ===========
- * Bot linki ilə (`/esim?wa_id=...`) açılan istifadəçi profili:
- *  - Aktiv eSIM-lər (status, qalan trafik)
- *  - Keçmiş sifarişlər
- *  - "Yeni paket al" → mövcud kataloqa wa_id ilə yönləndirmə
+ * EsimAccount (read-only profil)
+ * ===============================
+ * Bot linki ilə (`/esim?wa_id=...`) açılan istifadəçi balans/sifariş ekranı:
+ *  - Aktiv eSIM-lər (status, qalan trafik, qalan günlər)
+ *  - Keçmiş sifariş tarixçəsi
+ *  - "Yeni eSIM al" düyməsi → WhatsApp botu (`wa.me/994992010117`)
+ *
+ * Sayt heç bir order yaratmır, heç bir mesaj formatı göndərmir. Müştəri
+ * almaq istəyəndə standart WhatsApp linkinə yönlənir; bot onsuz da öz
+ * WhatsApp ID-si ilə müştərini tanıyır.
  *
  * Bütün backend müraciətləri `/api/esim-proxy` (Vercel function) üzərindəndir.
- * Ödəniş saytda DEYİL — istifadəçi `https://wa.me/994992010117?text=PAY%20{order_id}`
- * vasitəsilə bota qaytarılır.
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Wifi, Clock, AlertTriangle, Loader2, ChevronRight, ShoppingCart } from 'lucide-react';
+import { Wifi, Clock, AlertTriangle, Loader2, MessageCircle } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Seo from '../components/Seo';
 import {
+  ESIM_BOT_WHATSAPP_URL,
   getCustomerEsims,
   getCustomerOrders,
   getEsimUsage,
@@ -275,25 +277,24 @@ export default function EsimAccount({ waId }: EsimAccountProps) {
             </section>
 
             <section className="mb-8">
-              <Link
-                to={`/esim/catalog?wa_id=${encodeURIComponent(waId)}`}
-                className="block bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+              <a
+                href={ESIM_BOT_WHATSAPP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-gradient-to-r from-[#25D366] to-[#1ebd5b] hover:from-[#1ebd5b] hover:to-[#179c4d] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
               >
-                <div className="flex items-center justify-between text-white">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                      <ShoppingCart className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="font-bold">Buy a new package</div>
-                      <div className="text-xs text-blue-100">
-                        Pick a country → choose a plan → finish payment in WhatsApp
-                      </div>
+                <div className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="font-bold">Order a new eSIM on WhatsApp</div>
+                    <div className="text-xs text-white/90">
+                      Chat with our bot — payment and QR delivery happen there.
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5" />
                 </div>
-              </Link>
+              </a>
             </section>
 
             <section>

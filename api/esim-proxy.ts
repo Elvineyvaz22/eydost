@@ -1,58 +1,35 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+/**
+ * eSIM bot read-only proxy.
+ *
+ * The frontend (`/esim?wa_id=...` profile screen) needs to display the
+ * customer's eSIMs, orders, and remaining usage WITHOUT exposing the
+ * bot's `x-api-key` to the browser. This function attaches the key
+ * server-side and forwards a tiny whitelist of GET endpoints.
+ *
+ * The site itself does NOT create orders or initiate payments — the user
+ * buys via WhatsApp, where the bot handles checkout and fulfillment.
+ */
+
 const BOT_BASE = process.env.ESIM_BOT_BASE_URL || 'https://bot.eydost.az';
 const BOT_API_KEY = process.env.ESIM_BOT_API_KEY;
 
-type EndpointBuilder = (params: Record<string, string>, body?: any) => {
-  method: 'GET' | 'POST';
+type EndpointBuilder = (params: Record<string, string>) => {
   path: string;
   query?: Record<string, string>;
-  body?: any;
 };
 
 const ENDPOINTS: Record<string, EndpointBuilder> = {
   'customer-esims': (p) => ({
-    method: 'GET',
     path: `/api/public/customers/by-wa/${encodeURIComponent(p.wa_id)}/esims`,
   }),
   'customer-orders': (p) => ({
-    method: 'GET',
     path: `/api/public/customers/by-wa/${encodeURIComponent(p.wa_id)}/orders`,
   }),
   'esim-usage': (p) => ({
-    method: 'GET',
     path: `/api/public/esims/${encodeURIComponent(p.esim_id)}/usage`,
     query: p.wa_id ? { whatsapp_user_id: p.wa_id } : undefined,
-  }),
-  'order-detail': (p) => ({
-    method: 'GET',
-    path: `/api/public/orders/${encodeURIComponent(p.order_id)}`,
-    query: p.wa_id ? { whatsapp_user_id: p.wa_id } : undefined,
-  }),
-  'order-esim': (p) => ({
-    method: 'GET',
-    path: `/api/public/orders/${encodeURIComponent(p.order_id)}/esim`,
-    query: p.wa_id ? { whatsapp_user_id: p.wa_id } : undefined,
-  }),
-  'packages': (p) => ({
-    method: 'GET',
-    path: `/api/public/packages`,
-    query: {
-      country_code: p.country_code,
-      ...(p.package_code ? { package_code: p.package_code } : {}),
-    },
-  }),
-  'create-order': (p, body) => ({
-    method: 'POST',
-    path: `/api/public/orders`,
-    body: {
-      transport: 'web',
-      country_code: body?.country_code,
-      package_code: body?.package_code,
-      whatsapp_user_id: p.wa_id || body?.whatsapp_user_id,
-      ...(body?.language_code ? { language_code: body.language_code } : {}),
-      ...(body?.full_name ? { full_name: body.full_name } : {}),
-    },
   }),
 };
 
@@ -62,12 +39,12 @@ function badRequest(res: VercelResponse, message: string) {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     return res.status(204).end();
   }
 
-  if (req.method !== 'GET' && req.method !== 'POST') {
+  if (req.method !== 'GET') {
     return res.status(405).json({ success: false, error: { message: 'Method not allowed' } });
   }
 
@@ -91,22 +68,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     else if (Array.isArray(v) && v.length > 0) params[k] = String(v[0]);
   }
 
-  const needsWa = ['customer-esims', 'customer-orders', 'create-order'];
-  if (needsWa.includes(endpointName) && !params.wa_id) {
-    return badRequest(res, 'wa_id is required for this endpoint');
+  if (endpointName === 'customer-esims' || endpointName === 'customer-orders') {
+    if (!params.wa_id) return badRequest(res, 'wa_id is required for this endpoint');
+  }
+  if (endpointName === 'esim-usage' && !params.esim_id) {
+    return badRequest(res, 'esim_id is required for this endpoint');
   }
 
   const builder = ENDPOINTS[endpointName];
-  let descriptor: ReturnType<EndpointBuilder>;
-  try {
-    descriptor = builder(params, req.body);
-  } catch (err: any) {
-    return badRequest(res, err?.message || 'Invalid parameters');
-  }
-
-  if (req.method === 'POST' && descriptor.method !== 'POST') {
-    return badRequest(res, `Endpoint ${endpointName} expects ${descriptor.method}`);
-  }
+  const descriptor = builder(params);
 
   const url = new URL(descriptor.path, BOT_BASE);
   if (descriptor.query) {
@@ -117,13 +87,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const upstream = await fetch(url.toString(), {
-      method: descriptor.method,
+      method: 'GET',
       headers: {
         'x-api-key': BOT_API_KEY,
-        'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: descriptor.method === 'POST' ? JSON.stringify(descriptor.body ?? {}) : undefined,
     });
 
     const text = await upstream.text();
