@@ -17,9 +17,8 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   MessageCircle,
-  Wifi,
+  Check,
   Clock,
-  ChevronRight,
   Zap,
   ShieldCheck,
   Infinity as InfinityIcon,
@@ -77,6 +76,9 @@ const SLUG_TO_CODE: Record<string, string> = {
 
 // ── Classification helpers ──────────────────────────────────────────────────
 
+// Skip very small packages (100/250 MB) which clutter the list and rarely sell.
+const MIN_LIMITED_VOLUME_BYTES = 500 * 1024 * 1024; // 500 MB
+
 function isUnlimitedByName(name: string): boolean {
   return /GB\/Day/i.test(name);
 }
@@ -85,7 +87,7 @@ function isUnlimitedPlan(p: ESIMPackageRaw): boolean {
 }
 function isLimitedPlan(p: ESIMPackageRaw): boolean {
   if (isUnlimitedPlan(p)) return false;
-  if (!p.volume || p.volume <= 0) return false;
+  if (!p.volume || p.volume < MIN_LIMITED_VOLUME_BYTES) return false;
   if (!p.sell_price_minor || p.sell_price_minor <= 0) return false;
   return true;
 }
@@ -100,14 +102,15 @@ function formatVolume(bytes: number): string {
 }
 
 /**
- * For each unique GB tier in the plans, pick the one with the longest duration
- * (best value per GB). Then sort by volume ascending and limit to `max`.
+ * For each unique GB tier (rounded to nearest 100MB) pick the one with the
+ * longest duration (best value per GB). No upper cap — all sizes shown so users
+ * can pick large packages (50/100 GB) too. Lower cap handled in `isLimitedPlan`.
  */
-function curateBestLimited(plans: ESIMPackageRaw[], max = 6): ESIMPackageRaw[] {
+function curateBestLimited(plans: ESIMPackageRaw[]): ESIMPackageRaw[] {
   const usable = plans.filter((p) => p.duration > 1);
   const byVolume = new Map<number, ESIMPackageRaw[]>();
   for (const p of usable) {
-    const key = Math.round(p.volume / (100 * 1024 * 1024)) * 100; // 100 MB buckets
+    const key = Math.round(p.volume / (100 * 1024 * 1024)) * 100;
     if (!byVolume.has(key)) byVolume.set(key, []);
     byVolume.get(key)!.push(p);
   }
@@ -119,7 +122,7 @@ function curateBestLimited(plans: ESIMPackageRaw[], max = 6): ESIMPackageRaw[] {
     best.push(tier[0]);
   }
   best.sort((a, b) => a.volume - b.volume);
-  return best.slice(0, max);
+  return best;
 }
 
 function curateUnlimited(plans: ESIMPackageRaw[]): ESIMPackageRaw[] {
@@ -165,23 +168,37 @@ function buildWhatsAppLink(opts: {
 
 function LimitedPlanCard({
   pkg,
-  country,
   lang,
+  selected,
+  onSelect,
 }: {
   pkg: ESIMPackageRaw;
-  country: string;
   lang: Lang;
+  selected: boolean;
+  onSelect: () => void;
 }) {
-  const href = buildWhatsAppLink({ country, pkg });
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-4 hover:border-blue-300 hover:shadow-md active:scale-[0.99] transition-all"
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`w-full text-left flex items-center gap-3 bg-white rounded-2xl border-2 p-4 active:scale-[0.99] transition-all ${
+        selected
+          ? 'border-blue-600 shadow-md shadow-blue-100'
+          : 'border-gray-100 hover:border-blue-200'
+      }`}
     >
-      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-        <Wifi className="w-5 h-5 text-blue-600" />
+      {/* Check icon — gray normally, blue when selected */}
+      <div
+        className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+          selected ? 'bg-blue-600' : 'bg-gray-100'
+        }`}
+      >
+        <Check
+          className={`w-5 h-5 transition-colors ${
+            selected ? 'text-white' : 'text-gray-400'
+          }`}
+          strokeWidth={3}
+        />
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-extrabold text-gray-900 text-[16px] leading-tight">
@@ -196,17 +213,12 @@ function LimitedPlanCard({
           <span>{pkg.speed || '4G'}</span>
         </div>
       </div>
-      <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+      <div className="text-right flex-shrink-0">
         <div className="text-lg font-extrabold text-green-600 leading-none">
           {formatPrice(pkg.sell_price_minor, pkg.currencyCode)}
         </div>
-        <div className="flex items-center gap-0.5 text-[11px] text-green-600 font-bold uppercase tracking-wider mt-1.5 group-hover:text-blue-600 transition-colors">
-          <MessageCircle className="w-3.5 h-3.5" />
-          {tr(lang, 'Order', 'Sifariş')}
-          <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-        </div>
       </div>
-    </a>
+    </button>
   );
 }
 
@@ -214,65 +226,73 @@ function LimitedPlanCard({
 
 function UnlimitedPlanCard({
   pkg,
-  country,
   lang,
+  selected,
+  onSelect,
 }: {
   pkg: ESIMPackageRaw;
-  country: string;
   lang: Lang;
+  selected: boolean;
+  onSelect: () => void;
 }) {
-  const href = buildWhatsAppLink({ country, pkg });
   const daily = extractDailyAllowance(pkg.name);
   const fup = extractFup(pkg.name);
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group block bg-white rounded-2xl border border-purple-200 p-4 hover:border-purple-400 hover:shadow-md active:scale-[0.99] transition-all"
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`w-full text-left flex items-center gap-3 bg-white rounded-2xl border-2 p-4 active:scale-[0.99] transition-all ${
+        selected
+          ? 'border-blue-600 shadow-md shadow-blue-100'
+          : 'border-purple-200 hover:border-purple-400'
+      }`}
     >
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center flex-shrink-0">
-          <InfinityIcon className="w-5 h-5 text-purple-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-gray-900 text-[16px] leading-tight">
-              {tr(lang, 'Unlimited', 'Limitsiz')}
+      {/* Check icon — gray normally, blue when selected */}
+      <div
+        className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+          selected ? 'bg-blue-600' : 'bg-gray-100'
+        }`}
+      >
+        <Check
+          className={`w-5 h-5 transition-colors ${
+            selected ? 'text-white' : 'text-gray-400'
+          }`}
+          strokeWidth={3}
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="font-extrabold text-gray-900 text-[16px] leading-tight">
+            <InfinityIcon className="inline w-4 h-4 -mt-0.5 mr-0.5 text-purple-600" />
+            {tr(lang, 'Unlimited', 'Limitsiz')}
+          </span>
+          {daily && (
+            <span className="inline-flex items-center text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              {daily}/{tr(lang, 'day', 'gün')}
             </span>
-            {daily && (
-              <span className="inline-flex items-center text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                {daily}/{tr(lang, 'day', 'gün')}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
-            <Clock className="w-3.5 h-3.5" />
-            <span>
-              {pkg.duration} {tr(lang, pkg.duration === 1 ? 'day' : 'days', 'gün')}
-            </span>
-            <span className="text-gray-300">·</span>
-            <span>{pkg.speed || '4G'}</span>
-            {fup && (
-              <>
-                <span className="text-gray-300">·</span>
-                <span className="text-amber-600 font-medium">FUP {fup}</span>
-              </>
-            )}
-          </div>
+          )}
         </div>
-        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-          <div className="text-lg font-extrabold text-purple-700 leading-none">
-            {formatPrice(pkg.sell_price_minor, pkg.currencyCode)}
-          </div>
-          <div className="flex items-center gap-0.5 text-[11px] text-purple-700 font-bold uppercase tracking-wider mt-1.5 group-hover:text-purple-900 transition-colors">
-            <MessageCircle className="w-3.5 h-3.5" />
-            {tr(lang, 'Order', 'Sifariş')}
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </div>
+        <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
+          <Clock className="w-3.5 h-3.5" />
+          <span>
+            {pkg.duration} {tr(lang, pkg.duration === 1 ? 'day' : 'days', 'gün')}
+          </span>
+          <span className="text-gray-300">·</span>
+          <span>{pkg.speed || '4G'}</span>
+          {fup && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className="text-amber-600 font-medium">FUP {fup}</span>
+            </>
+          )}
         </div>
       </div>
-    </a>
+      <div className="text-right flex-shrink-0">
+        <div className="text-lg font-extrabold text-purple-700 leading-none">
+          {formatPrice(pkg.sell_price_minor, pkg.currencyCode)}
+        </div>
+      </div>
+    </button>
   );
 }
 
@@ -382,7 +402,7 @@ export default function EsimShopCountryDemo() {
   }, [countryCode]);
 
   const limited = useMemo(
-    () => curateBestLimited(livePkgs.filter(isLimitedPlan), 6),
+    () => curateBestLimited(livePkgs.filter(isLimitedPlan)),
     [livePkgs],
   );
   const unlimited = useMemo(() => curateUnlimited(livePkgs), [livePkgs]);
@@ -394,6 +414,13 @@ export default function EsimShopCountryDemo() {
       if (limited.length === 0 && unlimited.length > 0) setTab('unlimited');
     }
   }, [loading, limited.length, unlimited.length]);
+
+  // Selected plan (one across both tabs)
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const selectedPkg = useMemo(
+    () => livePkgs.find((p) => p.packageCode === selectedCode) ?? null,
+    [livePkgs, selectedCode],
+  );
 
   const totalCount = livePkgs.filter(
     (p) => isLimitedPlan(p) || isUnlimitedPlan(p),
@@ -539,8 +566,9 @@ export default function EsimShopCountryDemo() {
                       <LimitedPlanCard
                         key={p.packageCode}
                         pkg={p}
-                        country={countryName}
                         lang={lang}
+                        selected={selectedCode === p.packageCode}
+                        onSelect={() => setSelectedCode(p.packageCode)}
                       />
                     ))}
                   </div>
@@ -561,8 +589,9 @@ export default function EsimShopCountryDemo() {
                     <UnlimitedPlanCard
                       key={p.packageCode}
                       pkg={p}
-                      country={countryName}
                       lang={lang}
+                      selected={selectedCode === p.packageCode}
+                      onSelect={() => setSelectedCode(p.packageCode)}
                     />
                   ))}
                 </div>
@@ -572,14 +601,53 @@ export default function EsimShopCountryDemo() {
         </section>
 
         {/* ── Trust line ──────────────────────────────────────────────── */}
-        <div className="text-center text-[11px] text-gray-400 mt-8 leading-relaxed px-4">
+        <div className={`text-center text-[11px] text-gray-400 mt-8 leading-relaxed px-4 ${selectedPkg ? 'pb-24' : ''}`}>
           {tr(
             lang,
-            'Tap a plan → opens WhatsApp with order details pre-filled.',
-            'Paketi seç → WhatsApp avtomatik açılır, mətn hazır.',
+            'Pick a plan, then order on WhatsApp.',
+            'Paket seç, sonra WhatsApp-da sifariş ver.',
           )}
         </div>
       </main>
+
+      {/* ── Sticky bottom CTA — visible when a plan is selected ───────────── */}
+      {selectedPkg && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.12)]"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
+        >
+          <div className="max-w-2xl mx-auto flex items-center gap-3 px-4 py-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
+                {tr(lang, 'Selected', 'Seçilmiş')}
+              </div>
+              <div className="text-sm font-bold text-gray-900 truncate">
+                {isUnlimitedPlan(selectedPkg)
+                  ? `${tr(lang, 'Unlimited', 'Limitsiz')}${
+                      extractDailyAllowance(selectedPkg.name)
+                        ? ` ${extractDailyAllowance(selectedPkg.name)}/${tr(lang, 'day', 'gün')}`
+                        : ''
+                    }`
+                  : formatVolume(selectedPkg.volume)}{' '}
+                · {selectedPkg.duration}{' '}
+                {tr(lang, selectedPkg.duration === 1 ? 'day' : 'days', 'gün')} ·{' '}
+                <span className="text-green-600">
+                  {formatPrice(selectedPkg.sell_price_minor, selectedPkg.currencyCode)}
+                </span>
+              </div>
+            </div>
+            <a
+              href={buildWhatsAppLink({ country: countryName, pkg: selectedPkg })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#25D366] to-[#1ebd5b] hover:from-[#1ebd5b] hover:to-[#179c4d] active:scale-95 text-white font-bold rounded-full shadow-lg shadow-green-500/20 transition-all flex-shrink-0"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-sm">{tr(lang, 'Order', 'Sifariş')}</span>
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
