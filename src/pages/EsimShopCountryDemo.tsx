@@ -281,7 +281,7 @@ function LimitedPlanCard({
         <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
           <Clock className="w-3.5 h-3.5" />
           <span>
-            {pkg.duration} {tr(lang, pkg.duration === 1 ? 'day' : 'days', 'gün')}
+            {pkg.duration} {tr(lang, pkg.duration === 1 ? 'day' : 'days', 'gün', pkg.duration === 1 ? 'день' : 'дн.')}
           </span>
           <span className="text-gray-300">·</span>
           <span>{pkg.speed || '4G'}</span>
@@ -338,10 +338,10 @@ function UnlimitedGroupCard({
         <div className="flex-1 min-w-0">
           <div className="font-extrabold text-gray-900 text-[16px] leading-tight">
             <InfinityIcon className="inline w-4 h-4 -mt-0.5 mr-0.5 text-purple-600" />
-            {tr(lang, 'Unlimited', 'Limitsiz')}
+            {tr(lang, 'Unlimited', 'Limitsiz', 'Безлимит')}
             {group.daily && (
               <span className="ml-1.5 text-purple-700 text-sm">
-                · {group.daily}/{tr(lang, 'day', 'gün')}
+                · {group.daily}/{tr(lang, 'day', 'gün', 'день')}
               </span>
             )}
           </div>
@@ -377,7 +377,7 @@ function UnlimitedGroupCard({
                   isSelected ? 'text-blue-700' : 'text-gray-500'
                 }`}
               >
-                {pkg.duration} {tr(lang, pkg.duration === 1 ? 'day' : 'days', 'gün')}
+                {pkg.duration} {tr(lang, pkg.duration === 1 ? 'day' : 'days', 'gün', pkg.duration === 1 ? 'день' : 'дн.')}
               </div>
               <div
                 className={`text-base font-extrabold leading-none ${
@@ -420,7 +420,7 @@ function TypeTabs({
         }`}
       >
         <Check className="w-4 h-4" strokeWidth={3} />
-        <span>{tr(lang, 'Limited', 'Limitli')}</span>
+        <span>{tr(lang, 'Limited', 'Limitli', 'Лимитные')}</span>
         <span
           className={`text-[10px] font-bold px-1.5 rounded-full ${
             tab === 'limited' ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500'
@@ -438,7 +438,7 @@ function TypeTabs({
         }`}
       >
         <InfinityIcon className="w-4 h-4" />
-        <span>{tr(lang, 'Unlimited', 'Limitsiz')}</span>
+        <span>{tr(lang, 'Unlimited', 'Limitsiz', 'Безлимит')}</span>
         <span
           className={`text-[10px] font-bold px-1.5 rounded-full ${
             tab === 'unlimited' ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500'
@@ -541,14 +541,14 @@ export default function EsimShopCountryDemo() {
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">
             <div className="text-sm text-gray-500 mb-3">
-              {tr(lang, 'Country not found', 'Ölkə tapılmadı')}
+              {tr(lang, 'Country not found', 'Ölkə tapılmadı', 'Страна не найдена')}
             </div>
             <Link
               to="/esim-shop-demo"
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-full"
             >
               <ArrowLeft className="w-4 h-4" />
-              {tr(lang, 'Back to Shop', 'Mağazaya qayıt')}
+              {tr(lang, 'Back to Shop', 'Mağazaya qayıt', 'В магазин')}
             </Link>
           </div>
         </div>
@@ -575,11 +575,11 @@ export default function EsimShopCountryDemo() {
               className="flex items-center gap-1.5 px-3 py-1.5 -ml-2 text-sm font-semibold text-gray-700 hover:text-blue-600 active:scale-95 transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
-              {tr(lang, 'Back', 'Geri')}
+              {tr(lang, 'Back', 'Geri', 'Назад')}
             </button>
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
-              {tr(lang, 'Secure WhatsApp checkout', 'WhatsApp ilə təhlükəsiz')}
+              {tr(lang, 'Secure WhatsApp checkout', 'WhatsApp ilə təhlükəsiz', 'Безопасно через WhatsApp')}
             </div>
           </div>
         </div>
@@ -598,7 +598,7 @@ export default function EsimShopCountryDemo() {
                 <div className="flex items-center gap-1.5 text-gray-500">
                   <Zap className="w-3.5 h-3.5 text-amber-500" />
                   <span>
-                    {totalCount} {tr(lang, 'plans', 'paket')}
+                    {totalCount} {tr(lang, 'plans', 'paket', 'тариф.')}
                   </span>
                 </div>
                 {cheapest && (
@@ -606,7 +606,7 @@ export default function EsimShopCountryDemo() {
                     <span className="text-gray-300">·</span>
                     <div className="flex items-baseline gap-1">
                       <span className="text-xs text-gray-400">
-                        {tr(lang, 'from', 'min.')}
+                        {tr(lang, 'from', 'min.', 'от')}
                       </span>
                       <span className="text-base font-extrabold text-green-600">
                         {formatPrice(cheapest.sell_price_minor, cheapest.currencyCode)}
@@ -625,20 +625,20 @@ export default function EsimShopCountryDemo() {
             <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
               <Loader2 className="w-6 h-6 text-blue-500 mx-auto animate-spin mb-2" />
               <div className="text-xs text-gray-500">
-                {tr(lang, 'Loading packages…', 'Paketlər yüklənir…')}
+                {tr(lang, 'Loading packages…', 'Paketlər yüklənir…', 'Загрузка тарифов…')}
               </div>
             </div>
           ) : error ? (
             <div className="bg-white rounded-2xl border border-dashed border-red-200 p-8 text-center">
               <div className="text-sm text-red-600 font-semibold mb-1">
-                {tr(lang, 'Failed to load', 'Yükləmə alınmadı')}
+                {tr(lang, 'Failed to load', 'Yükləmə alınmadı', 'Ошибка загрузки')}
               </div>
               <div className="text-xs text-gray-400">{error}</div>
             </div>
           ) : limited.length === 0 && unlimited.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
               <div className="text-sm text-gray-500">
-                {tr(lang, 'No packages available', 'Paket mövcud deyil')}
+                {tr(lang, 'No packages available', 'Paket mövcud deyil', 'Тарифы недоступны')}
               </div>
             </div>
           ) : (
@@ -721,18 +721,18 @@ export default function EsimShopCountryDemo() {
           <div className="max-w-2xl mx-auto flex items-center gap-3 px-4 py-3">
             <div className="flex-1 min-w-0">
               <div className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
-                {tr(lang, 'Selected', 'Seçilmiş')}
+                {tr(lang, 'Selected', 'Seçilmiş', 'Выбрано')}
               </div>
               <div className="text-sm font-bold text-gray-900 truncate">
                 {isUnlimitedPlan(selectedPkg)
-                  ? `${tr(lang, 'Unlimited', 'Limitsiz')}${
+                  ? `${tr(lang, 'Unlimited', 'Limitsiz', 'Безлимит')}${
                       extractDailyAllowance(selectedPkg.name)
-                        ? ` ${extractDailyAllowance(selectedPkg.name)}/${tr(lang, 'day', 'gün')}`
+                        ? ` ${extractDailyAllowance(selectedPkg.name)}/${tr(lang, 'day', 'gün', 'день')}`
                         : ''
                     }`
                   : formatVolume(selectedPkg.volume)}{' '}
                 · {selectedPkg.duration}{' '}
-                {tr(lang, selectedPkg.duration === 1 ? 'day' : 'days', 'gün')} ·{' '}
+                {tr(lang, selectedPkg.duration === 1 ? 'day' : 'days', 'gün', selectedPkg.duration === 1 ? 'день' : 'дн.')} ·{' '}
                 <span className="text-green-600">
                   {formatPrice(selectedPkg.sell_price_minor, selectedPkg.currencyCode)}
                 </span>
@@ -745,7 +745,7 @@ export default function EsimShopCountryDemo() {
               className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#25D366] to-[#1ebd5b] hover:from-[#1ebd5b] hover:to-[#179c4d] active:scale-95 text-white font-bold rounded-full shadow-lg shadow-green-500/20 transition-all flex-shrink-0"
             >
               <MessageCircle className="w-4 h-4" />
-              <span className="text-sm">{tr(lang, 'Order', 'Sifariş')}</span>
+              <span className="text-sm">{tr(lang, 'Order', 'Sifariş', 'Заказать')}</span>
             </a>
           </div>
         </div>

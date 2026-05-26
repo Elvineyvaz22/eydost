@@ -108,19 +108,19 @@ function CountryCard({ pkg, lang }: { pkg: PackageData; lang: Lang }) {
         </div>
         <div className="text-xs text-gray-400 mt-1 truncate">
           {planCount > 0
-            ? `${planCount} ${tr(lang, 'plans', 'paket')}${
+            ? `${planCount} ${tr(lang, 'plans', 'paket', 'тариф.')}${
                 cheapest
-                  ? ` · ${formatGB(cheapest.gb)} / ${cheapest.days}${tr(lang, 'd', 'g')}`
+                  ? ` · ${formatGB(cheapest.gb)} / ${cheapest.days}${tr(lang, 'd', 'g', 'д')}`
                   : ''
               }`
-            : tr(lang, 'No plans', 'Paket yoxdur')}
+            : tr(lang, 'No plans', 'Paket yoxdur', 'Нет тарифов')}
         </div>
       </div>
       {cheapest ? (
         <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
           <div className="flex items-baseline gap-1 px-3 py-1.5 bg-green-50 rounded-full border border-green-100 group-hover:bg-green-100 transition-colors">
             <span className="text-[9px] font-semibold text-green-700 uppercase tracking-wider">
-              {tr(lang, 'from', 'min.')}
+              {tr(lang, 'from', 'min.', 'от')}
             </span>
             <span className="text-base font-extrabold text-green-700 leading-none">
               {cheapest.price}
@@ -154,12 +154,12 @@ function RegionCard({ region, lang }: { region: RegionalPackage; lang: Lang }) {
       </div>
       <div className="font-bold text-sm">{region.name}</div>
       <div className="text-[10px] text-blue-100 mt-0.5">
-        {region.countryCount} {tr(lang, 'countries', 'ölkə')}
+        {region.countryCount} {tr(lang, 'countries', 'ölkə', 'стран')}
       </div>
       {cheapest && (
         <div className="mt-3 pt-3 border-t border-white/15">
           <div className="text-[10px] text-blue-200 uppercase tracking-wider">
-            {tr(lang, 'from', 'başlayır')}
+            {tr(lang, 'from', 'başlayır', 'от')}
           </div>
           <div className="text-lg font-extrabold leading-tight">
             {cheapest.price}
@@ -283,13 +283,13 @@ function ShopView({
         {showSearchResults ? (
           <section className="space-y-2">
             <h2 className="text-sm font-semibold text-gray-500 mb-2 px-1">
-              {filteredCountries.length} {tr(lang, 'results', 'nəticə')} · "{search}"
+              {filteredCountries.length} {tr(lang, 'results', 'nəticə', 'результ.')} · "{search}"
             </h2>
             {filteredCountries.length === 0 ? (
               <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-8 text-center">
                 <Globe2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                 <div className="text-sm text-gray-500">
-                  {tr(lang, 'No country matches', 'Uyğun ölkə tapılmadı')}
+                  {tr(lang, 'No country matches', 'Uyğun ölkə tapılmadı', 'Страна не найдена')}
                 </div>
               </div>
             ) : (
@@ -304,10 +304,10 @@ function ShopView({
             <section className="pt-4 pb-6 text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold mb-3">
                 <Plane className="w-3.5 h-3.5" />
-                {tr(lang, 'Stay connected worldwide', 'Səyahətdə online qal')}
+                {tr(lang, 'Stay connected worldwide', 'Səyahətdə online qal', 'Всегда на связи в путешествии')}
               </div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight">
-                {tr(lang, 'Where are you going?', 'Hara gedirsən?')}
+                {tr(lang, 'Where are you going?', 'Hara gedirsən?', 'Куда направляетесь?')}
               </h1>
               <p className="text-sm text-gray-500 mt-2">
                 {tr(
@@ -330,7 +330,7 @@ function ShopView({
               <div className="flex items-center gap-2 mb-3 px-1">
                 <Sparkles className="w-4 h-4 text-amber-500" />
                 <h2 className="text-base font-bold text-gray-900">
-                  {tr(lang, 'Popular destinations', 'Populyar destinasiyalar')}
+                  {tr(lang, 'Popular destinations', 'Populyar destinasiyalar', 'Популярные направления')}
                 </h2>
               </div>
               <div className="space-y-2">
@@ -344,7 +344,7 @@ function ShopView({
               <div className="flex items-center gap-2 mb-3 px-1">
                 <Globe2 className="w-4 h-4 text-blue-600" />
                 <h2 className="text-base font-bold text-gray-900">
-                  {tr(lang, 'Travel multiple countries', 'Çox ölkə bir paketdə')}
+                  {tr(lang, 'Travel multiple countries', 'Çox ölkə bir paketdə', 'Несколько стран в одном тарифе')}
                 </h2>
               </div>
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
@@ -361,11 +361,11 @@ function ShopView({
               >
                 <div>
                   <div className="font-semibold text-gray-900">
-                    {tr(lang, 'Browse all countries', 'Bütün ölkələrə bax')}
+                    {tr(lang, 'Browse all countries', 'Bütün ölkələrə bax', 'Все страны')}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5">
                     {packages.length}+{' '}
-                    {tr(lang, 'destinations covered', 'destinasiya')}
+                    {tr(lang, 'destinations covered', 'destinasiya', 'направлений')}
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-300" />
@@ -392,7 +392,7 @@ function IdentityBanner({
     <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-full text-[11px] text-blue-800">
       <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
       <span className="font-semibold">
-        {tr(lang, 'Signed in as', 'Daxil olub')}
+        {tr(lang, 'Signed in as', 'Daxil olub', 'Вошли как')}
       </span>
       <span className="font-mono">+{waId}</span>
     </div>
@@ -492,14 +492,14 @@ function RealEsimCard({ esim, lang }: { esim: EsimResponse; lang: Lang }) {
             <div className="text-[11px] text-gray-400 mt-0.5 font-mono">
               {esim.iccid
                 ? `ICCID …${esim.iccid.slice(-6)}`
-                : tr(lang, 'No ICCID yet', 'ICCID hələ yox')}
+                : tr(lang, 'No ICCID yet', 'ICCID hələ yox', 'ICCID пока нет')}
             </div>
           </div>
         </div>
         <div
           className={`px-2 py-1 rounded-full text-[11px] font-semibold border ${statusCls} flex-shrink-0`}
         >
-          {esim.status || tr(lang, 'unknown', 'naməlum')}
+          {esim.status || tr(lang, 'unknown', 'naməlum', 'неизв.')}
         </div>
       </div>
       {esim.short_url && (
@@ -510,7 +510,7 @@ function RealEsimCard({ esim, lang }: { esim: EsimResponse; lang: Lang }) {
           className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-semibold transition-colors"
         >
           <QrCode className="w-3.5 h-3.5" />
-          {tr(lang, 'Open activation QR', 'Aktivləşmə QR-ı aç')}
+          {tr(lang, 'Open activation QR', 'Aktivləşmə QR-ı aç', 'QR активации')}
         </a>
       )}
     </div>
@@ -537,11 +537,11 @@ function EsimsView({
 
       <div className="flex items-center justify-between mb-4 px-1">
         <h1 className="text-2xl font-extrabold text-gray-900">
-          {tr(lang, 'My eSIMs', 'eSIMlərim')}
+          {tr(lang, 'My eSIMs', 'eSIMlərim', 'Мои eSIM')}
         </h1>
         {!loading && waId && (
           <div className="text-xs text-gray-400 font-semibold">
-            {realEsims.length} {tr(lang, 'active', 'aktiv')}
+            {realEsims.length} {tr(lang, 'active', 'aktiv', 'активн.')}
           </div>
         )}
       </div>
@@ -550,14 +550,14 @@ function EsimsView({
         <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
           <Loader2 className="w-6 h-6 text-blue-500 mx-auto animate-spin mb-2" />
           <div className="text-xs text-gray-500">
-            {tr(lang, 'Loading your eSIMs…', 'eSIM-lər yüklənir…')}
+            {tr(lang, 'Loading your eSIMs…', 'eSIM-lər yüklənir…', 'Загрузка eSIM…')}
           </div>
         </div>
       ) : realEsims.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
           <Smartphone className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <div className="text-sm font-semibold text-gray-700 mb-1">
-            {tr(lang, 'No active eSIMs', 'Aktiv eSIM yoxdur')}
+            {tr(lang, 'No active eSIMs', 'Aktiv eSIM yoxdur', 'Нет активных eSIM')}
           </div>
           <div className="text-xs text-gray-400 mb-5">
             {error
@@ -573,7 +573,7 @@ function EsimsView({
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-full transition-colors"
           >
             <ShoppingBag className="w-4 h-4" />
-            {tr(lang, 'Go to Shop', 'Mağazaya keç')}
+            {tr(lang, 'Go to Shop', 'Mağazaya keç', 'В магазин')}
           </button>
         </div>
       ) : (
@@ -592,7 +592,7 @@ function EsimsView({
           className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-gray-200 hover:border-green-300 rounded-2xl text-sm font-semibold text-gray-700 active:scale-[0.99] transition-all"
         >
           <QrCode className="w-4 h-4 text-green-600" />
-          {tr(lang, 'Get QR / Support on WhatsApp', 'QR / Dəstək — WhatsApp')}
+          {tr(lang, 'Get QR / Support on WhatsApp', 'QR / Dəstək — WhatsApp', 'QR / Поддержка — WhatsApp')}
         </a>
       </div>
     </div>
@@ -613,11 +613,11 @@ function HistoryView({ lang, waId }: { lang: Lang; waId: string | null }) {
 
       <div className="flex items-center justify-between mb-4 px-1">
         <h1 className="text-2xl font-extrabold text-gray-900">
-          {tr(lang, 'Order history', 'Tarixçə')}
+          {tr(lang, 'Order history', 'Tarixçə', 'История заказов')}
         </h1>
         {!loading && waId && (
           <div className="text-xs text-gray-400 font-semibold">
-            {realOrders.length} {tr(lang, 'orders', 'sifariş')}
+            {realOrders.length} {tr(lang, 'orders', 'sifariş', 'заказ.')}
           </div>
         )}
       </div>
@@ -628,13 +628,13 @@ function HistoryView({ lang, waId }: { lang: Lang; waId: string | null }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="text-[10px] text-blue-200 uppercase tracking-wider">
-                {tr(lang, 'Total orders', 'Ümumi sifariş')}
+                {tr(lang, 'Total orders', 'Ümumi sifariş', 'Всего заказов')}
               </div>
               <div className="text-2xl font-extrabold">{realOrders.length}</div>
             </div>
             <div>
               <div className="text-[10px] text-blue-200 uppercase tracking-wider">
-                {tr(lang, 'Total spent', 'Ümumi xərc')}
+                {tr(lang, 'Total spent', 'Ümumi xərc', 'Всего потрачено')}
               </div>
               <div className="text-2xl font-extrabold">
                 ${realTotalSpentUSD.toFixed(2)}
@@ -648,14 +648,14 @@ function HistoryView({ lang, waId }: { lang: Lang; waId: string | null }) {
         <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center mb-6">
           <Loader2 className="w-6 h-6 text-blue-500 mx-auto animate-spin mb-2" />
           <div className="text-xs text-gray-500">
-            {tr(lang, 'Loading history…', 'Tarixçə yüklənir…')}
+            {tr(lang, 'Loading history…', 'Tarixçə yüklənir…', 'Загрузка истории…')}
           </div>
         </div>
       ) : realOrders.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center mb-6">
           <Wallet className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <div className="text-sm font-semibold text-gray-700 mb-1">
-            {tr(lang, 'No history yet', 'Hələ tarixçə yoxdur')}
+            {tr(lang, 'No history yet', 'Hələ tarixçə yoxdur', 'История пуста')}
           </div>
           <div className="text-xs text-gray-400">
             {tr(
@@ -705,7 +705,7 @@ function HistoryView({ lang, waId }: { lang: Lang; waId: string | null }) {
         className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-gray-200 hover:border-green-300 rounded-2xl text-sm font-semibold text-gray-700 active:scale-[0.99] transition-all mb-4"
       >
         <MessageCircle className="w-4 h-4 text-green-600" />
-        {tr(lang, 'Contact support on WhatsApp', 'Dəstək — WhatsApp')}
+        {tr(lang, 'Contact support on WhatsApp', 'Dəstək — WhatsApp', 'Поддержка — WhatsApp')}
       </a>
     </div>
   );
@@ -725,17 +725,17 @@ function BottomTabBar({
   const items: Array<{ id: TabId; label: string; icon: typeof ShoppingBag }> = [
     {
       id: 'shop',
-      label: tr(lang, 'Shop', 'Mağaza'),
+      label: tr(lang, 'Shop', 'Mağaza', 'Магазин'),
       icon: ShoppingBag,
     },
     {
       id: 'esims',
-      label: tr(lang, 'My eSIMs', 'eSIMlərim'),
+      label: tr(lang, 'My eSIMs', 'eSIMlərim', 'Мои eSIM'),
       icon: Wifi,
     },
     {
       id: 'history',
-      label: tr(lang, 'History', 'Tarixçə'),
+      label: tr(lang, 'History', 'Tarixçə', 'История'),
       icon: Wallet,
     },
   ];
