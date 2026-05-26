@@ -226,7 +226,6 @@ function buildWhatsAppLink(opts: {
   const priceLabel = tr(lang, 'Price', 'Qiymət', 'Цена');
 
   const lines = [
-    '[ESIM_ORDER]',
     greeting,
     `${countryLabel}: ${country}`,
     `${planLabel}: ${formatPlanForMessage(pkg, lang)}`,
