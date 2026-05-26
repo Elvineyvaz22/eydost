@@ -253,9 +253,15 @@ function ShopView({
                 'Ölkə axtar (Türkiyə, AE, GE)',
                 'Поиск страны',
               )}
+              inputMode="search"
+              enterKeyHint="search"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              style={{ fontSize: 16 }}
               className={`w-full pl-11 pr-10 py-3 bg-white border ${
                 searchFocused ? 'border-blue-300' : 'border-gray-200'
-              } rounded-full shadow-sm focus:border-blue-500 focus:ring-0 outline-none text-sm font-medium placeholder-gray-400 transition-colors`}
+              } rounded-full shadow-sm focus:border-blue-500 focus:ring-0 outline-none font-medium placeholder-gray-400 transition-colors`}
             />
             {search.length > 0 && (
               <button
