@@ -134,6 +134,42 @@ function curateUnlimited(plans: ESIMPackageRaw[]): ESIMPackageRaw[] {
     );
 }
 
+/**
+ * Group unlimited packages by their daily allowance + FUP signature so users
+ * can see all duration variants (1 / 5 / 7 / 10 / 30 days) for a given daily
+ * limit side-by-side as duration chips.
+ */
+interface UnlimitedGroup {
+  key: string;
+  daily: string | null; // e.g. "1 GB"
+  fup: string | null; // e.g. "1 Mbps"
+  packages: ESIMPackageRaw[]; // sorted by duration ascending
+}
+
+function groupUnlimitedByDaily(plans: ESIMPackageRaw[]): UnlimitedGroup[] {
+  const map = new Map<string, UnlimitedGroup>();
+  for (const p of plans) {
+    const daily = extractDailyAllowance(p.name);
+    const fup = extractFup(p.name);
+    const key = `${daily ?? 'X'}|${fup ?? ''}`;
+    if (!map.has(key)) {
+      map.set(key, { key, daily, fup, packages: [] });
+    }
+    map.get(key)!.packages.push(p);
+  }
+  const groups = Array.from(map.values());
+  groups.forEach((g) =>
+    g.packages.sort((a, b) => a.duration - b.duration),
+  );
+  // Sort groups by daily allowance ascending (1GB before 2GB before 5GB)
+  groups.sort((a, b) => {
+    const av = parseFloat(a.daily ?? '99') || 99;
+    const bv = parseFloat(b.daily ?? '99') || 99;
+    return av - bv;
+  });
+  return groups;
+}
+
 function extractDailyAllowance(name: string): string | null {
   const m = name.match(/(\d+(?:\.\d+)?)\s*(GB|MB)\/Day/i);
   return m ? `${m[1]} ${m[2].toUpperCase()}` : null;
@@ -222,77 +258,101 @@ function LimitedPlanCard({
   );
 }
 
-// ── Plan card (unlimited) ───────────────────────────────────────────────────
+// ── Unlimited group card (grouped by daily allowance + FUP) ─────────────────
 
-function UnlimitedPlanCard({
-  pkg,
+function UnlimitedGroupCard({
+  group,
   lang,
-  selected,
+  selectedCode,
   onSelect,
 }: {
-  pkg: ESIMPackageRaw;
+  group: UnlimitedGroup;
   lang: Lang;
-  selected: boolean;
-  onSelect: () => void;
+  selectedCode: string | null;
+  onSelect: (code: string) => void;
 }) {
-  const daily = extractDailyAllowance(pkg.name);
-  const fup = extractFup(pkg.name);
+  const hasSelected = group.packages.some((p) => p.packageCode === selectedCode);
+  const firstSpeed = group.packages[0]?.speed || '4G';
+
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={`w-full text-left flex items-center gap-3 bg-white rounded-2xl border-2 p-4 active:scale-[0.99] transition-all ${
-        selected
+    <div
+      className={`bg-white rounded-2xl border-2 p-4 transition-all ${
+        hasSelected
           ? 'border-blue-600 shadow-md shadow-blue-100'
-          : 'border-purple-200 hover:border-purple-400'
+          : 'border-purple-200'
       }`}
     >
-      {/* Check icon — gray normally, blue when selected */}
-      <div
-        className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-          selected ? 'bg-blue-600' : 'bg-gray-100'
-        }`}
-      >
-        <Check
-          className={`w-5 h-5 transition-colors ${
-            selected ? 'text-white' : 'text-gray-400'
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-3">
+        <div
+          className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+            hasSelected
+              ? 'bg-blue-600'
+              : 'bg-gradient-to-br from-purple-100 to-indigo-100'
           }`}
-          strokeWidth={3}
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="font-extrabold text-gray-900 text-[16px] leading-tight">
+        >
+          {hasSelected ? (
+            <Check className="w-5 h-5 text-white" strokeWidth={3} />
+          ) : (
+            <InfinityIcon className="w-5 h-5 text-purple-600" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-extrabold text-gray-900 text-[16px] leading-tight">
             <InfinityIcon className="inline w-4 h-4 -mt-0.5 mr-0.5 text-purple-600" />
             {tr(lang, 'Unlimited', 'Limitsiz')}
-          </span>
-          {daily && (
-            <span className="inline-flex items-center text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-              {daily}/{tr(lang, 'day', 'gün')}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
-          <Clock className="w-3.5 h-3.5" />
-          <span>
-            {pkg.duration} {tr(lang, pkg.duration === 1 ? 'day' : 'days', 'gün')}
-          </span>
-          <span className="text-gray-300">·</span>
-          <span>{pkg.speed || '4G'}</span>
-          {fup && (
-            <>
-              <span className="text-gray-300">·</span>
-              <span className="text-amber-600 font-medium">FUP {fup}</span>
-            </>
-          )}
+            {group.daily && (
+              <span className="ml-1.5 text-purple-700 text-sm">
+                · {group.daily}/{tr(lang, 'day', 'gün')}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-gray-500">
+            <span>{firstSpeed}</span>
+            {group.fup && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="text-amber-600 font-medium">FUP {group.fup}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
-      <div className="text-right flex-shrink-0">
-        <div className="text-lg font-extrabold text-purple-700 leading-none">
-          {formatPrice(pkg.sell_price_minor, pkg.currencyCode)}
-        </div>
+
+      {/* Duration chips */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {group.packages.map((pkg) => {
+          const isSelected = pkg.packageCode === selectedCode;
+          return (
+            <button
+              key={pkg.packageCode}
+              type="button"
+              onClick={() => onSelect(pkg.packageCode)}
+              className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 rounded-xl border-2 transition-all active:scale-95 ${
+                isSelected
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-200 bg-white hover:border-purple-300'
+              }`}
+            >
+              <div
+                className={`text-[11px] font-bold uppercase tracking-wider ${
+                  isSelected ? 'text-blue-700' : 'text-gray-500'
+                }`}
+              >
+                {pkg.duration} {tr(lang, pkg.duration === 1 ? 'day' : 'days', 'gün')}
+              </div>
+              <div
+                className={`text-base font-extrabold leading-none ${
+                  isSelected ? 'text-blue-700' : 'text-purple-700'
+                }`}
+              >
+                {formatPrice(pkg.sell_price_minor, pkg.currencyCode)}
+              </div>
+            </button>
+          );
+        })}
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -406,6 +466,10 @@ export default function EsimShopCountryDemo() {
     [livePkgs],
   );
   const unlimited = useMemo(() => curateUnlimited(livePkgs), [livePkgs]);
+  const unlimitedGroups = useMemo(
+    () => groupUnlimitedByDaily(unlimited),
+    [unlimited],
+  );
 
   // Default tab: whichever has data; prefer "limited"
   const [tab, setTab] = useState<TabId>('limited');
@@ -573,7 +637,7 @@ export default function EsimShopCountryDemo() {
                     ))}
                   </div>
                 )
-              ) : unlimited.length === 0 ? (
+              ) : unlimitedGroups.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
                   <div className="text-sm text-gray-500">
                     {tr(
@@ -584,14 +648,14 @@ export default function EsimShopCountryDemo() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {unlimited.map((p) => (
-                    <UnlimitedPlanCard
-                      key={p.packageCode}
-                      pkg={p}
+                <div className="space-y-3">
+                  {unlimitedGroups.map((g) => (
+                    <UnlimitedGroupCard
+                      key={g.key}
+                      group={g}
                       lang={lang}
-                      selected={selectedCode === p.packageCode}
-                      onSelect={() => setSelectedCode(p.packageCode)}
+                      selectedCode={selectedCode}
+                      onSelect={setSelectedCode}
                     />
                   ))}
                 </div>
