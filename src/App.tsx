@@ -22,6 +22,7 @@ import AllPackages from './pages/AllPackages';
 import EsimAccount from './pages/EsimAccount';
 import EsimAccountDemo from './pages/EsimAccountDemo';
 import EsimShopDemo from './pages/EsimShopDemo';
+import EsimShopCountryDemo from './pages/EsimShopCountryDemo';
 import Privacy from './pages/Privacy';
 import About from './pages/About';
 import Terms from './pages/Terms';
@@ -237,6 +238,7 @@ function App() {
                 <Route path="/esim" element={<EsimRootRouter />} />
                 <Route path="/esim-demo" element={<EsimAccountDemo />} />
                 <Route path="/esim-shop-demo" element={<EsimShopDemo />} />
+                <Route path="/esim-shop-demo/:slug" element={<EsimShopCountryDemo />} />
                 <Route path="/taxi" element={<Taxi />} />
                 <Route path="/taxi-order" element={<TaxiOrderTest />} />
                 <Route

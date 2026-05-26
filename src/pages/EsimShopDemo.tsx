@@ -80,7 +80,7 @@ function formatGB(gb: number) {
 function QuickChip({ pkg }: { pkg: PackageData }) {
   return (
     <Link
-      to={`/${pkg.slug}`}
+      to={`/esim-shop-demo/${pkg.slug}`}
       className="flex items-center gap-2 px-3 py-2 bg-white rounded-full border border-gray-100 hover:border-blue-200 hover:shadow-sm active:scale-95 transition-all flex-shrink-0"
     >
       <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-100">
@@ -96,7 +96,7 @@ function CountryCard({ pkg, lang }: { pkg: PackageData; lang: Lang }) {
   const planCount = pkg.plans?.length ?? 0;
   return (
     <Link
-      to={`/${pkg.slug}`}
+      to={`/esim-shop-demo/${pkg.slug}`}
       className="group flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3 hover:border-blue-200 hover:shadow-md active:scale-[0.99] transition-all"
     >
       <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 shadow-sm">
