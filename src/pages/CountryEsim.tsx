@@ -63,8 +63,52 @@ interface LivePlan {
   countryCode: string;
 }
 
+// Build a localized WhatsApp order message. Keeps `Code:` and `ID:` as machine
+// keys; greeting + labels are translated.
+function buildOrderMessage(opts: {
+  countryName: string;
+  plan: LivePlan;
+  language: string;
+  unlimited?: boolean;
+}): string {
+  const { countryName, plan, language, unlimited } = opts;
+  const az = language === 'az';
+  const ru = language === 'ru';
+
+  const greeting = az
+    ? 'Salam! eSIM almaq istəyirəm.'
+    : ru
+      ? 'Здравствуйте! Я хочу купить eSIM.'
+      : 'Hi! I want to buy an eSIM.';
+  const countryLabel = az ? 'Ölkə' : ru ? 'Страна' : 'Country';
+  const planLabel = az ? 'Paket' : ru ? 'Тариф' : 'Plan';
+  const priceLabel = az ? 'Qiymət' : ru ? 'Цена' : 'Price';
+  const daysWord = az ? 'gün' : ru ? (plan.days === 1 ? 'день' : 'дн.') : (plan.days === 1 ? 'day' : 'days');
+  const unlimitedWord = az ? 'Limitsiz' : ru ? 'Безлимит' : 'Unlimited';
+
+  let planText: string;
+  if (unlimited) {
+    planText = `${unlimitedWord} · ${plan.days} ${daysWord}`;
+  } else {
+    const gbBytes = plan.gb;
+    const gb = gbBytes / (1024 * 1024 * 1024);
+    const volStr = gb >= 1 ? `${Number.isInteger(gb) ? gb : gb.toFixed(1)} GB` : `${Math.round(gbBytes / (1024 * 1024))} MB`;
+    planText = `${volStr} · ${plan.days} ${daysWord}`;
+  }
+
+  const lines = [
+    greeting,
+    `${countryLabel}: ${countryName}`,
+    `${planLabel}: ${planText}`,
+    `${priceLabel}: ${plan.price}`,
+    `Code: ${plan.code}`,
+    `ID: ${plan.id}`,
+  ];
+  return lines.join('\n');
+}
+
 function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: string }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
   const isTelegramWebApp = typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData);
@@ -72,7 +116,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
 
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: " + plan.code + "\nID: " + plan.id;
+    const textMsg = buildOrderMessage({ countryName, plan, language });
 
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,
@@ -155,7 +199,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
 }
 
 function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: string }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
   const isTelegramWebApp = typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData);
@@ -163,7 +207,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
 
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const textMsg = "[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: " + plan.code + "\nID: " + plan.id;
+    const textMsg = buildOrderMessage({ countryName, plan, language, unlimited: true });
 
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,

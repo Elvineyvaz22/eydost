@@ -35,11 +35,39 @@ function filterPlansForAds(plans: RegionalPackage['plans']): RegionalPackage['pl
   return picked;
 }
 
-function buildOrderMessage(plan: RegionalPackage['plans'][number], regionName: string): string {
-  if (plan.code && plan.id) {
-    return `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nCode: ${plan.code}\nID: ${plan.id}`;
-  }
-  return `[ESIM_ORDER]\nHi! I want to buy an eSIM.\nRegion: ${regionName}\nPackage: ${plan.gb}GB\nValidity: ${plan.days} days\nPrice: ${plan.price}`;
+type OrderLang = 'en' | 'az' | 'ru';
+
+function trMsg(lang: OrderLang, en: string, az: string, ru: string) {
+  return lang === 'az' ? az : lang === 'ru' ? ru : en;
+}
+
+function buildOrderMessage(
+  plan: RegionalPackage['plans'][number],
+  regionName: string,
+  lang: OrderLang,
+): string {
+  const greeting = trMsg(
+    lang,
+    'Hi! I want to buy an eSIM.',
+    'Salam! eSIM almaq istəyirəm.',
+    'Здравствуйте! Я хочу купить eSIM.',
+  );
+  const regionLabel = trMsg(lang, 'Region', 'Region', 'Регион');
+  const packageLabel = trMsg(lang, 'Package', 'Paket', 'Тариф');
+  const validityLabel = trMsg(lang, 'Validity', 'Müddət', 'Срок');
+  const priceLabel = trMsg(lang, 'Price', 'Qiymət', 'Цена');
+  const daysWord = trMsg(lang, 'days', 'gün', 'дн.');
+
+  const lines = [
+    greeting,
+    `${regionLabel}: ${regionName}`,
+    `${packageLabel}: ${plan.gb} GB`,
+    `${validityLabel}: ${plan.days} ${daysWord}`,
+    `${priceLabel}: ${plan.price}`,
+  ];
+  if (plan.code) lines.push(`Code: ${plan.code}`);
+  if (plan.id) lines.push(`ID: ${plan.id}`);
+  return lines.join('\n');
 }
 
 function getRegionalBySlug(slug: string): RegionalPackage | undefined {
@@ -49,7 +77,8 @@ function getRegionalBySlug(slug: string): RegionalPackage | undefined {
 
 export default function RegionalEsim() {
   const { slug } = useParams<{ slug: string }>();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const orderLang: OrderLang = (language === 'az' || language === 'ru') ? language : 'en';
   const { liveRegionalPackages } = usePackages();
 
   const livePkg = useMemo(() => {
@@ -103,7 +132,7 @@ export default function RegionalEsim() {
       const tg = window.Telegram?.WebApp;
       if (!tg) return;
 
-      tg.sendData(buildOrderMessage(plan, pkg.name));
+      tg.sendData(buildOrderMessage(plan, pkg.name, orderLang));
       tg.close();
       return;
     }
@@ -241,7 +270,7 @@ export default function RegionalEsim() {
                     {/* Action Button */}
                     <button
                       onClick={(e) => {
-                        handleBuyClick(e as any, buildOrderMessage(plan, pkg.name), plan);
+                        handleBuyClick(e as any, buildOrderMessage(plan, pkg.name, orderLang), plan);
                       }}
                       className={`flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 text-white ${isTelegramWebApp
                           ? 'bg-[#24A1DE] hover:bg-[#1f8ec4]'

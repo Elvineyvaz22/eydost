@@ -182,7 +182,7 @@ function extractFup(name: string): string | null {
 
 // ── WhatsApp deep link ──────────────────────────────────────────────────────
 //
-// `[ESIM_ORDER]`, `Code:`, `ID:` saxlanılır — bot bu açar sözləri tanıyır.
+// `Code:` və `ID:` saxlanılır — bot bu açar sözləri tanıyır.
 // Salam mesajı və etiketlər istifadəçinin seçdiyi dildə göndərilir.
 
 function formatPlanForMessage(pkg: ESIMPackageRaw, lang: Lang): string {
