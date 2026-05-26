@@ -970,7 +970,7 @@ function BottomTabBar({
       className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.08)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
     >
-      <div className="max-w-2xl mx-auto grid grid-cols-3">
+      <div className="max-w-2xl mx-auto grid grid-cols-3 h-16">
         {items.map((it) => {
           const Icon = it.icon;
           const active = tab === it.id;
@@ -981,24 +981,24 @@ function BottomTabBar({
                 setTab(it.id);
                 window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
               }}
-              className={`flex flex-col items-center justify-center gap-1 py-2.5 transition-colors ${
-                active ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'
+              className={`relative flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                active ? 'text-blue-600' : 'text-gray-400'
               }`}
               aria-current={active ? 'page' : undefined}
             >
-              <div
-                className={`relative flex items-center justify-center transition-transform ${
-                  active ? 'scale-110' : ''
-                }`}
-              >
-                <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 2} />
-                {active && (
-                  <span className="absolute -top-1.5 w-1 h-1 rounded-full bg-blue-600" />
-                )}
-              </div>
+              {/* Top active indicator bar (always rendered to prevent layout shift) */}
               <span
-                className={`text-[10px] ${active ? 'font-bold' : 'font-medium'}`}
-              >
+                className={`absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full transition-colors ${
+                  active ? 'bg-blue-600' : 'bg-transparent'
+                }`}
+              />
+              <Icon
+                className="w-[22px] h-[22px]"
+                strokeWidth={2}
+                fill={active ? 'currentColor' : 'none'}
+                fillOpacity={active ? 0.12 : 0}
+              />
+              <span className="text-[10.5px] font-semibold leading-none">
                 {it.label}
               </span>
             </button>
@@ -1020,7 +1020,7 @@ export default function EsimShopDemo() {
   const waId = (searchParams.get('wa_id') || '').trim() || null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col pt-16 lg:pt-20">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-gray-50 to-white flex flex-col pt-16 lg:pt-20">
       <Seo
         title="eSIM packages"
         description="Buy global eSIM data plans on WhatsApp."
