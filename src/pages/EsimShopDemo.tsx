@@ -206,7 +206,7 @@ export default function EsimShopDemo() {
   const showSearchResults = search.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col pt-16 lg:pt-20">
       <Seo
         title="eSIM packages"
         description="Buy global eSIM data plans on WhatsApp."
@@ -215,9 +215,9 @@ export default function EsimShopDemo() {
       />
       <Header />
 
-      {/* Sticky search header */}
+      {/* Sticky search header — sits below the fixed Header (h-16 lg:h-20) */}
       <div
-        className={`sticky top-0 z-20 bg-gradient-to-b from-gray-50 to-gray-50/95 backdrop-blur-md transition-shadow ${
+        className={`sticky top-16 lg:top-20 z-20 bg-gradient-to-b from-gray-50 to-gray-50/95 backdrop-blur-md transition-shadow ${
           scrolled ? 'shadow-sm' : ''
         }`}
       >
