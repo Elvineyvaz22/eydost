@@ -46,13 +46,18 @@ const tr = (lang: Lang, en: string, az: string, ru?: string) => {
   return en;
 };
 
+function priceOf(p: { price: string }) {
+  return parseFloat(p.price.replace(/[^\d.]/g, '')) || Infinity;
+}
+
 function findCheapest(plans: PackageData['plans']) {
   if (!plans || plans.length === 0) return null;
-  return plans.reduce((a, b) => {
-    const ap = parseFloat(a.price.replace(/[^\d.]/g, '')) || Infinity;
-    const bp = parseFloat(b.price.replace(/[^\d.]/g, '')) || Infinity;
-    return ap < bp ? a : b;
-  });
+  return plans.reduce((a, b) => (priceOf(a) < priceOf(b) ? a : b));
+}
+
+function formatGB(gb: number) {
+  if (gb < 1) return `${Math.round(gb * 1000)} MB`;
+  return `${gb} GB`;
 }
 
 // ── Atom components ──────────────────────────────────────────────────────────
@@ -73,39 +78,49 @@ function QuickChip({ pkg }: { pkg: PackageData }) {
 
 function CountryCard({ pkg, lang }: { pkg: PackageData; lang: Lang }) {
   const cheapest = findCheapest(pkg.plans);
+  const planCount = pkg.plans?.length ?? 0;
   return (
     <Link
       to={`/${pkg.slug}`}
-      className="flex items-center justify-between gap-3 bg-white rounded-2xl border border-gray-100 p-4 hover:border-blue-200 hover:shadow-md active:scale-[0.99] transition-all"
+      className="group flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3 hover:border-blue-200 hover:shadow-md active:scale-[0.99] transition-all"
     >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="w-11 h-11 rounded-full overflow-hidden border border-gray-100 flex-shrink-0">
-          <FlagImage countryCode={pkg.countryCode} size="full" />
+      {/* Flag */}
+      <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 shadow-sm">
+        <FlagImage countryCode={pkg.countryCode} size="full" />
+      </div>
+
+      {/* Name + meta */}
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-gray-900 truncate text-[15px] leading-tight">
+          {pkg.country}
         </div>
-        <div className="min-w-0">
-          <div className="font-semibold text-gray-900 truncate">{pkg.country}</div>
-          {cheapest && (
-            <div className="text-xs text-gray-400 mt-0.5">
-              {cheapest.gb} GB · {cheapest.days} {tr(lang, 'days', 'gün')}
-            </div>
-          )}
+        <div className="text-xs text-gray-400 mt-1 truncate">
+          {planCount > 0
+            ? `${planCount} ${tr(lang, 'plans', 'paket')}${
+                cheapest
+                  ? ` · ${formatGB(cheapest.gb)} / ${cheapest.days}${tr(lang, 'd', 'g')}`
+                  : ''
+              }`
+            : tr(lang, 'No plans', 'Paket yoxdur')}
         </div>
       </div>
-      <div className="text-right flex-shrink-0">
-        {cheapest ? (
-          <>
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider">
-              {tr(lang, 'from', 'başlayır')}
-            </div>
-            <div className="text-lg font-extrabold text-green-600 leading-tight">
+
+      {/* Price chip */}
+      {cheapest ? (
+        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+          <div className="flex items-baseline gap-1 px-3 py-1.5 bg-green-50 rounded-full border border-green-100 group-hover:bg-green-100 transition-colors">
+            <span className="text-[9px] font-semibold text-green-700 uppercase tracking-wider">
+              {tr(lang, 'from', 'min.')}
+            </span>
+            <span className="text-base font-extrabold text-green-700 leading-none">
               {cheapest.price}
-            </div>
-          </>
-        ) : (
-          <span className="text-sm text-gray-400">—</span>
-        )}
-        <ChevronRight className="w-4 h-4 text-gray-300 ml-auto" />
-      </div>
+            </span>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+        </div>
+      ) : (
+        <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
+      )}
     </Link>
   );
 }
