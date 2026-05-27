@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 export default function Hero() {
   const { t } = useLanguage();
   const hero = t.hero as Record<string, string>;
+  const nav = t.nav as Record<string, string>;
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-[#0A0F1C] to-gray-900 text-white pt-24 pb-16 sm:pt-32 sm:pb-24">
@@ -17,23 +18,41 @@ export default function Hero() {
           <span className="text-sm font-medium tracking-wide">{hero.badge}</span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
-          <span className="block">{hero.title}</span>
-          <span className="mt-3 sm:mt-4 flex flex-row flex-wrap justify-center items-center gap-x-4 sm:gap-x-10 gap-y-2">
-            <span className="whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+        <h1 className="text-[1.65rem] leading-snug sm:text-5xl lg:text-7xl font-extrabold mb-5 sm:mb-6 tracking-tight">
+          {hero.title}
+        </h1>
+
+        {/* Compact 50/50 split — fits iPhone Pro width without wrapping */}
+        <div
+          className="grid grid-cols-2 w-full max-w-[min(100%,20rem)] sm:max-w-md mx-auto mb-6 sm:mb-8 rounded-2xl border border-white/15 bg-white/5 backdrop-blur-sm overflow-hidden divide-x divide-white/10"
+          role="group"
+          aria-label={`${nav.esim}, ${nav.taxi}`}
+        >
+          <Link
+            to="/esim"
+            className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 sm:py-4 active:bg-white/10 transition-colors"
+          >
+            <Wifi className="w-5 h-5 text-blue-400" aria-hidden />
+            <span className="text-[15px] sm:text-lg font-bold text-blue-300 leading-none">
+              {nav.esim}
+            </span>
+            <span className="text-[10px] sm:text-xs text-blue-400/70 font-medium leading-tight text-center line-clamp-2 max-w-[7.5rem] sm:max-w-none">
               {hero.ctaEsim}
             </span>
-            <span
-              className="hidden sm:inline text-white/25 font-light select-none"
-              aria-hidden="true"
-            >
-              ·
+          </Link>
+          <Link
+            to="/taxi"
+            className="flex flex-col items-center justify-center gap-1.5 py-3.5 px-2 sm:py-4 active:bg-white/10 transition-colors"
+          >
+            <Car className="w-5 h-5 text-green-400" aria-hidden />
+            <span className="text-[15px] sm:text-lg font-bold text-green-300 leading-none">
+              {nav.taxi}
             </span>
-            <span className="whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400">
+            <span className="text-[10px] sm:text-xs text-green-400/70 font-medium leading-tight text-center line-clamp-2 max-w-[7.5rem] sm:max-w-none">
               {hero.ctaTaxi}
             </span>
-          </span>
-        </h1>
+          </Link>
+        </div>
 
         <p className="text-lg sm:text-xl mb-12 max-w-2xl mx-auto text-gray-400 leading-relaxed">
           {hero.subtitle}
