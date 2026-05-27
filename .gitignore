@@ -28,4 +28,22 @@ backend/__pycache__/
 backend/**/__pycache__/
 backend/**/*.pyc
 
+# One-off / debug scripts - MUST NOT live in repo because they often
+# embed live keys (Supabase service_role, Vercel tokens, etc.). Keep
+# them outside the project or use env vars + .local suffix instead.
+debug_*.py
+check_*.py
+fix_*.py
+backend/debug_*.py
+backend/check_*.py
+backend/fix_*.py
+backend/vercel_*.py
+
+# Env files (extra safety)
+.env.local
+.env.*.local
+backend/.env.local
+backend/.env.*
+
 .vercel
+

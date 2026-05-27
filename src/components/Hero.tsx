@@ -18,9 +18,20 @@ export default function Hero() {
         </div>
 
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
-          {hero.title}<br/>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">
-            {hero.ctaEsim} & {hero.ctaTaxi}
+          <span className="block">{hero.title}</span>
+          <span className="mt-3 sm:mt-4 flex flex-row flex-wrap justify-center items-center gap-x-4 sm:gap-x-10 gap-y-2">
+            <span className="whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+              {hero.ctaEsim}
+            </span>
+            <span
+              className="hidden sm:inline text-white/25 font-light select-none"
+              aria-hidden="true"
+            >
+              ·
+            </span>
+            <span className="whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400">
+              {hero.ctaTaxi}
+            </span>
           </span>
         </h1>
 

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 interface AdminContextType {
@@ -11,6 +12,23 @@ interface AdminContextType {
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
+
+/**
+ * A signed-in Supabase user is only treated as an admin if their
+ * `app_metadata.role === 'admin'`. `app_metadata` is server-side only —
+ * a regular user cannot set or change it (only the service_role can),
+ * so this check is safe even if public signups are enabled.
+ *
+ * To grant admin, run in Supabase SQL Editor:
+ *   update auth.users
+ *   set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}'::jsonb
+ *   where email = 'you@example.com';
+ */
+function isAdminUser(user: User | null | undefined): boolean {
+  if (!user) return false;
+  const meta = user.app_metadata as Record<string, unknown> | undefined;
+  return meta?.role === 'admin';
+}
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,9 +43,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const checkAuth = async () => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData.session) {
+      const user = sessionData.session?.user ?? null;
+      if (user && isAdminUser(user)) {
         setIsAuthenticated(true);
       } else {
+        if (sessionData.session) {
+          // Authed but not an admin → kill the session so the SPA does not
+          // hold a stale token that could be abused.
+          await supabase.auth.signOut();
+        }
         localStorage.removeItem('eydost_admin_session');
         setIsAuthenticated(false);
       }
@@ -48,11 +72,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      if (data.session) {
+      if (data.session && isAdminUser(data.user)) {
         localStorage.setItem('eydost_admin_session', 'active');
         setIsAuthenticated(true);
         return true;
       }
+      // Valid Supabase credentials but the user is not an admin — sign them
+      // back out and reject the attempt.
+      await supabase.auth.signOut();
       return false;
     } catch (error) {
       console.error('Login error:', error);

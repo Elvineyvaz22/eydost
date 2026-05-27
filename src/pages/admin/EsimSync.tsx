@@ -1,8 +1,23 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { RefreshCw, CheckCircle, AlertCircle, Package, Clock } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
-const API_BASE = '/api/esim/admin';
+/**
+ * Admin → eSIM Sync
+ *
+ * Uses the authenticated admin's Supabase JWT as a Bearer token. The server
+ * (`/api/admin-sync`) validates the JWT and triggers the actual sync with the
+ * server-only `CRON_SECRET`. No secrets are bundled into the browser.
+ */
+
+const API_BASE = '/api/admin-sync';
+
+async function authHeaders(): Promise<HeadersInit> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export default function EsimSync() {
   const [status, setStatus] = useState<{
@@ -16,16 +31,16 @@ export default function EsimSync() {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const apiKey = import.meta.env.VITE_APP_API_KEY || '';
-
   const fetchStatus = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/sync-status`, {
-        headers: { 'X-API-Key': apiKey },
-      });
+      const res = await fetch(API_BASE, { headers: await authHeaders() });
       const data = await res.json();
-      setStatus(data);
+      if (!res.ok) {
+        setStatus({ synced: false, message: data?.error || 'Status alına bilmədi' });
+      } else {
+        setStatus(data);
+      }
     } catch {
       setStatus({ synced: false, message: 'Backend əlçatmaz' });
     } finally {
@@ -38,16 +53,17 @@ export default function EsimSync() {
     setResult(null);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/sync`, {
+      const res = await fetch(API_BASE, {
         method: 'POST',
-        headers: { 'X-API-Key': apiKey },
+        headers: await authHeaders(),
       });
       const data = await res.json();
       if (res.ok) {
-        setResult(`✅ ${data.count} paket uğurla Supabase-ə yükləndi`);
+        const inserted = data?.inserted ?? data?.count ?? 0;
+        setResult(`✅ ${inserted} paket uğurla Supabase-ə yükləndi`);
         fetchStatus();
       } else {
-        setError(`❌ Xəta: ${data.detail || 'Bilinməyən xəta'}`);
+        setError(`❌ Xəta: ${data.error || data.detail || 'Bilinməyən xəta'}`);
       }
     } catch (e: any) {
       setError(`❌ Bağlantı xətası: ${e.message}`);
@@ -138,7 +154,7 @@ export default function EsimSync() {
           <div className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-800 text-sm font-medium">
             {error}
             <p className="mt-1 text-red-600 font-normal">
-              Backend-in işlədiyindən əmin ol: <code className="bg-red-100 px-1 rounded">uvicorn main:app --reload --port 8000</code>
+              Vercel function-un işlədiyindən əmin ol və <code className="bg-red-100 px-1 rounded">CRON_SECRET</code> + <code className="bg-red-100 px-1 rounded">SUPABASE_SERVICE_ROLE_KEY</code> env-də qurulub.
             </p>
           </div>
         )}
