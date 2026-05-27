@@ -1,8 +1,7 @@
-/** Full header mark (icon + EYDOST text). Used only in Header / admin brand preview. */
+/** Full Ey Dost mark — header, favicons, PWA, schema (same asset everywhere). */
 export const DEFAULT_LOGO_URL = '/logo.png';
 
-/** Square transparent bubble — favicons, PWA, schema.org logo (not the header). */
-export const SITE_ICON_URL = '/icon-512.png';
+export const SITE_ICON_URL = DEFAULT_LOGO_URL;
 
 const LEGACY_LOGO_HINTS = ['postimg.cc', 'Whats-App-Image'];
 

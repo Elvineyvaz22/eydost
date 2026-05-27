@@ -1,25 +1,36 @@
 """
-Regenerate favicons from public/logo-source.png.
+Regenerate all site icons from public/logo.png (full Ey Dost mark).
 
-Does NOT touch public/logo.png — that file is the full header mark (icon + EYDOST
-text). Copy logo-source.png → logo.png manually when the master asset changes.
+Every favicon / PWA icon is a scaled copy of the same asset as the header.
+Run after updating logo.png or logo-source.png:
 
-Outputs (all transparent, icon-only bubble):
-  favicon-16/32/48.png, favicon.png, apple-touch-icon.png, icon-192.png, icon-512.png
+  Copy-Item public/logo-source.png public/logo.png -Force
+  python scripts/generate-favicons.py
 """
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
 
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "public" / "logo-source.png"
+LOGO = ROOT / "public" / "logo.png"
 OUT = ROOT / "public"
 
 WHITE_THRESHOLD = 235
-ICON_TOP_RATIO = 0.54  # exclude wordmark below bubble
-PAD_RATIO = 0.14
+PAD_RATIO = 0.06
+
+OUTPUTS: list[tuple[int, str]] = [
+    (16, "favicon-16.png"),
+    (32, "favicon-32.png"),
+    (48, "favicon-48.png"),
+    (48, "favicon.png"),
+    (180, "apple-touch-icon.png"),
+    (192, "icon-192.png"),
+    (512, "icon-512.png"),
+]
 
 
 def white_to_transparent(im: Image.Image) -> Image.Image:
@@ -34,40 +45,34 @@ def white_to_transparent(im: Image.Image) -> Image.Image:
     return im
 
 
-def extract_icon_mark(im: Image.Image) -> Image.Image:
+def fit_logo(im: Image.Image, size: int) -> Image.Image:
+    """Scale full logo to fit in size×size with padding; transparent background."""
+    pad = max(2, int(size * PAD_RATIO))
+    inner = size - pad * 2
     w, h = im.size
-    zone = im.crop((0, 0, w, int(h * ICON_TOP_RATIO)))
-    bbox = zone.getbbox()
-    if not bbox:
-        return zone
-    icon = zone.crop(bbox)
-    side = max(icon.size)
-    pad = max(4, int(side * PAD_RATIO))
-    canvas_side = side + pad * 2
-    canvas = Image.new("RGBA", (canvas_side, canvas_side), (0, 0, 0, 0))
-    ox = (canvas_side - icon.width) // 2
-    oy = (canvas_side - icon.height) // 2
-    canvas.paste(icon, (ox, oy), icon)
+    scale = min(inner / w, inner / h)
+    nw, nh = max(1, int(w * scale)), max(1, int(h * scale))
+    resized = im.resize((nw, nh), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ox = (size - nw) // 2
+    oy = (size - nh) // 2
+    canvas.paste(resized, (ox, oy), resized)
     return canvas
 
 
-def save_png(img: Image.Image, path: Path, size: int) -> None:
-    out = img.resize((size, size), Image.Resampling.LANCZOS)
-    out.save(path, "PNG", optimize=True)
-
-
 def main() -> None:
-    src = white_to_transparent(Image.open(SRC))
-    icon = extract_icon_mark(src)
+    if SRC.exists():
+        shutil.copy2(SRC, LOGO)
+    if not LOGO.exists():
+        raise SystemExit(f"Missing {LOGO}")
 
-    for size, name in [(16, "favicon-16.png"), (32, "favicon-32.png"), (48, "favicon-48.png")]:
-        save_png(icon, OUT / name, size)
-    save_png(icon, OUT / "favicon.png", 48)
+    base = white_to_transparent(Image.open(LOGO))
+    for size, name in OUTPUTS:
+        out = fit_logo(base, size)
+        out.save(OUT / name, "PNG", optimize=True)
+        print(f"wrote {name} ({size}px)")
 
-    for size, name in [(180, "apple-touch-icon.png"), (192, "icon-192.png"), (512, "icon-512.png")]:
-        save_png(icon, OUT / name, size)
-
-    print("Favicons written to", OUT)
+    print("Done — all icons match logo.png")
 
 
 if __name__ == "__main__":
