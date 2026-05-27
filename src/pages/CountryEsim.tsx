@@ -1,11 +1,11 @@
 import { useParams, Link } from 'react-router-dom';
-import { MessageCircle, ArrowLeft, Wifi, Clock, Globe, ChevronRight, Zap, Shield, Infinity } from 'lucide-react';
+import { MessageCircle, ArrowLeft, Wifi, Clock, Globe, ChevronRight, Zap, Shield, Infinity as InfinityIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getPackageBySlug } from '../data/esimPackages';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { getWaId, createOrder, isCreateOrderSuccess } from '../utils/whatsapp';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
@@ -130,22 +130,30 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
       return;
     }
 
+    const openWhatsApp = () => {
+      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+    };
+
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
-        showToast(
-          language === 'az'
-            ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
-            : language === 'ru'
-              ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
-              : 'Your order has been sent to WhatsApp! Please return to your chat.',
-        );
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
+        if (isCreateOrderSuccess(result)) {
+          showToast(
+            language === 'az'
+              ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
+              : language === 'ru'
+                ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
+                : 'Your order has been sent to WhatsApp! Please return to your chat.',
+          );
+        } else {
+          openWhatsApp();
+        }
       } finally {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      openWhatsApp();
     }
   };
 
@@ -227,22 +235,30 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
       return;
     }
 
+    const openWhatsApp = () => {
+      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+    };
+
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
-        showToast(
-          language === 'az'
-            ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
-            : language === 'ru'
-              ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
-              : 'Your order has been sent to WhatsApp! Please return to your chat.',
-        );
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
+        if (isCreateOrderSuccess(result)) {
+          showToast(
+            language === 'az'
+              ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
+              : language === 'ru'
+                ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
+                : 'Your order has been sent to WhatsApp! Please return to your chat.',
+          );
+        } else {
+          openWhatsApp();
+        }
       } finally {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      openWhatsApp();
     }
   };
 
@@ -263,7 +279,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
       <div className="space-y-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-            <Infinity className="w-4 h-4 text-purple-600" />
+            <InfinityIcon className="w-4 h-4 text-purple-600" />
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wide">{t.countryEsim.data}</p>
@@ -315,7 +331,7 @@ export default function CountryEsim() {
 
   const [livePkgs, setLivePkgs] = useState<ESIMPackageRaw[]>([]);
   const [liveLoading, setLiveLoading] = useState(false);
-  const [liveError, setLiveError] = useState<string | null>(null);
+  const [, setLiveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!activeCountryCode) return;
@@ -461,11 +477,11 @@ export default function CountryEsim() {
           {unlimitedPlans.length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Infinity className="w-5 h-5 text-purple-600" />
+                <InfinityIcon className="w-5 h-5 text-purple-600" />
                 Unlimited Plans ({unlimitedPlans.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {unlimitedPlans.map((plan, i) => (
+                {unlimitedPlans.map((plan) => (
                   <UnlimitedPlanCard key={plan.code} plan={plan} countryName={countryName} />
                 ))}
               </div>

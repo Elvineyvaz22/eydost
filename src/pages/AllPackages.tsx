@@ -96,7 +96,6 @@ export default function AllPackages() {
 
   const [allPkgs, setAllPkgs] = useState<Record<string, ESIMPackageRaw[]>>({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'countries' | 'regional' | 'global'>('countries');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -118,10 +117,13 @@ export default function AllPackages() {
 
   useEffect(() => {
     setLoading(true);
-    setError(null);
     fetchAllCountriesPackages()
       .then(pkgs => { setAllPkgs(pkgs); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .catch(err => {
+        console.warn('Failed to load live eSIM prices; showing static catalog.', err);
+        setAllPkgs({});
+        setLoading(false);
+      });
   }, []);
 
   const activePackages = useMemo(
@@ -161,29 +163,6 @@ export default function AllPackages() {
         <Header />
         <main className="flex-1 flex items-center justify-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col font-sans">
-        <Seo title="eSIM Packages" canonicalPath="/esim" />
-        <Header />
-        <main className="flex-1 flex items-center justify-center min-h-[60vh]">
-          <div className="text-center px-4">
-            <p className="text-6xl mb-4">⚠️</p>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Qiymətlər yüklənə bilmədi</h2>
-            <p className="text-gray-500 mb-4">{error}</p>
-            <button
-              onClick={() => { setLoading(true); setError(null); fetchAllCountriesPackages().then(pkgs => { setAllPkgs(pkgs); setLoading(false); }).catch(err => { setError(err.message); setLoading(false); }); }}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
-            >
-              Yenidən cəhd et
-            </button>
-          </div>
         </main>
         <Footer />
       </div>

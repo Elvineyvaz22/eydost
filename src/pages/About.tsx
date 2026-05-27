@@ -5,6 +5,7 @@ import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { Wifi, Car, Users, Globe, Shield, Zap } from 'lucide-react';
+import { getWhatsAppLink } from '../utils/whatsapp';
 
 const content = {
   en: {
@@ -181,7 +182,7 @@ export default function About() {
           <h2 className="text-2xl font-extrabold text-gray-900 mb-6">{c.ctaTitle}</h2>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a
-              href="https://wa.me/994992000444"
+              href={getWhatsAppLink('esim')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#20bd5a] transition-colors"
