@@ -1,8 +1,11 @@
 """
 Regenerate favicons from public/logo-source.png.
-- White → transparent
-- Icon-only crop (no EYDOST text) for tab favicons
-- Padding so the bubble reads clearly at 16–48px
+
+Does NOT touch public/logo.png — that file is the full header mark (icon + EYDOST
+text). Copy logo-source.png → logo.png manually when the master asset changes.
+
+Outputs (all transparent, icon-only bubble):
+  favicon-16/32/48.png, favicon.png, apple-touch-icon.png, icon-192.png, icon-512.png
 """
 from __future__ import annotations
 
@@ -61,10 +64,8 @@ def main() -> None:
         save_png(icon, OUT / name, size)
     save_png(icon, OUT / "favicon.png", 48)
 
-    # Full mark (icon + text), transparent — home screen / PWA
-    full = white_to_transparent(Image.open(SRC))
     for size, name in [(180, "apple-touch-icon.png"), (192, "icon-192.png"), (512, "icon-512.png")]:
-        save_png(full, OUT / name, size)
+        save_png(icon, OUT / name, size)
 
     print("Favicons written to", OUT)
 

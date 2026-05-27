@@ -1,5 +1,8 @@
-/** Canonical site logo served from /public (same asset as favicon source). */
+/** Full header mark (icon + EYDOST text). Used only in Header / admin brand preview. */
 export const DEFAULT_LOGO_URL = '/logo.png';
+
+/** Square transparent bubble — favicons, PWA, schema.org logo (not the header). */
+export const SITE_ICON_URL = '/icon-512.png';
 
 const LEGACY_LOGO_HINTS = ['postimg.cc', 'Whats-App-Image'];
 
