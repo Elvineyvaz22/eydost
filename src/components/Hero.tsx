@@ -26,21 +26,24 @@ export default function Hero() {
         </p>
 
         {/* Only two CTAs — always 2 columns on phone */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 max-w-md sm:max-w-4xl mx-auto">
           <Link
             to="/esim"
-            className="group relative bg-[#1E293B] hover:bg-[#2A3B52] border border-gray-700 hover:border-blue-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-8 transition-all duration-300 shadow-lg sm:shadow-2xl hover:shadow-blue-900/20 flex flex-col items-center sm:items-stretch text-center sm:text-left sm:min-h-[220px] overflow-hidden active:scale-[0.98]"
+            className="group relative bg-[#1E293B] hover:bg-[#2A3B52] border border-gray-700 hover:border-blue-500/50 rounded-2xl sm:rounded-3xl p-5 sm:p-8 min-h-[6.75rem] sm:min-h-[220px] transition-all duration-300 shadow-lg sm:shadow-2xl hover:shadow-blue-900/20 flex flex-col items-center justify-center sm:items-stretch sm:justify-between text-center sm:text-left overflow-hidden active:scale-[0.98]"
           >
             <div className="hidden sm:block absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
               <Wifi className="w-32 h-32 text-blue-400" />
             </div>
             <div className="relative z-10 flex flex-col items-center sm:items-start w-full">
-              <div className="w-11 h-11 sm:w-14 sm:h-14 bg-blue-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-6">
-                <Wifi className="w-5 h-5 sm:w-7 sm:h-7 text-blue-400" />
+              <div className="w-14 h-14 sm:w-14 sm:h-14 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-3 sm:mb-6">
+                <Wifi className="w-7 h-7 sm:w-7 sm:h-7 text-blue-400" />
               </div>
-              <h2 className="text-base sm:text-2xl font-bold text-white leading-tight">
+              <h2 className="text-lg sm:text-2xl font-bold text-white leading-tight">
                 {nav.esim}
               </h2>
+              <p className="sm:hidden text-[11px] text-blue-300/80 font-medium mt-1 leading-tight">
+                {hero.ctaEsim}
+              </p>
               <p className="hidden sm:block text-gray-400 font-medium mt-2">
                 {(t.esimPackages as Record<string, string>).subtitle}
               </p>
@@ -52,18 +55,21 @@ export default function Hero() {
 
           <Link
             to="/taxi"
-            className="group relative bg-[#1E293B] hover:bg-[#2A3B52] border border-gray-700 hover:border-green-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-8 transition-all duration-300 shadow-lg sm:shadow-2xl hover:shadow-green-900/20 flex flex-col items-center sm:items-stretch text-center sm:text-left sm:min-h-[220px] overflow-hidden active:scale-[0.98]"
+            className="group relative bg-[#1E293B] hover:bg-[#2A3B52] border border-gray-700 hover:border-green-500/50 rounded-2xl sm:rounded-3xl p-5 sm:p-8 min-h-[6.75rem] sm:min-h-[220px] transition-all duration-300 shadow-lg sm:shadow-2xl hover:shadow-green-900/20 flex flex-col items-center justify-center sm:items-stretch sm:justify-between text-center sm:text-left overflow-hidden active:scale-[0.98]"
           >
             <div className="hidden sm:block absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
               <Car className="w-32 h-32 text-green-400" />
             </div>
             <div className="relative z-10 flex flex-col items-center sm:items-start w-full">
-              <div className="w-11 h-11 sm:w-14 sm:h-14 bg-green-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-6">
-                <Car className="w-5 h-5 sm:w-7 sm:h-7 text-green-400" />
+              <div className="w-14 h-14 sm:w-14 sm:h-14 bg-green-500/20 rounded-2xl flex items-center justify-center mb-3 sm:mb-6">
+                <Car className="w-7 h-7 sm:w-7 sm:h-7 text-green-400" />
               </div>
-              <h2 className="text-base sm:text-2xl font-bold text-white leading-tight">
+              <h2 className="text-lg sm:text-2xl font-bold text-white leading-tight">
                 {nav.taxi}
               </h2>
+              <p className="sm:hidden text-[11px] text-green-300/80 font-medium mt-1 leading-tight line-clamp-2">
+                {hero.ctaTaxi}
+              </p>
               <p className="hidden sm:block text-gray-400 font-medium mt-2">
                 {(t.taxi as Record<string, string>).subtitle}
               </p>
