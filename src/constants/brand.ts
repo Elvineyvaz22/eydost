@@ -1,7 +1,8 @@
-/** Full Ey Dost mark — header, favicons, PWA, schema (same asset everywhere). */
+/** Full mark (icon + EYDOST) — header only. */
 export const DEFAULT_LOGO_URL = '/logo.png';
 
-export const SITE_ICON_URL = DEFAULT_LOGO_URL;
+/** Square app icon (transparent bubble) — favicons, schema, PWA. */
+export const SITE_ICON_URL = '/icon-512.png';
 
 const LEGACY_LOGO_HINTS = ['postimg.cc', 'Whats-App-Image'];
 
