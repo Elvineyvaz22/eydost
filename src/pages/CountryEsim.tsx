@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getPackageBySlug } from '../data/esimPackages';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { getWaId, createOrder, isCreateOrderSuccess } from '../utils/whatsapp';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
@@ -130,22 +130,30 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
       return;
     }
 
+    const openWhatsApp = () => {
+      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+    };
+
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
-        showToast(
-          language === 'az'
-            ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
-            : language === 'ru'
-              ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
-              : 'Your order has been sent to WhatsApp! Please return to your chat.',
-        );
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
+        if (isCreateOrderSuccess(result)) {
+          showToast(
+            language === 'az'
+              ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
+              : language === 'ru'
+                ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
+                : 'Your order has been sent to WhatsApp! Please return to your chat.',
+          );
+        } else {
+          openWhatsApp();
+        }
       } finally {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      openWhatsApp();
     }
   };
 
@@ -227,22 +235,30 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
       return;
     }
 
+    const openWhatsApp = () => {
+      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+    };
+
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
-        showToast(
-          language === 'az'
-            ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
-            : language === 'ru'
-              ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
-              : 'Your order has been sent to WhatsApp! Please return to your chat.',
-        );
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
+        if (isCreateOrderSuccess(result)) {
+          showToast(
+            language === 'az'
+              ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
+              : language === 'ru'
+                ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
+                : 'Your order has been sent to WhatsApp! Please return to your chat.',
+          );
+        } else {
+          openWhatsApp();
+        }
       } finally {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      openWhatsApp();
     }
   };
 

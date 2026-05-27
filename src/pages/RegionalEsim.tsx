@@ -7,7 +7,7 @@ import type { RegionalPackage } from '../data/esimPackages';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { getWaId, createOrder, isCreateOrderSuccess } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
@@ -137,29 +137,37 @@ export default function RegionalEsim() {
       return;
     }
 
+    const openWhatsApp = () => {
+      window.location.href = `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`;
+    };
+
     if (waId) {
       e.preventDefault();
       setIsOrdering(true);
       try {
-        await createOrder({
+        const result = await createOrder({
           wa_id: waId,
           type: 'esim',
           code: plan.code || pkg.name.toUpperCase(),
           id: plan.id || `${plan.gb}GB`,
         });
-        alert(
-        trMsg(
-          orderLang,
-          'Your order has been sent to WhatsApp! Please return to your chat.',
-          'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.',
-          'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.',
-        ),
-      );
+        if (isCreateOrderSuccess(result)) {
+          alert(
+            trMsg(
+              orderLang,
+              'Your order has been sent to WhatsApp! Please return to your chat.',
+              'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.',
+              'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.',
+            ),
+          );
+        } else {
+          openWhatsApp();
+        }
       } finally {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`;
+      openWhatsApp();
     }
   };
 
