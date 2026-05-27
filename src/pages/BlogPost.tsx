@@ -38,7 +38,7 @@ export default function BlogPost() {
     publisher: {
       '@type': 'Organization',
       name: 'Ey Dost',
-      logo: { '@type': 'ImageObject', url: 'https://eydost.com/og-image.png' },
+      logo: { '@type': 'ImageObject', url: 'https://eydost.com/logo.png' },
     },
     datePublished: post.publishedAt,
     dateModified: post.publishedAt,

@@ -3,6 +3,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import { supabase } from '../../lib/supabase';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Save } from 'lucide-react';
+import { DEFAULT_LOGO_URL, resolveLogoUrl } from '../../constants/brand';
 
 interface BrandData {
   logoUrl: string;
@@ -13,7 +14,7 @@ interface BrandData {
 export default function BrandEditor() {
   const { refreshContent } = useLanguage();
   const [data, setData] = useState<BrandData>({
-    logoUrl: '',
+    logoUrl: DEFAULT_LOGO_URL,
     primaryColor: '#0891b2',
     secondaryColor: '#0e7490',
   });
@@ -34,7 +35,11 @@ export default function BrandEditor() {
         .maybeSingle();
 
       if (content?.value) {
-        setData(content.value as BrandData);
+        const raw = content.value as BrandData;
+        setData({
+          ...raw,
+          logoUrl: resolveLogoUrl(raw.logoUrl),
+        });
       }
     } catch (error) {
       console.error('Error loading brand data:', error);
@@ -53,7 +58,7 @@ export default function BrandEditor() {
         .upsert(
           {
             key: 'brand',
-            value: data,
+            value: { ...data, logoUrl: resolveLogoUrl(data.logoUrl) },
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'key' }
@@ -110,7 +115,7 @@ export default function BrandEditor() {
               type="url"
               value={data.logoUrl}
               onChange={(e) => setData({ ...data, logoUrl: e.target.value })}
-              placeholder="https://example.com/logo.png"
+              placeholder="/logo.png"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none"
             />
             {data.logoUrl && (

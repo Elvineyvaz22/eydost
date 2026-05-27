@@ -9,6 +9,7 @@ import {
   getSessionGeoLanguage,
   saveManualLanguage,
 } from '../utils/languagePreference';
+import { DEFAULT_LOGO_URL, resolveLogoUrl } from '../constants/brand';
 
 type Language = AppLanguage;
 
@@ -102,7 +103,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         contentOverride.hero = siteContent.hero;
       }
       if (siteContent.brand) {
-        contentOverride.brand = siteContent.brand;
+        const b = siteContent.brand as { logoUrl?: string; primaryColor?: string; secondaryColor?: string };
+        contentOverride.brand = { ...b, logoUrl: resolveLogoUrl(b.logoUrl) };
+      } else {
+        contentOverride.brand = { logoUrl: DEFAULT_LOGO_URL };
       }
       if (siteContent.footer) {
         contentOverride.footer = siteContent.footer;
@@ -128,7 +132,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguage,
     t: loading ? translations[language] : getTranslations(),
     refreshContent: loadSiteContent,
-    brand: siteContent.brand as any,
+    brand: siteContent.brand
+      ? {
+          ...(siteContent.brand as object),
+          logoUrl: resolveLogoUrl((siteContent.brand as { logoUrl?: string }).logoUrl),
+        }
+      : { logoUrl: DEFAULT_LOGO_URL },
   };
 
   return (
