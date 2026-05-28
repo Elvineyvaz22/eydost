@@ -89,7 +89,14 @@ export default function BlogPost() {
               <img
                 src={imageUrl}
                 alt={content.title}
-                className="w-full aspect-[2/1] sm:aspect-[21/9] object-cover"
+                decoding="async"
+                className="w-full aspect-[2/1] sm:aspect-[21/9] object-cover bg-gray-100"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (img.dataset.fallback) return;
+                  img.dataset.fallback = '1';
+                  img.src = 'https://eydost.com/og-image.png';
+                }}
               />
             </figure>
 

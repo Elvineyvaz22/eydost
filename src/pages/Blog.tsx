@@ -61,7 +61,14 @@ export default function Blog() {
                     src={imageUrl}
                     alt={content.title}
                     loading="lazy"
-                    className="w-full h-44 sm:h-48 object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                    decoding="async"
+                    className="w-full h-44 sm:h-48 object-cover bg-gray-100 group-hover:scale-[1.02] transition-transform duration-300"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (img.dataset.fallback) return;
+                      img.dataset.fallback = '1';
+                      img.src = 'https://eydost.com/og-image.png';
+                    }}
                   />
                   <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center gap-2 mb-4">
