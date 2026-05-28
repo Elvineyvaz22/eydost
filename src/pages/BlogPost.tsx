@@ -28,6 +28,8 @@ export default function BlogPost() {
     travel: blogT.categoryTravel ?? 'Travel',
   };
   const catLabel = categoryLabels[post.category] ?? post.category;
+  const ctaWhatsApp =
+    post.category === 'taxi' ? 'https://wa.me/994992000444' : 'https://wa.me/994992010117';
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -56,41 +58,47 @@ export default function BlogPost() {
       />
       <Header />
 
-      <main className="pt-24 pb-16">
-        {/* Hero */}
-        <section className="bg-gradient-to-br from-gray-900 via-[#0A0F1C] to-gray-900 text-white py-14">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Link to="/blog" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm mb-6">
+      <main className="pt-24 pb-16 bg-gray-50">
+        {/* Hero — text only */}
+        <section className="bg-gradient-to-br from-gray-900 via-[#0A0F1C] to-gray-900 text-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+            <Link
+              to="/blog"
+              className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm mb-6"
+            >
               <ArrowLeft className="w-4 h-4" /> {backLabel}
             </Link>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/20 text-blue-300">{catLabel}</span>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/20 text-blue-300">
+                {catLabel}
+              </span>
               <span className="text-xs text-gray-400 flex items-center gap-1">
                 <Clock className="w-3 h-3" /> {post.readingMinutes} {readLabel}
               </span>
               <span className="text-xs text-gray-500">{post.publishedAt}</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight mb-4">{content.title}</h1>
-            <p className="text-gray-300 text-lg leading-relaxed">{content.description}</p>
+            <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight">{content.title}</h1>
+            <p className="mt-4 text-gray-300 text-lg leading-relaxed max-w-2xl">{content.description}</p>
           </div>
         </section>
 
-        {/* Featured image */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-          <img
-            src={imageUrl}
-            alt={content.title}
-            className="w-full rounded-2xl shadow-lg object-cover max-h-[420px]"
-          />
-        </div>
+        {/* Image + article — single card below hero (no overlap) */}
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <figure className="bg-gray-100">
+              <img
+                src={imageUrl}
+                alt={content.title}
+                className="w-full aspect-[2/1] sm:aspect-[21/9] object-cover"
+              />
+            </figure>
 
-        {/* Article body */}
-        <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <article className="px-6 sm:px-10 py-8 sm:py-10">
           <div className="space-y-10">
             {content.sections.map((section, i) => (
               <section key={i}>
                 {section.heading && (
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">{section.heading}</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 pt-2">{section.heading}</h2>
                 )}
                 <BlogArticleBody body={section.body} />
                 {section.list && (
@@ -115,7 +123,7 @@ export default function BlogPost() {
             <h3 className="text-2xl font-bold mb-2">{ctaTitle}</h3>
             <p className="text-gray-400 text-sm mb-6">{content.description}</p>
             <a
-              href="https://wa.me/994992000444"
+              href={ctaWhatsApp}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#20bd5a] transition-colors"
@@ -130,7 +138,9 @@ export default function BlogPost() {
               <ArrowLeft className="w-4 h-4" /> {backLabel}
             </Link>
           </div>
-        </article>
+            </article>
+          </div>
+        </div>
       </main>
 
       <Footer />
