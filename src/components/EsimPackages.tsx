@@ -6,10 +6,12 @@ import { usePackages } from '../contexts/PackagesContext';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import FlagImage from './FlagImage';
 import { trackEvent, EVENTS } from '../utils/analytics';
-import { fetchAllCountriesPackages, mergeStaticWithLive, type ESIMPackageRaw } from '../services/esimApi';
+import { fetchAllCountriesPackages, mergeStaticWithLive, getCountryNameLocalized, type ESIMPackageRaw } from '../services/esimApi';
 
 /* ─── Country row card (Airalo style) ─── */
 function CountryCard({ pkg }: { pkg: PackageData }) {
+  const { language } = useLanguage();
+  const countryName = getCountryNameLocalized(pkg.countryCode, language);
   return (
     <Link
       to={`/${pkg.slug}`}
@@ -19,7 +21,7 @@ function CountryCard({ pkg }: { pkg: PackageData }) {
         <FlagImage flag={pkg.flag} countryCode={pkg.countryCode} size="md" className="rounded-md" />
       </div>
       <span className="flex-1 text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition-colors truncate">
-        {pkg.country}
+        {countryName || pkg.country}
       </span>
       <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
         {pkg.plans[0]?.price || '—'}
@@ -59,7 +61,7 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
 type Tab = 'popular' | 'countries' | 'regional' | 'global';
 
 export default function EsimPackages() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const {
     packages: staticPackages,
     regionalPackages: staticRegional,
@@ -91,9 +93,15 @@ export default function EsimPackages() {
   }, [activePackages]);
   const allSorted = [...activePackages].sort((a, b) => a.country.localeCompare(b.country));
 
-  const searchResults = search.length > 0
-    ? activePackages.filter(p => p.country.toLowerCase().includes(search.toLowerCase())).slice(0, 4)
-    : [];
+  const searchResults =
+    search.length > 0
+      ? activePackages
+          .filter((p) => {
+            const local = (getCountryNameLocalized(p.countryCode, language) || p.country || '').toLowerCase();
+            return local.includes(search.toLowerCase());
+          })
+          .slice(0, 4)
+      : [];
   const isSearching = search.length > 0;
 
   // Qalan ölkələri sadəcə 4 dənə göstəririk

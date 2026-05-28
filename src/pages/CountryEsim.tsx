@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
 import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
-import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryName, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
+import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryNameLocalized, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
 
 const WA_LINK = 'https://wa.me/994992010117';
 
@@ -342,7 +342,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
 
 export default function CountryEsim() {
   const { slug } = useParams<{ slug: string }>();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const staticPkg = slug ? getPackageBySlug(slug) : undefined;
   const staticCountryCode = staticPkg?.countryCode;
@@ -362,7 +362,7 @@ export default function CountryEsim() {
       .catch(err => { setLiveError(err.message); setLiveLoading(false); setLivePkgs([]); });
   }, [activeCountryCode]);
 
-  const countryName = getCountryName(activeCountryCode || '');
+  const countryName = getCountryNameLocalized(activeCountryCode || '', language);
   const flag = countryCodeToFlag(activeCountryCode || '');
 
   const staticPlans: LivePlan[] = (staticPkg?.plans || []).map(p => ({

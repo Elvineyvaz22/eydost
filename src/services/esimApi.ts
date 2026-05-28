@@ -86,6 +86,47 @@ export function getCountryName(code: string): string {
   return COUNTRY_NAMES[code?.toUpperCase()] || code;
 }
 
+function localeForAppLanguage(lang: string): string {
+  switch ((lang || 'en').toLowerCase()) {
+    case 'az':
+      return 'az-Latn';
+    case 'ru':
+      return 'ru-RU';
+    case 'tr':
+      return 'tr-TR';
+    case 'ar':
+      return 'ar';
+    case 'es':
+      return 'es';
+    case 'zh':
+      return 'zh-Hans';
+    default:
+      return 'en';
+  }
+}
+
+/**
+ * Localized country/region name for the UI + SEO, based on BCP-47 locale.
+ * Falls back to our static English map when Intl.DisplayNames isn't available.
+ */
+export function getCountryNameLocalized(code: string, lang: string): string {
+  const cc = (code || '').toUpperCase();
+  if (!cc) return '';
+  try {
+    // Intl.DisplayNames may throw in older browsers; keep safe fallback.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const DisplayNames: any = (Intl as any).DisplayNames;
+    if (typeof DisplayNames === 'function') {
+      const dn = new DisplayNames([localeForAppLanguage(lang)], { type: 'region' });
+      const name = dn.of(cc);
+      if (name && typeof name === 'string') return name;
+    }
+  } catch {
+    /* ignore */
+  }
+  return getCountryName(cc) || cc;
+}
+
 // ── Supabase queries ──────────────────────────────────────────────────────────
 
 interface DbPackage {
