@@ -3,6 +3,7 @@ import { globalEsimDataPlanPost } from './blogPostGlobalEsimPlan';
 import type { BlogPost, BlogContent } from './blogTypes';
 import { BLOG_CATEGORY_IMAGES } from './blogTypes';
 import { BLOG_POST_IMAGES } from './blogPostImages';
+import { applyBlogLocales } from './blogLocales/merge';
 
 export type { BlogPost, BlogContent, BlogSection } from './blogTypes';
 export { BLOG_CATEGORY_IMAGES } from './blogTypes';
@@ -24,7 +25,7 @@ export function getBlogContent(post: BlogPost, language: AppLanguage): BlogConte
   return byLang[language] ?? post.en;
 }
 
-export const blogPosts: BlogPost[] = [
+const blogPostsRaw: BlogPost[] = [
   globalEsimDataPlanPost,
   {
     slug: 'what-is-esim-complete-guide',
@@ -884,6 +885,8 @@ export const blogPosts: BlogPost[] = [
     },
   },
 ];
+
+export const blogPosts: BlogPost[] = blogPostsRaw.map(applyBlogLocales);
 
 export function getPost(slug: string): BlogPost | undefined {
   return blogPosts.find((p) => p.slug === slug);
