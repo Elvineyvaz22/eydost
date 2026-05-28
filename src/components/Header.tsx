@@ -96,7 +96,7 @@ export default function Header() {
             )}
 
             {/* Language dropdown (flags) */}
-            <div className="relative">
+            <div className="relative" dir="ltr">
               <button
                 type="button"
                 onClick={() => setLangOpen((v) => !v)}

@@ -80,7 +80,7 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="relative mt-4">
+            <div className="relative mt-4" dir="ltr">
               <button
                 type="button"
                 onClick={() => setLangOpen((v) => !v)}

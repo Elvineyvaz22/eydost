@@ -147,11 +147,13 @@ export default function RegionalEsim() {
       e.preventDefault();
       setIsOrdering(true);
       try {
+        const details = buildOrderMessage(plan, pkg.name, orderLang);
         await createOrder({
           wa_id: waId,
           type: 'esim',
           code: plan.code || pkg.name.toUpperCase(),
           id: plan.id || `${plan.gb}GB`,
+          details,
         });
         alert(
         msg(orderLang, {

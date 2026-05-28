@@ -389,9 +389,24 @@ export default function Taxi() {
 
           tg.MainButton.onClick(handleTaxiClick);
         } else if (waId) {
+          const details =
+            language === 'az'
+              ? 'Salam! Taksi sifariş etmək istəyirəm.'
+              : language === 'ru'
+                ? 'Здравствуйте! Я хочу заказать такси.'
+                : language === 'tr'
+                  ? 'Merhaba! Taksi çağırmak istiyorum.'
+                  : language === 'ar'
+                    ? 'مرحباً! أريد حجز تاكسي.'
+                    : language === 'es'
+                      ? '¡Hola! Quiero pedir un taxi.'
+                      : language === 'zh'
+                        ? '你好！我想叫车。'
+                        : 'Hi! I want to book a taxi.';
           createOrder({
             wa_id: waId,
             type: 'taxi',
+            details,
           }).catch(console.error);
           window.location.replace(WA_LINK);
         } else {

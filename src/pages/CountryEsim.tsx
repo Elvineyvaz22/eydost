@@ -157,7 +157,8 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
+        // Include localized message so the backend/bot doesn't default to English.
+        await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
         showToast(
           language === 'az'
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
@@ -262,7 +263,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code });
+        await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
         showToast(
           language === 'az'
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
