@@ -4,18 +4,16 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getPost } from '../data/blogPosts';
+import { getPost, getBlogContent } from '../data/blogPosts';
 import { Clock, ArrowLeft, ArrowRight, Wifi } from 'lucide-react';
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const { language, t } = useLanguage();
-  const lang: 'en' | 'az' | 'ru' = language === 'az' ? 'az' : language === 'ru' ? 'ru' : 'en';
-
   const post = slug ? getPost(slug) : undefined;
   if (!post) return <Navigate to="/blog" replace />;
 
-  const content = lang === 'az' ? post.az : lang === 'ru' ? post.ru : post.en;
+  const content = getBlogContent(post, language);
   const blogT = (t as Record<string, Record<string, string>>).blog ?? {};
 
   const readLabel = blogT.readMin ?? 'min read';

@@ -1,26 +1,24 @@
-export interface BlogPost {
-  slug: string;
-  category: 'esim' | 'taxi' | 'travel';
-  publishedAt: string;
-  readingMinutes: number;
-  en: BlogContent;
-  az: BlogContent;
-  ru: BlogContent;
-}
+import type { AppLanguage } from '../utils/languagePreference';
+import { globalEsimDataPlanPost } from './blogPostGlobalEsimPlan';
+import type { BlogPost, BlogContent } from './blogTypes';
 
-export interface BlogContent {
-  title: string;
-  description: string;
-  sections: BlogSection[];
-}
+export type { BlogPost, BlogContent, BlogSection } from './blogTypes';
 
-export interface BlogSection {
-  heading?: string;
-  body: string;
-  list?: string[];
+export function getBlogContent(post: BlogPost, language: AppLanguage): BlogContent {
+  const byLang: Partial<Record<AppLanguage, BlogContent | undefined>> = {
+    en: post.en,
+    az: post.az,
+    ru: post.ru,
+    tr: post.tr,
+    ar: post.ar,
+    es: post.es,
+    zh: post.zh,
+  };
+  return byLang[language] ?? post.en;
 }
 
 export const blogPosts: BlogPost[] = [
+  globalEsimDataPlanPost,
   {
     slug: 'what-is-esim-complete-guide',
     category: 'esim',
@@ -881,5 +879,5 @@ export const blogPosts: BlogPost[] = [
 ];
 
 export function getPost(slug: string): BlogPost | undefined {
-  return blogPosts.find(p => p.slug === slug);
+  return blogPosts.find((p) => p.slug === slug);
 }

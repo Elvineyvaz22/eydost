@@ -49,6 +49,7 @@ async function main() {
 
   // Blog post slugs — keep in sync with src/data/blogPosts.ts
   const blogSlugs = [
+    'what-is-a-global-esim-data-plan',
     'what-is-esim-complete-guide',
     'how-to-install-esim-iphone',
     'how-to-install-esim-android',
