@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Mail, Phone, Shield } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
@@ -6,8 +7,21 @@ export default function Footer() {
   const { t, language, setLanguage } = useLanguage();
   const year = new Date().getFullYear();
 
-  const langs = ['EN', 'AZ', 'RU', 'TR', 'AR', 'ES', '中文'] as const;
-  const langMap = { EN: 'en', AZ: 'az', RU: 'ru', TR: 'tr', AR: 'ar', ES: 'es', 中文: 'zh' } as const;
+  const [langOpen, setLangOpen] = useState(false);
+  const langOptions = useMemo(
+    () =>
+      [
+        { code: 'en', label: 'EN', flag: '🇬🇧' },
+        { code: 'az', label: 'AZ', flag: '🇦🇿' },
+        { code: 'ru', label: 'RU', flag: '🇷🇺' },
+        { code: 'tr', label: 'TR', flag: '🇹🇷' },
+        { code: 'ar', label: 'AR', flag: '🇸🇦' },
+        { code: 'es', label: 'ES', flag: '🇪🇸' },
+        { code: 'zh', label: '中文', flag: '🇨🇳' },
+      ] as const,
+    []
+  );
+  const currentLang = langOptions.find((o) => o.code === language) ?? langOptions[0];
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -66,18 +80,56 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="flex gap-1 mt-4">
-              {langs.map(l => (
-                <button
-                  key={l}
-                  onClick={() => setLanguage(langMap[l])}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                    language === langMap[l] ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
-                  }`}
+            <div className="relative mt-4">
+              <button
+                type="button"
+                onClick={() => setLangOpen((v) => !v)}
+                onBlur={() => setTimeout(() => setLangOpen(false), 120)}
+                className="inline-flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+                aria-haspopup="menu"
+                aria-expanded={langOpen}
+              >
+                <span className="text-base leading-none" aria-hidden>
+                  {currentLang.flag}
+                </span>
+                <span className="leading-none">{currentLang.label}</span>
+                <span className="text-gray-300 leading-none" aria-hidden>
+                  ▾
+                </span>
+              </button>
+              {langOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-40 rounded-xl border border-gray-700 bg-gray-900 shadow-lg overflow-hidden z-50"
                 >
-                  {l}
-                </button>
-              ))}
+                  {langOptions.map((opt) => {
+                    const active = opt.code === language;
+                    return (
+                      <button
+                        key={opt.code}
+                        type="button"
+                        role="menuitem"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setLanguage(opt.code);
+                          setLangOpen(false);
+                        }}
+                        className={`w-full px-3 py-2.5 flex items-center gap-2 text-sm font-semibold transition-colors ${
+                          active
+                            ? 'bg-blue-900/30 text-blue-200'
+                            : 'text-gray-200 hover:bg-white/5'
+                        }`}
+                      >
+                        <span className="text-base leading-none" aria-hidden>
+                          {opt.flag}
+                        </span>
+                        <span className="flex-1 text-left">{opt.label}</span>
+                        {active ? <span className="text-blue-200">✓</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation, useSearchParams } from 'react-router-dom';
@@ -11,12 +11,26 @@ const WA_LINK = 'https://wa.me/994992000444';
 export default function Header() {
   const { language, setLanguage, t, brand } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const taxiHref = buildTaxiHref(searchParams);
 
-  const langs = ['EN', 'AZ', 'RU', 'TR', 'AR', 'ES', '中文'] as const;
-  const langMap = { EN: 'en', AZ: 'az', RU: 'ru', TR: 'tr', AR: 'ar', ES: 'es', 中文: 'zh' } as const;
+  const langOptions = useMemo(
+    () =>
+      [
+        { code: 'en', label: 'EN', flag: '🇬🇧' },
+        { code: 'az', label: 'AZ', flag: '🇦🇿' },
+        { code: 'ru', label: 'RU', flag: '🇷🇺' },
+        { code: 'tr', label: 'TR', flag: '🇹🇷' },
+        // Arabic is a language, not a country — we use a common MENA flag for UI.
+        { code: 'ar', label: 'AR', flag: '🇸🇦' },
+        { code: 'es', label: 'ES', flag: '🇪🇸' },
+        { code: 'zh', label: '中文', flag: '🇨🇳' },
+      ] as const,
+    []
+  );
+  const currentLang = langOptions.find((o) => o.code === language) ?? langOptions[0];
 
   const isTaxiPage = location.pathname === '/taxi';
   const isPackagesPage = location.pathname === '/esim';
@@ -81,20 +95,55 @@ export default function Header() {
               </a>
             )}
 
-            <div className="flex items-center bg-gray-100 rounded-lg overflow-hidden text-[10px] sm:text-sm">
-              {langs.map(l => (
-                <button
-                  key={l}
-                  onClick={() => setLanguage(langMap[l])}
-                  className={`px-2 py-1.5 sm:px-3 font-medium transition-colors ${
-                    language === langMap[l]
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
+            {/* Language dropdown (flags) */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setLangOpen((v) => !v)}
+                onBlur={() => setTimeout(() => setLangOpen(false), 120)}
+                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
+                aria-haspopup="menu"
+                aria-expanded={langOpen}
+              >
+                <span className="text-base leading-none" aria-hidden>
+                  {currentLang.flag}
+                </span>
+                <span className="leading-none">{currentLang.label}</span>
+                <span className="text-gray-400 leading-none" aria-hidden>
+                  ▾
+                </span>
+              </button>
+              {langOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-40 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden z-50"
                 >
-                  {l}
-                </button>
-              ))}
+                  {langOptions.map((opt) => {
+                    const active = opt.code === language;
+                    return (
+                      <button
+                        key={opt.code}
+                        type="button"
+                        role="menuitem"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setLanguage(opt.code);
+                          setLangOpen(false);
+                        }}
+                        className={`w-full px-3 py-2.5 flex items-center gap-2 text-sm font-semibold transition-colors ${
+                          active ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="text-base leading-none" aria-hidden>
+                          {opt.flag}
+                        </span>
+                        <span className="flex-1 text-left">{opt.label}</span>
+                        {active ? <span className="text-blue-600">✓</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {!isEsimPage && (
