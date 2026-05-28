@@ -705,3 +705,32 @@ export const translations = {
     },
   },
 };
+
+// ── Extra languages (initial rollout) ────────────────────────────────────────
+// We ship with full EN shape to avoid undefined accesses, then override a few
+// top-level strings per language. Remaining strings fall back to EN for now.
+const EN: any = translations.en;
+
+(translations as any).tr = {
+  ...EN,
+  nav: { ...EN.nav, taxi: 'Taksi' },
+  hero: { ...EN.hero, badge: 'WhatsApp Yapay Zekâ Asistanı', title: 'Global Seyahat Asistanınız', subtitle: '150+ ülkede anında eSIM ve dünya çapında taksi — hepsi WhatsApp üzerinden. Uygulama gerekmez.', ctaEsim: 'eSIM Al', ctaTaxi: 'Taksi Çağır' },
+};
+
+(translations as any).ar = {
+  ...EN,
+  nav: { ...EN.nav, taxi: 'تاكسي', howItWorks: 'كيف يعمل', contact: 'تواصل', blog: 'مدونة' },
+  hero: { ...EN.hero, badge: 'مساعد واتساب بالذكاء الاصطناعي', title: 'رفيق سفرك العالمي', subtitle: 'eSIM فوري في أكثر من 150 دولة وحجز تاكسي عالمي — عبر واتساب. بدون تطبيق.', ctaEsim: 'احصل على eSIM', ctaTaxi: 'احجز تاكسي' },
+};
+
+(translations as any).es = {
+  ...EN,
+  nav: { ...EN.nav, taxi: 'Taxi', howItWorks: 'Cómo funciona', contact: 'Contacto', blog: 'Blog' },
+  hero: { ...EN.hero, badge: 'Asistente de WhatsApp con IA', title: 'Tu compañero de viaje global', subtitle: 'eSIM instantánea en 150+ países y taxi global — todo por WhatsApp. Sin app.', ctaEsim: 'Obtener eSIM', ctaTaxi: 'Pedir taxi' },
+};
+
+(translations as any).zh = {
+  ...EN,
+  nav: { ...EN.nav, taxi: '打车', howItWorks: '如何使用', contact: '联系', blog: '博客' },
+  hero: { ...EN.hero, badge: 'WhatsApp AI 助手', title: '你的全球旅行助手', subtitle: '150+ 国家即时 eSIM 与全球打车服务——全在 WhatsApp。无需安装 App。', ctaEsim: '获取 eSIM', ctaTaxi: '叫车' },
+};

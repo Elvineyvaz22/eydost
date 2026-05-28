@@ -45,6 +45,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     loadSiteContent();
   }, []);
 
+  // Keep document lang/dir in sync (RTL for Arabic).
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.lang = language === 'zh' ? 'zh-Hans' : language;
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+  }, [language]);
+
   useEffect(() => {
     if (getManualLanguage()) return;
     let cancelled = false;

@@ -15,8 +15,8 @@ export default function Header() {
   const [searchParams] = useSearchParams();
   const taxiHref = buildTaxiHref(searchParams);
 
-  const langs = ['EN', 'AZ', 'RU'] as const;
-  const langMap = { EN: 'en', AZ: 'az', RU: 'ru' } as const;
+  const langs = ['EN', 'AZ', 'RU', 'TR', 'AR', 'ES', '中文'] as const;
+  const langMap = { EN: 'en', AZ: 'az', RU: 'ru', TR: 'tr', AR: 'ar', ES: 'es', 中文: 'zh' } as const;
 
   const isTaxiPage = location.pathname === '/taxi';
   const isPackagesPage = location.pathname === '/esim';

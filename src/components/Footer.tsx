@@ -6,8 +6,8 @@ export default function Footer() {
   const { t, language, setLanguage } = useLanguage();
   const year = new Date().getFullYear();
 
-  const langs = ['EN', 'AZ', 'RU'] as const;
-  const langMap = { EN: 'en', AZ: 'az', RU: 'ru' } as const;
+  const langs = ['EN', 'AZ', 'RU', 'TR', 'AR', 'ES', '中文'] as const;
+  const langMap = { EN: 'en', AZ: 'az', RU: 'ru', TR: 'tr', AR: 'ar', ES: 'es', 中文: 'zh' } as const;
 
   return (
     <footer className="bg-gray-900 text-white">
