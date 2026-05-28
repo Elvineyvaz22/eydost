@@ -22,5 +22,5 @@ export default function VercelSpeedInsights() {
     return null;
   }
 
-  return <SpeedInsights route={pathname} />;
+  return <SpeedInsights route={pathname} sampleRate={1} />;
 }
