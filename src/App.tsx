@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import CookieConsent from './components/CookieConsent';
 import VercelAnalytics from './components/VercelAnalytics';
+import VercelSpeedInsights from './components/VercelSpeedInsights';
 import CountryEsim from './pages/CountryEsim';
 import RegionalEsim from './pages/RegionalEsim';
 import Taxi from './pages/Taxi';
@@ -223,6 +224,7 @@ function App() {
           <LanguageProvider>
             <CookieConsent />
             <VercelAnalytics />
+            <VercelSpeedInsights />
             <TaxiLinkRedirect />
             <Suspense fallback={<PageLoader />}>
               <Routes>

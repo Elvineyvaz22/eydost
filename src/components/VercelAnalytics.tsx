@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
 import { getStoredConsent } from '../utils/cookieConsent';
 
-/** Vercel Web Analytics + Speed Insights — only after user accepts all cookies (EU). */
+/** Vercel Web Analytics — only after user accepts all cookies (EU). */
 export default function VercelAnalytics() {
   const [enabled, setEnabled] = useState(() => getStoredConsent() === 'all');
 
@@ -15,10 +14,5 @@ export default function VercelAnalytics() {
 
   if (!enabled) return null;
 
-  return (
-    <>
-      <Analytics mode="production" />
-      <SpeedInsights />
-    </>
-  );
+  return <Analytics mode="production" />;
 }
