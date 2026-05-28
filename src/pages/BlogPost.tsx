@@ -6,6 +6,7 @@ import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getPost, getBlogContent, getBlogImage } from '../data/blogPosts';
 import { Clock, ArrowLeft, ArrowRight, Wifi } from 'lucide-react';
+import BlogArticleBody from '../components/BlogArticleBody';
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -91,7 +92,7 @@ export default function BlogPost() {
                 {section.heading && (
                   <h2 className="text-xl font-bold text-gray-900 mb-3">{section.heading}</h2>
                 )}
-                <p className="text-gray-600 leading-relaxed">{section.body}</p>
+                <BlogArticleBody body={section.body} />
                 {section.list && (
                   <ul className="mt-3 space-y-2">
                     {section.list.map((item, j) => (
