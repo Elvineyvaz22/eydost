@@ -35,10 +35,10 @@ function filterPlansForAds(plans: RegionalPackage['plans']): RegionalPackage['pl
   return picked;
 }
 
-type OrderLang = 'en' | 'az' | 'ru';
+type OrderLang = 'en' | 'az' | 'ru' | 'tr' | 'ar' | 'es' | 'zh';
 
-function trMsg(lang: OrderLang, en: string, az: string, ru: string) {
-  return lang === 'az' ? az : lang === 'ru' ? ru : en;
+function msg(lang: OrderLang, map: { en: string; az: string; ru: string; tr: string; ar: string; es: string; zh: string }) {
+  return map[lang] ?? map.en;
 }
 
 function buildOrderMessage(
@@ -46,17 +46,20 @@ function buildOrderMessage(
   regionName: string,
   lang: OrderLang,
 ): string {
-  const greeting = trMsg(
-    lang,
-    'Hi! I want to buy an eSIM.',
-    'Salam! eSIM almaq istəyirəm.',
-    'Здравствуйте! Я хочу купить eSIM.',
-  );
-  const regionLabel = trMsg(lang, 'Region', 'Region', 'Регион');
-  const packageLabel = trMsg(lang, 'Package', 'Paket', 'Тариф');
-  const validityLabel = trMsg(lang, 'Validity', 'Müddət', 'Срок');
-  const priceLabel = trMsg(lang, 'Price', 'Qiymət', 'Цена');
-  const daysWord = trMsg(lang, 'days', 'gün', 'дн.');
+  const greeting = msg(lang, {
+    en: 'Hi! I want to buy an eSIM.',
+    az: 'Salam! eSIM almaq istəyirəm.',
+    ru: 'Здравствуйте! Я хочу купить eSIM.',
+    tr: 'Merhaba! eSIM satın almak istiyorum.',
+    ar: 'مرحباً! أريد شراء eSIM.',
+    es: '¡Hola! Quiero comprar una eSIM.',
+    zh: '你好！我想购买 eSIM。',
+  });
+  const regionLabel = msg(lang, { en: 'Region', az: 'Region', ru: 'Регион', tr: 'Bölge', ar: 'المنطقة', es: 'Región', zh: '区域' });
+  const packageLabel = msg(lang, { en: 'Package', az: 'Paket', ru: 'Тариф', tr: 'Paket', ar: 'الباقة', es: 'Paquete', zh: '套餐' });
+  const validityLabel = msg(lang, { en: 'Validity', az: 'Müddət', ru: 'Срок', tr: 'Süre', ar: 'المدة', es: 'Validez', zh: '有效期' });
+  const priceLabel = msg(lang, { en: 'Price', az: 'Qiymət', ru: 'Цена', tr: 'Fiyat', ar: 'السعر', es: 'Precio', zh: '价格' });
+  const daysWord = msg(lang, { en: 'days', az: 'gün', ru: 'дн.', tr: 'gün', ar: 'يوم', es: 'días', zh: '天' });
 
   const lines = [
     greeting,
@@ -78,7 +81,10 @@ function getRegionalBySlug(slug: string): RegionalPackage | undefined {
 export default function RegionalEsim() {
   const { slug } = useParams<{ slug: string }>();
   const { t, language } = useLanguage();
-  const orderLang: OrderLang = (language === 'az' || language === 'ru') ? language : 'en';
+  const orderLang: OrderLang =
+    language === 'az' || language === 'ru' || language === 'tr' || language === 'ar' || language === 'es' || language === 'zh'
+      ? (language as OrderLang)
+      : 'en';
   const { liveRegionalPackages } = usePackages();
 
   const livePkg = useMemo(() => {
@@ -148,12 +154,15 @@ export default function RegionalEsim() {
           id: plan.id || `${plan.gb}GB`,
         });
         alert(
-        trMsg(
-          orderLang,
-          'Your order has been sent to WhatsApp! Please return to your chat.',
-          'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.',
-          'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.',
-        ),
+        msg(orderLang, {
+          en: 'Your order has been sent to WhatsApp! Please return to your chat.',
+          az: 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.',
+          ru: 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.',
+          tr: 'Siparişiniz WhatsApp’a gönderildi! Lütfen sohbetinize geri dönün.',
+          ar: 'تم إرسال طلبك إلى واتساب! الرجاء العودة إلى الدردشة.',
+          es: '¡Tu pedido se envió a WhatsApp! Vuelve al chat.',
+          zh: '你的订单已发送到 WhatsApp！请返回聊天。',
+        }),
       );
       } finally {
         setIsOrdering(false);

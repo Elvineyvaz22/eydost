@@ -74,17 +74,41 @@ function buildOrderMessage(opts: {
   const { countryName, plan, language, unlimited } = opts;
   const az = language === 'az';
   const ru = language === 'ru';
+  const tr = language === 'tr';
+  const ar = language === 'ar';
+  const es = language === 'es';
+  const zh = language === 'zh';
 
   const greeting = az
     ? 'Salam! eSIM almaq istəyirəm.'
     : ru
       ? 'Здравствуйте! Я хочу купить eSIM.'
-      : 'Hi! I want to buy an eSIM.';
-  const countryLabel = az ? 'Ölkə' : ru ? 'Страна' : 'Country';
-  const planLabel = az ? 'Paket' : ru ? 'Тариф' : 'Plan';
-  const priceLabel = az ? 'Qiymət' : ru ? 'Цена' : 'Price';
-  const daysWord = az ? 'gün' : ru ? (plan.days === 1 ? 'день' : 'дн.') : (plan.days === 1 ? 'day' : 'days');
-  const unlimitedWord = az ? 'Limitsiz' : ru ? 'Безлимит' : 'Unlimited';
+      : tr
+        ? 'Merhaba! eSIM satın almak istiyorum.'
+        : ar
+          ? 'مرحباً! أريد شراء eSIM.'
+          : es
+            ? '¡Hola! Quiero comprar una eSIM.'
+            : zh
+              ? '你好！我想购买 eSIM。'
+              : 'Hi! I want to buy an eSIM.';
+  const countryLabel = az ? 'Ölkə' : ru ? 'Страна' : tr ? 'Ülke' : ar ? 'الدولة' : es ? 'País' : zh ? '国家' : 'Country';
+  const planLabel = az ? 'Paket' : ru ? 'Тариф' : tr ? 'Paket' : ar ? 'الباقة' : es ? 'Plan' : zh ? '套餐' : 'Plan';
+  const priceLabel = az ? 'Qiymət' : ru ? 'Цена' : tr ? 'Fiyat' : ar ? 'السعر' : es ? 'Precio' : zh ? '价格' : 'Price';
+  const daysWord = az
+    ? 'gün'
+    : ru
+      ? (plan.days === 1 ? 'день' : 'дн.')
+      : tr
+        ? 'gün'
+        : ar
+          ? 'يوم'
+          : es
+            ? (plan.days === 1 ? 'día' : 'días')
+            : zh
+              ? '天'
+              : (plan.days === 1 ? 'day' : 'days');
+  const unlimitedWord = az ? 'Limitsiz' : ru ? 'Безлимит' : tr ? 'Sınırsız' : ar ? 'غير محدود' : es ? 'Ilimitado' : zh ? '无限' : 'Unlimited';
 
   let planText: string;
   if (unlimited) {
@@ -139,7 +163,15 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
             : language === 'ru'
               ? 'Ваш заказ отправлен в WhatsApp! Пожалуйста, вернитесь в чат.'
-              : 'Your order has been sent to WhatsApp! Please return to your chat.',
+              : language === 'tr'
+                ? 'Siparişiniz WhatsApp’a gönderildi! Lütfen sohbetinize geri dönün.'
+                : language === 'ar'
+                  ? 'تم إرسال طلبك إلى واتساب! الرجاء العودة إلى الدردشة.'
+                  : language === 'es'
+                    ? '¡Tu pedido se envió a WhatsApp! Vuelve al chat.'
+                    : language === 'zh'
+                      ? '你的订单已发送到 WhatsApp！请返回聊天。'
+                      : 'Your order has been sent to WhatsApp! Please return to your chat.',
         );
       } finally {
         setIsOrdering(false);

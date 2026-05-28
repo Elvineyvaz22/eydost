@@ -34,14 +34,30 @@ export default function FloatingWhatsApp() {
               ? 'Salam! Kömək lazımdır.'
               : language === 'ru'
                 ? 'Здравствуйте! Мне нужна помощь.'
-                : 'Hi! I need help.',
+                : language === 'tr'
+                  ? 'Merhaba! Yardıma ihtiyacım var.'
+                  : language === 'ar'
+                    ? 'مرحباً! أحتاج مساعدة.'
+                    : language === 'es'
+                      ? '¡Hola! Necesito ayuda.'
+                      : language === 'zh'
+                        ? '你好！我需要帮助。'
+                        : 'Hi! I need help.',
         });
         alert(
           language === 'az'
             ? 'Mesajınız WhatsApp-a göndərildi! Çat bölməsinə qayıdın.'
             : language === 'ru'
               ? 'Ваше сообщение отправлено в WhatsApp! Вернитесь в чат.'
-              : 'Your message has been sent to WhatsApp! Please return to your chat.',
+              : language === 'tr'
+                ? 'Mesajınız WhatsApp’a gönderildi! Lütfen sohbetinize geri dönün.'
+                : language === 'ar'
+                  ? 'تم إرسال رسالتك إلى واتساب! الرجاء العودة إلى الدردشة.'
+                  : language === 'es'
+                    ? '¡Tu mensaje se envió a WhatsApp! Vuelve al chat.'
+                    : language === 'zh'
+                      ? '你的消息已发送到 WhatsApp！请返回聊天。'
+                      : 'Your message has been sent to WhatsApp! Please return to your chat.',
         );
       } finally {
         setIsOrdering(false);
@@ -54,7 +70,15 @@ export default function FloatingWhatsApp() {
       ? 'Salam! EyDost xidməti haqqında sualım var.'
       : language === 'ru'
         ? 'Здравствуйте! У меня есть вопрос об услуге EyDost.'
-        : 'Hi! I have a question about EyDost service.',
+        : language === 'tr'
+          ? 'Merhaba! Ey Dost hizmeti hakkında bir sorum var.'
+          : language === 'ar'
+            ? 'مرحباً! لدي سؤال عن خدمة Ey Dost.'
+            : language === 'es'
+              ? '¡Hola! Tengo una pregunta sobre el servicio de Ey Dost.'
+              : language === 'zh'
+                ? '你好！我想咨询 Ey Dost 的服务。'
+                : 'Hi! I have a question about EyDost service.',
   );
 
   return (
@@ -74,7 +98,15 @@ export default function FloatingWhatsApp() {
             ? 'Göndərilir...'
             : language === 'ru'
               ? 'Отправка...'
-              : 'Sending...'
+              : language === 'tr'
+                ? 'Gönderiliyor...'
+                : language === 'ar'
+                  ? 'جارٍ الإرسال...'
+                  : language === 'es'
+                    ? 'Enviando...'
+                    : language === 'zh'
+                      ? '发送中...'
+                      : 'Sending...'
           : t.whatsappButton}
       </span>
     </a>

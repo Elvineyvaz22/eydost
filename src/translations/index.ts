@@ -865,6 +865,7 @@ const EN: any = translations.en;
     subtitle: '50+ ülkede 850+ şehir — WhatsApp üzerinden doğrulanmış sürücülerle.',
     ctaButton: "WhatsApp'tan Taksi Çağır",
   },
+  whatsappButton: 'Bize yazın',
 };
 
 (translations as any).ar = {
@@ -1017,6 +1018,7 @@ const EN: any = translations.en;
     subtitle: 'في 50+ دولة و850+ مدينة — احجز عبر واتساب مع سائقين موثوقين.',
     ctaButton: 'احجز تاكسي عبر واتساب',
   },
+  whatsappButton: 'راسلنا',
 };
 
 (translations as any).es = {
@@ -1169,6 +1171,7 @@ const EN: any = translations.en;
     subtitle: 'En 50+ países y 850+ ciudades — reserva por WhatsApp con conductores verificados.',
     ctaButton: 'Pedir taxi por WhatsApp',
   },
+  whatsappButton: 'Escríbenos',
 };
 
 (translations as any).zh = {
@@ -1320,4 +1323,5 @@ const EN: any = translations.en;
     subtitle: '覆盖 50+ 国家、850+ 城市——WhatsApp 下单，匹配可靠司机。',
     ctaButton: 'WhatsApp 叫车',
   },
+  whatsappButton: '联系微信/WhatsApp',
 };
