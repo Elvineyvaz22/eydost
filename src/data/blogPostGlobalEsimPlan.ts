@@ -6,6 +6,8 @@ export const globalEsimDataPlanPost: BlogPost = {
   category: 'esim',
   publishedAt: '2026-05-28',
   readingMinutes: 5,
+  image:
+    'https://afocirmbqdxnkyescnev.supabase.co/storage/v1/object/public/featured-images/bed09705-6fd6-410a-b885-26654f3074a8/d268e6a0-8ffe-407b-af7a-6e481531856e-1779997517287.webp',
   en: {
     title: 'What Is a Global eSIM Data Plan?',
     description:

@@ -1,8 +1,14 @@
 import type { AppLanguage } from '../utils/languagePreference';
 import { globalEsimDataPlanPost } from './blogPostGlobalEsimPlan';
 import type { BlogPost, BlogContent } from './blogTypes';
+import { BLOG_CATEGORY_IMAGES } from './blogTypes';
 
 export type { BlogPost, BlogContent, BlogSection } from './blogTypes';
+export { BLOG_CATEGORY_IMAGES } from './blogTypes';
+
+export function getBlogImage(post: BlogPost): string {
+  return post.image ?? BLOG_CATEGORY_IMAGES[post.category];
+}
 
 export function getBlogContent(post: BlogPost, language: AppLanguage): BlogContent {
   const byLang: Partial<Record<AppLanguage, BlogContent | undefined>> = {

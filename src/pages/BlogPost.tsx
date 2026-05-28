@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getPost, getBlogContent } from '../data/blogPosts';
+import { getPost, getBlogContent, getBlogImage } from '../data/blogPosts';
 import { Clock, ArrowLeft, ArrowRight, Wifi } from 'lucide-react';
 
 export default function BlogPost() {
@@ -14,6 +14,7 @@ export default function BlogPost() {
   if (!post) return <Navigate to="/blog" replace />;
 
   const content = getBlogContent(post, language);
+  const imageUrl = getBlogImage(post);
   const blogT = (t as Record<string, Record<string, string>>).blog ?? {};
 
   const readLabel = blogT.readMin ?? 'min read';
@@ -41,7 +42,7 @@ export default function BlogPost() {
     datePublished: post.publishedAt,
     dateModified: post.publishedAt,
     mainEntityOfPage: `https://eydost.com/blog/${post.slug}`,
-    image: 'https://eydost.com/og-image.png',
+    image: imageUrl,
   };
 
   return (
@@ -72,6 +73,15 @@ export default function BlogPost() {
             <p className="text-gray-300 text-lg leading-relaxed">{content.description}</p>
           </div>
         </section>
+
+        {/* Featured image */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+          <img
+            src={imageUrl}
+            alt={content.title}
+            className="w-full rounded-2xl shadow-lg object-cover max-h-[420px]"
+          />
+        </div>
 
         {/* Article body */}
         <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

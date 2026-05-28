@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
-import { blogPosts, getBlogContent } from '../data/blogPosts';
+import { blogPosts, getBlogContent, getBlogImage } from '../data/blogPosts';
 import { Clock, ArrowRight } from 'lucide-react';
 
 const categoryColors: Record<string, string> = {
@@ -47,6 +47,7 @@ export default function Blog() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {sorted.map((post) => {
               const content = getBlogContent(post, language);
+              const imageUrl = getBlogImage(post);
               const catColor = categoryColors[post.category] || 'bg-gray-100 text-gray-600';
               const catLabel = categoryLabels[post.category] || post.category;
 
@@ -54,8 +55,15 @@ export default function Blog() {
                 <Link
                   key={post.slug}
                   to={`/blog/${post.slug}`}
-                  className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col"
+                  className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col"
                 >
+                  <img
+                    src={imageUrl}
+                    alt={content.title}
+                    loading="lazy"
+                    className="w-full h-44 sm:h-48 object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                  />
+                  <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center gap-2 mb-4">
                     <span className={`text-xs font-bold px-3 py-1 rounded-full ${catColor}`}>
                       {catLabel}
@@ -76,6 +84,7 @@ export default function Blog() {
 
                   <div className="flex items-center text-sm font-semibold text-blue-600 group-hover:translate-x-1 transition-transform">
                     {ui.readMore} <ArrowRight className="w-4 h-4 ml-1" />
+                  </div>
                   </div>
                 </Link>
               );
