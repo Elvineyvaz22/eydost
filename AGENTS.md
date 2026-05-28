@@ -35,3 +35,4 @@ Architecture: React/Vite frontend (root) + Python FastAPI backend (`/backend`).
 - Admin panel at `/admin` uses Supabase Auth (credentials in `ADMIN_README.md`)
 - Google Maps API key (`VITE_GOOGLE_MAPS_API_KEY`) is required for `/taxi` and `/taxi-order` (set in Vercel env + local `.env` for build)
 - **Vercel Web Analytics:** `@vercel/analytics` via `VercelAnalytics.tsx` (loads only when cookie consent is `all`). Enable in Vercel dashboard → Project → **Analytics** → Web Analytics → Enable, then deploy.
+- **Vercel Speed Insights:** `@vercel/speed-insights` in the same component (Web Vitals: LCP, INP, CLS). Enable in dashboard → **Speed Insights** → Enable, then deploy. Requires Pro plan or Speed Insights add-on (~$10/mo).
