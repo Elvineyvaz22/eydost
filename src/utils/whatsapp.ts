@@ -91,10 +91,24 @@ export const createOrder = async (data: {
       },
       body: JSON.stringify(data),
     });
-    return await response.json();
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!response.ok || !contentType.includes('application/json')) {
+      return {
+        ok: false,
+        status: 'error',
+        message: response.ok ? 'Unexpected order response' : `Order failed (${response.status})`,
+      };
+    }
+
+    const payload = await response.json();
+    if (payload?.status === 'error') {
+      return { ok: false, ...payload };
+    }
+
+    return { ok: true, ...payload };
   } catch (error) {
     console.error('Failed to create order:', error);
-    return { status: 'error', message: 'Connection failed' };
+    return { ok: false, status: 'error', message: 'Connection failed' };
   }
 };
 
