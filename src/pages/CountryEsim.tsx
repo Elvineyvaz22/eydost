@@ -71,7 +71,10 @@ function buildOrderMessage(opts: {
   language: string;
   unlimited?: boolean;
 }): string {
-  const { countryName, plan, language, unlimited } = opts;
+  // WhatsApp message rule: if UI is Arabic, still send EN message text.
+  const rawLang = opts.language;
+  const language = rawLang === 'ar' ? 'en' : rawLang;
+  const { countryName, plan, unlimited } = opts;
   const az = language === 'az';
   const ru = language === 'ru';
   const tr = language === 'tr';

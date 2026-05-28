@@ -81,10 +81,13 @@ function getRegionalBySlug(slug: string): RegionalPackage | undefined {
 export default function RegionalEsim() {
   const { slug } = useParams<{ slug: string }>();
   const { t, language } = useLanguage();
+  // WhatsApp message rule: if UI is Arabic, still send EN message text.
   const orderLang: OrderLang =
-    language === 'az' || language === 'ru' || language === 'tr' || language === 'ar' || language === 'es' || language === 'zh'
-      ? (language as OrderLang)
-      : 'en';
+    language === 'ar'
+      ? 'en'
+      : language === 'az' || language === 'ru' || language === 'tr' || language === 'es' || language === 'zh'
+        ? (language as OrderLang)
+        : 'en';
   const { liveRegionalPackages } = usePackages();
 
   const livePkg = useMemo(() => {

@@ -9,6 +9,8 @@ import { isEsimRoute } from '../utils/routes';
 export default function FloatingWhatsApp() {
   const { pathname } = useLocation();
   const { t, language } = useLanguage();
+  // WhatsApp message rule: if UI is Arabic, still send EN message text.
+  const waLang = language === 'ar' ? 'en' : language;
 
   if (isEsimRoute(pathname)) return null;
   const [isOrdering, setIsOrdering] = useState(false);
@@ -30,17 +32,15 @@ export default function FloatingWhatsApp() {
           wa_id: waId,
           type: 'taxi',
           details:
-            language === 'az'
+            waLang === 'az'
               ? 'Salam! Kömək lazımdır.'
-              : language === 'ru'
+              : waLang === 'ru'
                 ? 'Здравствуйте! Мне нужна помощь.'
-                : language === 'tr'
+                : waLang === 'tr'
                   ? 'Merhaba! Yardıma ihtiyacım var.'
-                  : language === 'ar'
-                    ? 'مرحباً! أحتاج مساعدة.'
-                    : language === 'es'
+                  : waLang === 'es'
                       ? '¡Hola! Necesito ayuda.'
-                      : language === 'zh'
+                      : waLang === 'zh'
                         ? '你好！我需要帮助。'
                         : 'Hi! I need help.',
         });
@@ -66,17 +66,15 @@ export default function FloatingWhatsApp() {
   };
 
   const genericMsg = encodeURIComponent(
-    language === 'az'
+    waLang === 'az'
       ? 'Salam! EyDost xidməti haqqında sualım var.'
-      : language === 'ru'
+      : waLang === 'ru'
         ? 'Здравствуйте! У меня есть вопрос об услуге EyDost.'
-        : language === 'tr'
+        : waLang === 'tr'
           ? 'Merhaba! Ey Dost hizmeti hakkında bir sorum var.'
-          : language === 'ar'
-            ? 'مرحباً! لدي سؤال عن خدمة Ey Dost.'
-            : language === 'es'
+          : waLang === 'es'
               ? '¡Hola! Tengo una pregunta sobre el servicio de Ey Dost.'
-              : language === 'zh'
+              : waLang === 'zh'
                 ? '你好！我想咨询 Ey Dost 的服务。'
                 : 'Hi! I have a question about EyDost service.',
   );
