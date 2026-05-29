@@ -4,10 +4,18 @@ export interface BlogContent {
   sections: BlogSection[];
 }
 
+export interface BlogSectionImage {
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
 export interface BlogSection {
   heading?: string;
   body: string;
   list?: string[];
+  /** Inline image after heading/body (Airalo-style 2–3 images per post). */
+  image?: BlogSectionImage;
 }
 
 export const BLOG_CATEGORY_IMAGES: Record<BlogPost['category'], string> = {

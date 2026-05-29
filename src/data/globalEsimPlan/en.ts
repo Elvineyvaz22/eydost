@@ -21,6 +21,11 @@ The "global" part means the plan is designed for travel across more than one cou
 Most global eSIM plans are data-only. That means they give you mobile internet, but not always a local phone number for traditional calls or SMS. For many travelers, that is fine. Messaging apps, email, maps, browser-based check-in, and internet calling cover most day-to-day needs. But if you need bank SMS, local voice calls, or two-factor authentication tied to a specific number, you should check that before buying.
 
 In practice, the setup is usually quick. You buy the plan, scan the QR code, install it on your phone, and enable it when you are ready to travel. Some plans activate immediately on installation. Others only start when the eSIM first connects in a supported destination. That difference affects timing, especially if you want to install the plan before your flight but save the valid days for arrival.`,
+      image: {
+        src: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&auto=format&fit=crop&q=80',
+        alt: 'Traveler scanning an eSIM QR code on a smartphone',
+        caption: 'Most global eSIM plans activate with a QR code in under a minute.',
+      },
     },
     {
       heading: 'Why travelers choose a global eSIM data plan',
@@ -51,6 +56,11 @@ A local SIM can be cheaper if you are staying in one country for a long time and
 Roaming through your home carrier is the easiest option on paper because you do nothing. But that simplicity often comes with higher pricing, daily pass fees, or uncertain speed limits. It can make sense for a very short trip, especially if your employer pays. For personal travel, many people switch once they compare costs.
 
 There is no single winner for every trip. If you are visiting three countries in ten days, a global eSIM is often the practical choice. If you are moving to one country for six months, a local plan may be better. If you are only crossing a border for one day, roaming might be enough.`,
+      image: {
+        src: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&auto=format&fit=crop&q=80',
+        alt: 'Traveler with luggage using a phone at an international airport',
+        caption: 'One data plan can cover multiple countries on a single itinerary.',
+      },
     },
     {
       heading: 'Who should use a global eSIM data plan?',

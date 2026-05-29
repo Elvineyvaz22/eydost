@@ -108,6 +108,28 @@ export default function BlogPost() {
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 pt-2">{section.heading}</h2>
                 )}
                 <BlogArticleBody body={section.body} />
+                {section.image && (
+                  <figure className="my-6">
+                    <img
+                      src={section.image.src}
+                      alt={section.image.alt}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full rounded-xl border border-gray-100 object-cover max-h-80 bg-gray-50"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        if (img.dataset.fallback) return;
+                        img.dataset.fallback = '1';
+                        img.src = 'https://eydost.com/og-image.png';
+                      }}
+                    />
+                    {section.image.caption && (
+                      <figcaption className="mt-2 text-sm text-gray-500 text-center">
+                        {section.image.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
                 {section.list && (
                   <ul className="mt-3 space-y-2">
                     {section.list.map((item, j) => (
