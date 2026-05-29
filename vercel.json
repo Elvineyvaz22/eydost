@@ -100,8 +100,8 @@
     { "src": "api/**/*.ts", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/en/blog", "dest": "/index.html" },
-    { "src": "/en/blog/(.*)", "dest": "/index.html" },
+    { "src": "/(en|az|ru|tr|ar|es|zh)/blog", "dest": "/index.html" },
+    { "src": "/(en|az|ru|tr|ar|es|zh)/blog/(.*)", "dest": "/index.html" },
     { "src": "/api/taxi-webhook", "dest": "/api/taxi-webhook.ts" },
     { "src": "/api/taxi-session", "dest": "/api/taxi-session.ts" },
     { "src": "/api/taxi-link-data", "dest": "/api/taxi-link-data.ts" },

@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
-import { parseLocaleFromPath } from '../utils/localePaths';
+import { blogHreflangAlternates, hrefLangCode, parseBlogLocalePath } from '../utils/localePaths';
 
 type SeoProps = {
   title?: string;
@@ -40,7 +40,10 @@ export default function Seo(props: SeoProps) {
   const siteUrl = getSiteUrl();
   const canonicalPath = props.canonicalPath ?? location.pathname;
   const canonicalUrl = toCanonicalUrl(siteUrl, canonicalPath);
-  const pathLocale = parseLocaleFromPath(canonicalPath);
+  const blogLocale = parseBlogLocalePath(canonicalPath);
+  const hreflangLinks = blogLocale
+    ? blogHreflangAlternates(siteUrl, blogLocale.slug)
+    : null;
 
   const jsonLdItems = props.jsonLd
     ? Array.isArray(props.jsonLd) ? props.jsonLd : [props.jsonLd]
@@ -48,23 +51,22 @@ export default function Seo(props: SeoProps) {
 
   return (
     <Helmet>
-      <html lang={language} />
+      <html lang={hrefLangCode(language)} />
       <title>{title}</title>
       <link rel="canonical" href={canonicalUrl} />
 
-      {pathLocale ? (
-        <>
-          <link rel="alternate" hrefLang={pathLocale} href={canonicalUrl} />
-          <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
-        </>
-      ) : (
-        <>
-          <link rel="alternate" hrefLang="en" href={canonicalUrl} />
-          <link rel="alternate" hrefLang="az" href={canonicalUrl} />
-          <link rel="alternate" hrefLang="ru" href={canonicalUrl} />
-          <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
-        </>
-      )}
+      {hreflangLinks
+        ? hreflangLinks.map((alt) => (
+            <link key={alt.hrefLang} rel="alternate" hrefLang={alt.hrefLang} href={alt.href} />
+          ))
+        : (
+          <>
+            <link rel="alternate" hrefLang="en" href={canonicalUrl} />
+            <link rel="alternate" hrefLang="az" href={canonicalUrl} />
+            <link rel="alternate" hrefLang="ru" href={canonicalUrl} />
+            <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+          </>
+        )}
 
       <meta name="description" content={description} />
 

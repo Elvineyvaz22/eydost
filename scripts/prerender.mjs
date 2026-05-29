@@ -86,8 +86,9 @@ const PRERENDER_TIMEOUT_MS = 20000;
 const RENDER_EVENT = 'render-event';
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY || 4);
 
-const SKIP_PREFIXES = ['/admin', '/api', '/en/blog', '/blog'];
+const SKIP_PREFIXES = ['/admin', '/api', '/blog'];
 const SKIP_EXACT = new Set(['/taxi-order']);
+const SKIP_LOCALE_BLOG = /^\/(en|az|ru|tr|ar|es|zh)\/blog/;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -138,6 +139,7 @@ async function readSitemapRoutes() {
 
 function shouldSkip(route) {
   if (SKIP_EXACT.has(route)) return true;
+  if (SKIP_LOCALE_BLOG.test(route)) return true;
   return SKIP_PREFIXES.some((p) => route === p || route.startsWith(`${p}/`));
 }
 

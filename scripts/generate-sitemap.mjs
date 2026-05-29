@@ -28,9 +28,9 @@ function getMeta(p) {
   if (p === '/') return { priority: '1.0', changefreq: 'weekly' };
   if (p === '/esim') return { priority: '0.9', changefreq: 'daily' };
   if (p === '/taxi') return { priority: '0.9', changefreq: 'weekly' };
-  if (p === '/en/blog') return { priority: '0.8', changefreq: 'weekly' };
+  if (/^\/(en|az|ru|tr|ar|es|zh)\/blog$/.test(p)) return { priority: '0.8', changefreq: 'weekly' };
   if (p === '/about') return { priority: '0.7', changefreq: 'monthly' };
-  if (p.startsWith('/en/blog/')) return { priority: '0.7', changefreq: 'monthly' };
+  if (/^\/(en|az|ru|tr|ar|es|zh)\/blog\//.test(p)) return { priority: '0.7', changefreq: 'monthly' };
   if (p === '/privacy' || p === '/terms' || p === '/refund') return { priority: '0.4', changefreq: 'yearly' };
   // eSIM country/regional slugs
   return { priority: '0.8', changefreq: 'weekly' };
@@ -63,10 +63,16 @@ async function main() {
     'airport-transfer-europe-guide',
   ];
 
+  const blogLocales = ['en', 'az', 'ru', 'tr', 'ar', 'es', 'zh'];
+  const localizedBlogPaths = blogLocales.flatMap((loc) => [
+    `/${loc}/blog`,
+    ...blogSlugs.map((s) => `/${loc}/blog/${s}`),
+  ]);
+
   const staticPaths = [
-    '/', '/esim', '/taxi', '/about', '/en/blog',
+    '/', '/esim', '/taxi', '/about',
     '/privacy', '/terms', '/refund',
-    ...blogSlugs.map(s => `/en/blog/${s}`),
+    ...localizedBlogPaths,
   ];
   const allPaths = new Set([...staticPaths, ...slugs.map(s => `/${s}`)]);
 

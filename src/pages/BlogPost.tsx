@@ -6,7 +6,7 @@ import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getPost, getBlogContent, getBlogImage } from '../data/blogPosts';
 import type { AppLanguage } from '../utils/languagePreference';
-import { blogPath } from '../utils/localePaths';
+import { blogPath, hrefLangCode } from '../utils/localePaths';
 import { Clock, ArrowLeft, ArrowRight, Wifi } from 'lucide-react';
 import BlogArticleBody from '../components/BlogArticleBody';
 
@@ -53,6 +53,7 @@ export default function BlogPost({ contentLocale }: { contentLocale: AppLanguage
     datePublished: post.publishedAt,
     dateModified: post.publishedAt,
     mainEntityOfPage: `https://eydost.com${blogPath(post.slug, contentLocale)}`,
+    inLanguage: hrefLangCode(contentLocale),
     image: jsonLdImages.length === 1 ? jsonLdImages[0] : jsonLdImages,
   };
 

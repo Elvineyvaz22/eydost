@@ -3,9 +3,11 @@ import { Mail, Phone, Shield } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { blogPath } from '../utils/localePaths';
+import { useLocaleSwitch } from '../hooks/useLocaleSwitch';
 
 export default function Footer() {
-  const { t, language, setLanguage } = useLanguage();
+  const { t, language } = useLanguage();
+  const switchLocale = useLocaleSwitch();
   const year = new Date().getFullYear();
 
   const [langOpen, setLangOpen] = useState(false);
@@ -40,7 +42,7 @@ export default function Footer() {
               <li><a href="/esim" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.features}</a></li>
               <li><a href="#faq" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.faq}</a></li>
               <li><a href="#contact" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.contact}</a></li>
-              <li><Link to={blogPath()} className="text-gray-400 hover:text-cyan-400 transition-colors">{(t.footer as Record<string, string>).blog}</Link></li>
+              <li><Link to={blogPath(undefined, language)} className="text-gray-400 hover:text-cyan-400 transition-colors">{(t.footer as Record<string, string>).blog}</Link></li>
             </ul>
           </div>
 
@@ -112,7 +114,7 @@ export default function Footer() {
                         role="menuitem"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => {
-                          setLanguage(opt.code);
+                          switchLocale(opt.code);
                           setLangOpen(false);
                         }}
                         className={`w-full px-3 py-2.5 flex items-center gap-2 text-sm font-semibold transition-colors ${

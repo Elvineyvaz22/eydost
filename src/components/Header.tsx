@@ -6,11 +6,13 @@ import { isEsimRoute } from '../utils/routes';
 import { buildTaxiHref } from '../utils/taxiLinkSession';
 import { resolveLogoUrl } from '../constants/brand';
 import { blogPath } from '../utils/localePaths';
+import { useLocaleSwitch } from '../hooks/useLocaleSwitch';
 
 const WA_LINK = 'https://wa.me/994992000444';
 
 export default function Header() {
-  const { language, setLanguage, t, brand } = useLanguage();
+  const { language, t, brand } = useLanguage();
+  const switchLocale = useLocaleSwitch();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const location = useLocation();
@@ -42,7 +44,7 @@ export default function Header() {
   const navLinks = [
     { href: '/esim', label: t.nav.esim },
     { href: taxiHref, label: t.nav.taxi },
-    { href: blogPath(), label: blogLabel },
+    { href: blogPath(undefined, language), label: blogLabel },
     { href: '/#how-esim', label: t.nav.howItWorks },
     { href: '/#faq', label: t.nav.faq },
     { href: '/#contact', label: t.nav.contact },
@@ -128,7 +130,7 @@ export default function Header() {
                         role="menuitem"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => {
-                          setLanguage(opt.code);
+                          switchLocale(opt.code);
                           setLangOpen(false);
                         }}
                         className={`w-full px-3 py-2.5 flex items-center gap-2 text-sm font-semibold transition-colors ${
