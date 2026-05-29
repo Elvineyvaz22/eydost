@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { MessageCircle, ArrowLeft, Wifi, Clock, Globe, ChevronRight, Zap, Shield, Infinity } from 'lucide-react';
+import { MessageCircle, ArrowLeft, Wifi, Clock, Globe, ChevronRight, Zap, Shield, Infinity as InfinityIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -203,7 +203,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wide">{t.countryEsim.data}</p>
-            <p className="text-sm font-bold text-gray-900">{formatGB(plan.gb)} GB</p>
+            <p className="text-sm font-bold text-gray-900">{formatGB(plan.gb)}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -299,7 +299,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
       <div className="space-y-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-            <Infinity className="w-4 h-4 text-purple-600" />
+            <InfinityIcon className="w-4 h-4 text-purple-600" />
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wide">{t.countryEsim.data}</p>
@@ -366,7 +366,8 @@ export default function CountryEsim() {
   const flag = countryCodeToFlag(activeCountryCode || '');
 
   const staticPlans: LivePlan[] = (staticPkg?.plans || []).map(p => ({
-    gb: p.gb >= 1 ? p.gb * 1024 * 1024 * 1024 : p.gb * 1024 * 1024,
+    // `p.gb` is expressed in GB (can be fractional like 0.1 GB). Convert to bytes.
+    gb: p.gb * 1024 * 1024 * 1024,
     days: p.days,
     price: typeof p.price === 'string' ? p.price : `$${(p.price as number).toFixed(2)}`,
     code: p.code || '',
@@ -480,6 +481,16 @@ export default function CountryEsim() {
             </p>
           )}
 
+          {liveError && (
+            <p className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-6">
+              {language === 'az'
+                ? 'Canlı paketləri yükləmək mümkün olmadı. Aşağıda mövcud qiymətlər göstərilir.'
+                : language === 'ru'
+                  ? 'Не удалось загрузить актуальные пакеты. Ниже показаны доступные цены.'
+                  : 'Could not load live packages. Showing available prices below.'}
+            </p>
+          )}
+
           {displayLimitedPlans.length > 0 && (
             <div className="mb-10">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
@@ -497,11 +508,11 @@ export default function CountryEsim() {
           {unlimitedPlans.length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Infinity className="w-5 h-5 text-purple-600" />
+                <InfinityIcon className="w-5 h-5 text-purple-600" />
                 Unlimited Plans ({unlimitedPlans.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {unlimitedPlans.map((plan, i) => (
+                {unlimitedPlans.map((plan) => (
                   <UnlimitedPlanCard key={plan.code} plan={plan} countryName={countryName} />
                 ))}
               </div>

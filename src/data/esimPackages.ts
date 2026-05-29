@@ -1736,7 +1736,6 @@ export const packages: PackageData[] = [
 
   // ===== MIDDLE EAST =====
   { flag: '\u{1F1EA}\u{1F1EC}', countryCode: 'eg', country: 'Egypt', slug: 'egypt-esim', region: 'middleeast', featured: true, plans: [
-      { gb: 0.1, days: 7, price: m(0.53), code: 'EG', id: 'PXG3YL37H' },
       { gb: 20, days: 30, price: m(36.75), code: 'EG', id: 'PIXA8CXUL' },
       { gb: 2, days: 1, price: m(4.9), code: 'EG', id: 'PZ23T9OT0' },
       { gb: 3, days: 30, price: m(8.23), code: 'EG', id: 'PNLOUKFKT' },

@@ -39,7 +39,7 @@ export function formatGB(bytes: number): string {
     const mb = bytes / (1024 * 1024);
     return Math.round(mb) + ' MB';
   }
-  return gb.toFixed(1);
+  return gb.toFixed(1) + ' GB';
 }
 
 // ── Country helpers ───────────────────────────────────────────────────────────

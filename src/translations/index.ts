@@ -232,6 +232,7 @@ export const translations = {
       coveredCountries: 'Covered Countries',
       popularDestinations: 'Popular Destinations',
       viewAll: 'View all countries',
+      fallbackNote: 'Prices may vary. Confirm the final package and price on WhatsApp.',
     },
   },
   az: {
@@ -467,6 +468,7 @@ export const translations = {
       coverage: 'Əhatə',
       popularDestinations: 'Populyar istiqamətlər',
       viewAll: 'Bütün ölkələrə bax',
+      fallbackNote: 'Qiymətlər dəyişə bilər. Son paket və qiyməti WhatsApp-da təsdiqləyin.',
     },
   },
   ru: {
