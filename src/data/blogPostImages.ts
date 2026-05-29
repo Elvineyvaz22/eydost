@@ -15,4 +15,5 @@ export const BLOG_POST_IMAGES: Record<string, string> = {
   'how-to-use-esim-france': U('1502602898657-3e91760cbb34'),
   'book-taxi-europe-whatsapp': U('1682018272449-0a4216a8be57'),
   'airport-transfer-europe-guide': U('1436491865332-7a61a109cc05'),
+  'best-esim-turkey-2026': U('1502602898657-3e91760cbb34'),
 };

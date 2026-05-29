@@ -1,6 +1,16 @@
 {
   "redirects": [
     {
+      "source": "/blog",
+      "destination": "/en/blog",
+      "permanent": true
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/en/blog/:slug",
+      "permanent": true
+    },
+    {
       "source": "/(.*)",
       "has": [{ "type": "host", "value": "eydost.az" }],
       "destination": "https://eydost.com/$1",

@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { parseLocaleFromPath } from '../utils/localePaths';
 
 type SeoProps = {
   title?: string;
@@ -39,6 +40,7 @@ export default function Seo(props: SeoProps) {
   const siteUrl = getSiteUrl();
   const canonicalPath = props.canonicalPath ?? location.pathname;
   const canonicalUrl = toCanonicalUrl(siteUrl, canonicalPath);
+  const pathLocale = parseLocaleFromPath(canonicalPath);
 
   const jsonLdItems = props.jsonLd
     ? Array.isArray(props.jsonLd) ? props.jsonLd : [props.jsonLd]
@@ -50,11 +52,19 @@ export default function Seo(props: SeoProps) {
       <title>{title}</title>
       <link rel="canonical" href={canonicalUrl} />
 
-      {/* hreflang — same URL serves EN/AZ/RU */}
-      <link rel="alternate" hrefLang="en" href={canonicalUrl} />
-      <link rel="alternate" hrefLang="az" href={canonicalUrl} />
-      <link rel="alternate" hrefLang="ru" href={canonicalUrl} />
-      <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+      {pathLocale ? (
+        <>
+          <link rel="alternate" hrefLang={pathLocale} href={canonicalUrl} />
+          <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+        </>
+      ) : (
+        <>
+          <link rel="alternate" hrefLang="en" href={canonicalUrl} />
+          <link rel="alternate" hrefLang="az" href={canonicalUrl} />
+          <link rel="alternate" hrefLang="ru" href={canonicalUrl} />
+          <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+        </>
+      )}
 
       <meta name="description" content={description} />
 

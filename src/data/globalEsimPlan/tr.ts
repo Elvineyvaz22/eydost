@@ -1,4 +1,7 @@
 import type { BlogContent } from '../blogTypes';
+import { globalEsimSectionImages } from './sectionImages';
+
+const img = globalEsimSectionImages('tr');
 
 export const globalEsimPlanTr: BlogContent = {
   title: 'Küresel eSIM Veri Planı Nedir?',
@@ -21,6 +24,7 @@ Kulağa basit gelir; ancak kullanışlı bir seyahat aracı ile sinir bozucu bir
 Çoğu küresel eSIM planı yalnızca veridir. Yani mobil internet verir; ancak her zaman geleneksel aramalar veya SMS için yerel bir telefon numarası vermez. Birçok gezgin için bu yeterlidir. Mesajlaşma uygulamaları, e-posta, haritalar, tarayıcıdan check-in ve internet üzerinden arama günlük ihtiyaçların çoğunu karşılar. Ancak banka SMS'i, yerel sesli aramalar veya belirli bir numaraya bağlı iki faktörlü doğrulama gerekiyorsa, satın almadan önce bunu kontrol etmelisiniz.
 
 Pratikte kurulum genelde hızlıdır. Planı satın alır, QR kodu tarar, telefona kurar ve seyahate hazır olduğunuzda etkinleştirirsiniz. Bazı planlar kurulumda hemen aktive olur. Diğerleri yalnızca eSIM desteklenen bir destinasyonda ilk kez bağlandığında başlar. Bu fark, özellikle uçuştan önce planı kurmak ama geçerli günleri varış için saklamak istiyorsanız zamanlamayı etkiler.`,
+      image: img.qr,
     },
     {
       heading: 'Yolcular neden küresel eSIM veri planını tercih ediyor?',
@@ -51,6 +55,7 @@ Yerel SIM, tek bir ülkede uzun süre kalıyorsanız ve çok veri kullanıyorsan
 Ev operatörünüzle dolaşım kağıt üzerinde en kolay seçenektir çünkü hiçbir şey yapmazsınız. Ancak bu basitlik genelde daha yüksek fiyat, günlük geçiş ücretleri veya belirsiz hız limitleriyle gelir. Çok kısa bir gezi için, özellikle işveren ödüyorsa mantıklı olabilir. Kişisel seyahatte birçok kişi maliyetleri karşılaştırınca geçiş yapar.
 
 Her seyahat için tek bir kazanan yoktur. On günde üç ülkeye gidiyorsanız küresel eSIM genelde pratik seçimdir. Altı ay tek ülkede yaşıyorsanız yerel plan daha iyi olabilir. Sadece bir günlük sınır geçişi yapıyorsanız dolaşım yeterli olabilir.`,
+      image: img.airport,
     },
     {
       heading: 'Küresel eSIM veri planını kimler kullanmalı?',
@@ -69,6 +74,7 @@ Ardından destinasyon listesini dikkatle kontrol edin. "Küresel"in rotanızdaki
 Kullanımınızı da dürüstçe değerlendirin. Çoğunlukla harita, mesajlaşma ve ara sıra gezinme kullanıyorsanız daha küçük bir paket yeterli olabilir. Yayın izliyor, laptop tether ediyor veya günlük video görüşmesi yapıyorsanız minimumdan fazla alın. Transit sırasında verinin bitmesi nadiren küçük tasarrufa değer.
 
 Destek de önemlidir. Seyahat sorunları genelde zamanın en kritik olduğu anda çıkar — inişten sonra, aktarmada veya ülke değiştirirken. Hızlı insan desteği, biraz daha ucuz plandan çoğu zaman daha değerlidir. [Ey Dost](https://eydost.com/esim) gibi hizmetler, insanların WhatsApp üzerinden anında ön ödemeli eSIM verisi satın almasına yardımcı olarak o kritik seyahat anına odaklanır; başka uygulama veya uzun kurulum süreci olmadan cevap istediğinizde kullanışlıdır.`,
+      image: img.support,
     },
     {
       heading: 'Yaygın birkaç yanlış anlama',

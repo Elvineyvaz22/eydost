@@ -1,5 +1,6 @@
 import type { AppLanguage } from '../utils/languagePreference';
 import { globalEsimDataPlanPost } from './blogPostGlobalEsimPlan';
+import { bestEsimTurkeyPost } from './blogPostBestEsimTurkey';
 import type { BlogPost, BlogContent } from './blogTypes';
 import { BLOG_CATEGORY_IMAGES } from './blogTypes';
 import { BLOG_POST_IMAGES } from './blogPostImages';
@@ -27,6 +28,7 @@ export function getBlogContent(post: BlogPost, language: AppLanguage): BlogConte
 
 const blogPostsRaw: BlogPost[] = [
   globalEsimDataPlanPost,
+  bestEsimTurkeyPost,
   {
     slug: 'what-is-esim-complete-guide',
     category: 'esim',

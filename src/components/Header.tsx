@@ -5,6 +5,7 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { isEsimRoute } from '../utils/routes';
 import { buildTaxiHref } from '../utils/taxiLinkSession';
 import { resolveLogoUrl } from '../constants/brand';
+import { blogPath } from '../utils/localePaths';
 
 const WA_LINK = 'https://wa.me/994992000444';
 
@@ -41,7 +42,7 @@ export default function Header() {
   const navLinks = [
     { href: '/esim', label: t.nav.esim },
     { href: taxiHref, label: t.nav.taxi },
-    { href: '/blog', label: blogLabel },
+    { href: blogPath(), label: blogLabel },
     { href: '/#how-esim', label: t.nav.howItWorks },
     { href: '/#faq', label: t.nav.faq },
     { href: '/#contact', label: t.nav.contact },

@@ -1,4 +1,7 @@
 import type { BlogContent } from '../blogTypes';
+import { globalEsimSectionImages } from './sectionImages';
+
+const img = globalEsimSectionImages('zh');
 
 export const globalEsimPlanZh: BlogContent = {
   title: '什么是全球 eSIM 流量套餐？',
@@ -21,6 +24,7 @@ export const globalEsimPlanZh: BlogContent = {
 多数全球 eSIM 套餐仅含数据，即提供移动上网，但不一定包含用于传统通话或短信的当地号码。对许多旅客已足够：通讯应用、邮件、地图、浏览器值机、网络通话可满足日常需求。若需要银行短信、本地语音通话或绑定特定号码的双重验证，购买前应确认。
 
 实际设置通常很快：购买套餐、扫描二维码、安装到手机，出行时再启用。有的套餐安装即激活，有的仅在 eSIM 首次在支持目的地联网时才开始计费。若想在起飞前安装但把有效天数留给落地，这一区别会影响时间安排。`,
+      image: img.qr,
     },
     {
       heading: '旅客为何选择全球 eSIM 流量套餐',
@@ -51,6 +55,7 @@ export const globalEsimPlanZh: BlogContent = {
 用家乡运营商漫游在纸面上最省事，但常伴随更高价格、日租或不确定的速度上限。极短途、尤其公司报销时可能合理；个人旅行很多人在比价后会改选 eSIM。
 
 没有一种方案适合所有行程：十天三国，全球 eSIM 往往最实用；定居一国半年，本地套餐可能更好；仅过境一天，漫游也许够用。`,
+      image: img.airport,
     },
     {
       heading: '谁适合使用全球 eSIM 流量套餐？',
@@ -69,6 +74,7 @@ export const globalEsimPlanZh: BlogContent = {
 诚实评估用量：若主要用地图、消息和偶尔浏览，较小套餐可能够用；若流媒体、笔记本共享或每日视频通话，应买高于最低档的流量。在途中用尽流量很少值得为省一点钱冒险。
 
 支持也很重要——问题常出现在落地、转机或换国时。快速人工协助往往比略便宜的套餐更值得。像 [Ey Dost](https://eydost.com/esim) 这类服务聚焦旅行当下，通过 WhatsApp 帮助即时购买预付费 eSIM，无需另装 App 或冗长配置即可获得解答。`,
+      image: img.support,
     },
     {
       heading: '几个常见误解',

@@ -26,8 +26,12 @@ import Privacy from './pages/Privacy';
 import About from './pages/About';
 import Terms from './pages/Terms';
 import Refund from './pages/Refund';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
+import {
+  LegacyBlogIndexRedirect,
+  LegacyBlogPostRedirect,
+  LocalizedBlogIndexRoute,
+  LocalizedBlogPostRoute,
+} from './routes/blogRoutes';
 import Seo from './components/Seo';
 import TaxiLinkRedirect from './components/TaxiLinkRedirect';
 import ProtectedRoute from './components/admin/ProtectedRoute';
@@ -41,8 +45,11 @@ const REGIONAL_SLUGS = new Set([
   'global-esim',
 ]);
 
+const LOCALE_SLUGS = new Set(['en', 'az', 'ru', 'tr', 'ar', 'es', 'zh']);
+
 function EsimRouter() {
   const { slug } = useParams<{ slug: string }>();
+  if (slug && LOCALE_SLUGS.has(slug)) return <Navigate to="/" replace />;
   if (slug && REGIONAL_SLUGS.has(slug)) return <RegionalEsim />;
   return <CountryEsim />;
 }
@@ -232,8 +239,10 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/refund" element={<Refund />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/blog" element={<LegacyBlogIndexRedirect />} />
+                <Route path="/blog/:slug" element={<LegacyBlogPostRedirect />} />
+                <Route path="/:lang/blog" element={<LocalizedBlogIndexRoute />} />
+                <Route path="/:lang/blog/:slug" element={<LocalizedBlogPostRoute />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/esim" element={<EsimRootRouter />} />
                 <Route path="/esim-demo" element={<EsimAccountDemo />} />

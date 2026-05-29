@@ -1,4 +1,7 @@
 import type { BlogContent } from '../blogTypes';
+import { globalEsimSectionImages } from './sectionImages';
+
+const img = globalEsimSectionImages('es');
 
 export const globalEsimPlanEs: BlogContent = {
   title: '¿Qué es un plan de datos eSIM global?',
@@ -21,6 +24,7 @@ La parte «global» significa que el plan está pensado para viajar por más de 
 La mayoría de los planes eSIM globales son solo de datos. Eso significa que dan internet móvil, pero no siempre un número local para llamadas tradicionales o SMS. Para muchos viajeros basta. Apps de mensajería, correo, mapas, check-in en el navegador y llamadas por internet cubren la mayoría de las necesidades diarias. Pero si necesitas SMS bancarios, llamadas de voz locales o autenticación en dos pasos ligada a un número concreto, compruébalo antes de comprar.
 
 En la práctica, la configuración suele ser rápida. Compras el plan, escaneas el QR, lo instalas en el teléfono y lo activas cuando estés listo para viajar. Algunos planes se activan al instante al instalarlos. Otros solo empiezan cuando el eSIM se conecta por primera vez en un destino admitido. Esa diferencia afecta al momento, sobre todo si quieres instalar el plan antes del vuelo pero reservar los días válidos para la llegada.`,
+      image: img.qr,
     },
     {
       heading: 'Por qué los viajeros eligen un plan de datos eSIM global',
@@ -51,6 +55,7 @@ Una SIM local puede ser más barata si te quedas mucho tiempo en un solo país y
 El roaming con tu operador de origen es la opción más fácil en papel porque no haces nada. Pero esa simplicidad suele venir con precios más altos, tarifas diarias o límites de velocidad inciertos. Puede tener sentido en un viaje muy corto, sobre todo si lo paga tu empresa. En viajes personales, mucha gente cambia al comparar costes.
 
 No hay un ganador único para cada viaje. Si visitas tres países en diez días, un eSIM global suele ser la opción práctica. Si te mudas a un país seis meses, un plan local puede ser mejor. Si solo cruzas una frontera un día, el roaming puede bastar.`,
+      image: img.airport,
     },
     {
       heading: '¿Quién debería usar un plan de datos eSIM global?',
@@ -69,6 +74,7 @@ Luego revisa la lista de destinos con cuidado. No asumas que «global» signific
 Piensa también con honestidad en tu uso. Si usas sobre todo mapas, mensajería y navegación ocasional, un paquete más pequeño puede bastar. Si haces streaming, compartes conexión con el portátil o tienes videollamadas diarias, compra más que el mínimo. Quedarte sin datos en tránsito rara vez compensa el pequeño ahorro.
 
 El soporte también importa. Los problemas de viaje suelen surgir cuando más importa el tiempo — tras aterrizar, en una conexión o al cambiar de país. Ayuda humana rápida suele valer más que un plan un poco más barato. Servicios como [Ey Dost](https://eydost.com/esim) se centran en ese momento inmediato del viaje ayudando a comprar datos eSIM prepago al instante por WhatsApp, útil cuando quieres respuestas sin otra app ni un proceso largo de configuración.`,
+      image: img.support,
     },
     {
       heading: 'Algunos malentendidos frecuentes',

@@ -1,4 +1,7 @@
 import type { BlogContent } from '../blogTypes';
+import { globalEsimSectionImages } from './sectionImages';
+
+const img = globalEsimSectionImages('az');
 
 export const globalEsimPlanAz: BlogContent = {
   title: 'Qlobal eSIM data planı nədir?',
@@ -21,6 +24,7 @@ Bu sadə səslənsə də, faydalı səyahət alətini çətin alışdan ayıran 
 Əksər qlobal eSIM planları yalnız data üçündür. Bu o deməkdir ki, mobil internet verir, lakin həmişə ənənəvi zənglər və ya SMS üçün yerli telefon nömrəsi olmur. Bir çox səyahətçi üçün bu kifayətdir. Mesajlaşma tətbiqləri, e-poçt, xəritələr, brauzerdə qeydiyyat və internet zəngləri gündəlik ehtiyacların əksəriyyətini ödəyir. Amma bank SMS-i, yerli səsli zənglər və ya müəyyən nömrəyə bağlı iki faktorlu autentifikasiya lazımdırsa, alışdan əvvəl bunu yoxlamalısınız.
 
 Praktikada quraşdırma adətən sürətlidir. Planı alırsınız, QR kodu skan edirsiniz, telefona quraşdırırsınız və səyahətə hazır olduqda aktivləşdirirsiniz. Bəzi planlar quraşdırıldığı anda dərhal aktiv olur. Digərləri yalnız eSIM dəstəklənən təyinatda ilk dəfə qoşulanda başlayır. Bu fərq vaxtı təsir edir, xüsusən planı uçuşdan əvvəl quraşdırmaq, lakin etibarlı günləri varışa saxlamaq istəyirsinizsə.`,
+      image: img.qr,
     },
     {
       heading: 'Səyahətçilər niyə qlobal eSIM data planı seçir',
@@ -51,6 +55,7 @@ Yerli SIM bir ölkədə uzun müddət qalır və çox data istifadə edirsinizs�
 Ev operatorunuz vasitəsilə rouminq kağız üzərində ən asan variantdır, çünki heç nə etmirsiniz. Amma bu sadəlik adətən daha yüksək qiymət, gündəlik pass haqları və ya qeyri-müəyyən sürət limitləri ilə gəlir. Çox qısa səfər üçün, xüsusən işəgötürən ödəyirsə, məntiqlı ola bilər. Şəxsi səyahət üçün bir çox insan xərcləri müqayisə edəndə başqa varianta keçir.
 
 Hər səfər üçün tək qalib yoxdur. On gün ərzində üç ölkəyə gedirsinizsə, qlobal eSIM adətən praktik seçimdir. Altı ay bir ölkəyə köçürsünüzsə, yerli plan daha yaxşı ola bilər. Yalnız bir gün sərhəd keçirsinizsə, rouminq kifayət edə bilər.`,
+      image: img.airport,
     },
     {
       heading: 'Qlobal eSIM data planını kim istifadə etməlidir?',
@@ -69,6 +74,7 @@ Sonra təyinat siyahısını diqqətlə yoxlayın. «Qlobal»ın marşrutunuzdak
 İstifadənizi də dürüst qiymətləndirməlisiniz. Əsasən xəritə, mesajlaşma və ara-sıra brauzer istifadə edirsinizsə, kiçik data paketi kifayət edə bilər. Stream edir, noutbuku tether edir və ya hər gün video zəng edirsinizsə, minimumdan artıq alın. Tranzit zamanı datanın bitməsi nadir hallarda kiçik qənaətə dəyər.
 
 Dəstək də vacibdir. Səyahət problemləri adətən vaxtın ən vacib olduğu anda — enəndən sonra, transfer zamanı və ya ölkə dəyişərkən — baş verir. Sürətli canlı kömək tez-tez bir qədər ucuz plandan daha dəyərlidir. [Ey Dost](https://eydost.com/esim) kimi xidmətlər insanlara WhatsApp vasitəsilə ani ön ödənişli eSIM data almaqda kömək edərək həmin dərhal səyahət anına fokuslanır; bu, əlavə tətbiq və ya uzun quraşdırma prosesi olmadan cavab istəyəndə faydalıdır.`,
+      image: img.support,
     },
     {
       heading: 'Bir neçə ümumi yanlış anlayış',

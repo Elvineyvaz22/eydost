@@ -5,16 +5,19 @@ import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getPost, getBlogContent, getBlogImage } from '../data/blogPosts';
+import type { AppLanguage } from '../utils/languagePreference';
+import { blogPath } from '../utils/localePaths';
 import { Clock, ArrowLeft, ArrowRight, Wifi } from 'lucide-react';
 import BlogArticleBody from '../components/BlogArticleBody';
 
-export default function BlogPost() {
+export default function BlogPost({ contentLocale }: { contentLocale: AppLanguage }) {
   const { slug } = useParams<{ slug: string }>();
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const post = slug ? getPost(slug) : undefined;
-  if (!post) return <Navigate to="/blog" replace />;
+  const blogIndexPath = blogPath(undefined, contentLocale);
+  if (!post) return <Navigate to={blogIndexPath} replace />;
 
-  const content = getBlogContent(post, language);
+  const content = getBlogContent(post, contentLocale);
   const imageUrl = getBlogImage(post);
   const blogT = (t as Record<string, Record<string, string>>).blog ?? {};
 
@@ -31,6 +34,11 @@ export default function BlogPost() {
   const ctaWhatsApp =
     post.category === 'taxi' ? 'https://wa.me/994992000444' : 'https://wa.me/994992010117';
 
+  const sectionImages = content.sections
+    .map((s) => s.image?.src)
+    .filter((src): src is string => Boolean(src));
+  const jsonLdImages = Array.from(new Set([imageUrl, ...sectionImages]));
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -44,8 +52,8 @@ export default function BlogPost() {
     },
     datePublished: post.publishedAt,
     dateModified: post.publishedAt,
-    mainEntityOfPage: `https://eydost.com/blog/${post.slug}`,
-    image: imageUrl,
+    mainEntityOfPage: `https://eydost.com${blogPath(post.slug, contentLocale)}`,
+    image: jsonLdImages.length === 1 ? jsonLdImages[0] : jsonLdImages,
   };
 
   return (
@@ -53,7 +61,7 @@ export default function BlogPost() {
       <Seo
         title={content.title}
         description={content.description}
-        canonicalPath={`/blog/${post.slug}`}
+        canonicalPath={blogPath(post.slug, contentLocale)}
         jsonLd={jsonLd}
       />
       <Header />
@@ -63,7 +71,7 @@ export default function BlogPost() {
         <section className="bg-gradient-to-br from-gray-900 via-[#0A0F1C] to-gray-900 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
             <Link
-              to="/blog"
+              to={blogIndexPath}
               className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm mb-6"
             >
               <ArrowLeft className="w-4 h-4" /> {backLabel}
@@ -163,7 +171,7 @@ export default function BlogPost() {
 
           {/* Back link */}
           <div className="mt-8 text-center">
-            <Link to="/blog" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm">
+            <Link to={blogIndexPath} className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm">
               <ArrowLeft className="w-4 h-4" /> {backLabel}
             </Link>
           </div>

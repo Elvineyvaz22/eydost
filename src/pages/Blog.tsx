@@ -5,6 +5,8 @@ import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { blogPosts, getBlogContent, getBlogImage } from '../data/blogPosts';
+import type { AppLanguage } from '../utils/languagePreference';
+import { blogPath } from '../utils/localePaths';
 import { Clock, ArrowRight } from 'lucide-react';
 
 const categoryColors: Record<string, string> = {
@@ -13,8 +15,8 @@ const categoryColors: Record<string, string> = {
   travel: 'bg-orange-100 text-orange-700',
 };
 
-export default function Blog() {
-  const { language, t } = useLanguage();
+export default function Blog({ contentLocale }: { contentLocale: AppLanguage }) {
+  const { t } = useLanguage();
   const blogT = (t as Record<string, Record<string, string>>).blog;
   const ui = {
     title: blogT?.title ?? 'Ey Dost Blog',
@@ -32,7 +34,7 @@ export default function Blog() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Seo title={ui.title} description={ui.subtitle} canonicalPath="/blog" />
+      <Seo title={ui.title} description={ui.subtitle} canonicalPath={blogPath(undefined, contentLocale)} />
       <Header />
 
       <main className="pt-24 pb-16">
@@ -46,7 +48,7 @@ export default function Blog() {
         <section className="py-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {sorted.map((post) => {
-              const content = getBlogContent(post, language);
+              const content = getBlogContent(post, contentLocale);
               const imageUrl = getBlogImage(post);
               const catColor = categoryColors[post.category] || 'bg-gray-100 text-gray-600';
               const catLabel = categoryLabels[post.category] || post.category;
@@ -54,7 +56,7 @@ export default function Blog() {
               return (
                 <Link
                   key={post.slug}
-                  to={`/blog/${post.slug}`}
+                  to={blogPath(post.slug, contentLocale)}
                   className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col"
                 >
                   <img
