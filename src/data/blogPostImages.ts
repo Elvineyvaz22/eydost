@@ -16,4 +16,5 @@ export const BLOG_POST_IMAGES: Record<string, string> = {
   'book-taxi-europe-whatsapp': U('1682018272449-0a4216a8be57'),
   'airport-transfer-europe-guide': U('1436491865332-7a61a109cc05'),
   'best-esim-turkey-2026': U('1763965367191-6455ef032c79'),
+  'best-esim-uae-dubai-2026': U('1745750434535-5943ef2fd31a'),
 };

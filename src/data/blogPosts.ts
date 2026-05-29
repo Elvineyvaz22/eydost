@@ -1,6 +1,7 @@
 import type { AppLanguage } from '../utils/languagePreference';
 import { globalEsimDataPlanPost } from './blogPostGlobalEsimPlan';
 import { bestEsimTurkeyPost } from './blogPostBestEsimTurkey';
+import { bestEsimUaePost } from './blogPostBestEsimUae';
 import type { BlogPost, BlogContent } from './blogTypes';
 import { BLOG_CATEGORY_IMAGES } from './blogTypes';
 import { BLOG_POST_IMAGES } from './blogPostImages';
@@ -27,6 +28,7 @@ export function getBlogContent(post: BlogPost, language: AppLanguage): BlogConte
 }
 
 const blogPostsRaw: BlogPost[] = [
+  bestEsimUaePost,
   globalEsimDataPlanPost,
   bestEsimTurkeyPost,
   {

@@ -49,6 +49,7 @@ async function main() {
 
   // Blog post slugs — keep in sync with src/data/blogPosts.ts
   const blogSlugs = [
+    'best-esim-uae-dubai-2026',
     'best-esim-turkey-2026',
     'what-is-a-global-esim-data-plan',
     'what-is-esim-complete-guide',
