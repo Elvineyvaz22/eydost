@@ -10,7 +10,7 @@ import { bestEsimUaeZh } from './bestEsimUae/zh';
 export const bestEsimUaePost: BlogPost = {
   slug: 'best-esim-uae-dubai-2026',
   category: 'esim',
-  publishedAt: '2026-05-28',
+  publishedAt: '2026-05-20',
   readingMinutes: 7,
   en: bestEsimUaeEn,
   az: bestEsimUaeAz,

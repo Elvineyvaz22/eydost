@@ -10,7 +10,7 @@ import { parisCdgTransferZh } from './parisCdgTransfer/zh';
 export const parisCdgTransferPost: BlogPost = {
   slug: 'paris-cdg-airport-transfer-guide',
   category: 'taxi',
-  publishedAt: '2026-05-28',
+  publishedAt: '2026-05-27',
   readingMinutes: 7,
   en: parisCdgTransferEn,
   az: parisCdgTransferAz,

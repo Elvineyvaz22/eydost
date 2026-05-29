@@ -11,7 +11,7 @@ import { globalEsimPlanZh } from './globalEsimPlan/zh';
 export const globalEsimDataPlanPost: BlogPost = {
   slug: 'what-is-a-global-esim-data-plan',
   category: 'esim',
-  publishedAt: '2026-05-28',
+  publishedAt: '2026-05-02',
   readingMinutes: 9,
   en: globalEsimPlanEn,
   az: globalEsimPlanAz,

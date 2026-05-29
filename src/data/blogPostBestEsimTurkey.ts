@@ -10,7 +10,7 @@ import { bestEsimTurkeyZh } from './bestEsimTurkey/zh';
 export const bestEsimTurkeyPost: BlogPost = {
   slug: 'best-esim-turkey-2026',
   category: 'esim',
-  publishedAt: '2026-05-28',
+  publishedAt: '2026-05-17',
   readingMinutes: 7,
   en: bestEsimTurkeyEn,
   az: bestEsimTurkeyAz,

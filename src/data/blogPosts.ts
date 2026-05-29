@@ -38,7 +38,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'what-is-esim-complete-guide',
     category: 'esim',
-    publishedAt: '2026-05-01',
+    publishedAt: '2026-04-24',
     readingMinutes: 5,
     en: {
       title: 'What is an eSIM? The Complete Guide for Travelers',
@@ -164,7 +164,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'how-to-install-esim-iphone',
     category: 'esim',
-    publishedAt: '2026-05-02',
+    publishedAt: '2026-04-27',
     readingMinutes: 4,
     en: {
       title: 'How to Install an eSIM on iPhone (Step-by-Step Guide)',
@@ -293,7 +293,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'how-to-install-esim-android',
     category: 'esim',
-    publishedAt: '2026-05-03',
+    publishedAt: '2026-04-30',
     readingMinutes: 4,
     en: {
       title: 'How to Install an eSIM on Android / Samsung (Step-by-Step)',
@@ -439,7 +439,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'best-europe-esim-2026',
     category: 'esim',
-    publishedAt: '2026-05-04',
+    publishedAt: '2026-05-07',
     readingMinutes: 6,
     en: {
       title: 'Best Europe eSIM Plans in 2026 — Complete Comparison',
@@ -583,7 +583,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'stay-connected-europe-without-roaming',
     category: 'travel',
-    publishedAt: '2026-05-05',
+    publishedAt: '2026-05-10',
     readingMinutes: 5,
     en: {
       title: 'How to Stay Connected in Europe Without Paying Roaming Fees',
@@ -702,7 +702,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'esim-vs-roaming-cost-comparison',
     category: 'esim',
-    publishedAt: '2026-05-06',
+    publishedAt: '2026-05-05',
     readingMinutes: 5,
     en: {
       title: 'eSIM vs Roaming in 2026 — Which is Cheaper? (Cost Comparison)',
@@ -740,7 +740,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'best-esim-germany-2026',
     category: 'esim',
-    publishedAt: '2026-05-07',
+    publishedAt: '2026-05-12',
     readingMinutes: 4,
     en: {
       title: 'Best eSIM for Germany in 2026 — Stay Connected Everywhere',
@@ -778,7 +778,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'how-to-use-esim-france',
     category: 'esim',
-    publishedAt: '2026-05-07',
+    publishedAt: '2026-05-15',
     readingMinutes: 4,
     en: {
       title: 'How to Use eSIM in France — Paris, Lyon, Nice and Beyond',
@@ -817,7 +817,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'book-taxi-europe-whatsapp',
     category: 'taxi',
-    publishedAt: '2026-05-08',
+    publishedAt: '2026-05-22',
     readingMinutes: 4,
     en: {
       title: 'How to Book a Taxi in Europe via WhatsApp — Ey Dost Guide',
@@ -857,7 +857,7 @@ const blogPostsRaw: BlogPost[] = [
   {
     slug: 'airport-transfer-europe-guide',
     category: 'taxi',
-    publishedAt: '2026-05-08',
+    publishedAt: '2026-05-25',
     readingMinutes: 4,
     en: {
       title: 'Airport Transfer Guide: The Easiest Way to Get from Airport to City in Europe',
