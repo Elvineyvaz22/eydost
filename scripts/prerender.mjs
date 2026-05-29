@@ -86,7 +86,7 @@ const PRERENDER_TIMEOUT_MS = 20000;
 const RENDER_EVENT = 'render-event';
 const CONCURRENCY = Number(process.env.PRERENDER_CONCURRENCY || 4);
 
-const SKIP_PREFIXES = ['/admin', '/api'];
+const SKIP_PREFIXES = ['/admin', '/api', '/en/blog', '/blog'];
 const SKIP_EXACT = new Set(['/taxi-order']);
 
 const MIME = {

@@ -10,7 +10,7 @@
     "build": "vite build && node scripts/prerender-runner.mjs",
     "build:no-prerender": "vite build",
     "prerender": "node scripts/prerender.mjs",
-    "vercel-build": "npm run build:no-prerender && node scripts/inject-static.mjs",
+    "vercel-build": "npm run build:no-prerender && node scripts/clean-locale-blog-prerender.mjs && node scripts/inject-static.mjs",
     "inject-static": "node scripts/inject-static.mjs",
     "dump-countries": "node scripts/dump-countries.mjs",
     "lint": "eslint .",

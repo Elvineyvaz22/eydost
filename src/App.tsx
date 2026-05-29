@@ -340,6 +340,7 @@ function App() {
                   }
                 />
                 <Route path="/:slug" element={<EsimRouter />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
           </LanguageProvider>
