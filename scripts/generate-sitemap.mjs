@@ -49,6 +49,8 @@ async function main() {
 
   // Blog post slugs — keep in sync with src/data/blogPosts.ts
   const blogSlugs = [
+    'london-heathrow-airport-taxi-whatsapp',
+    'paris-cdg-airport-transfer-guide',
     'best-esim-uae-dubai-2026',
     'best-esim-turkey-2026',
     'what-is-a-global-esim-data-plan',
