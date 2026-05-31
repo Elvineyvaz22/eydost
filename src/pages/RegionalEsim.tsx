@@ -7,14 +7,13 @@ import type { RegionalPackage } from '../data/esimPackages';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { createOrder, getWaId, getWhatsAppLink } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
 import EuropeCoverageNetworks from '../components/EuropeCoverageNetworks';
 import { EUROPE_COVERAGE_COUNT } from '../data/europeCoverage';
 
-const WA_LINK = 'https://wa.me/994992010117';
 const ALLOWED_GB = [1, 3, 5, 10, 20, 50, 100];
 
 /** One plan per allowed GB tier — prefer 30-day validity, then lowest price. */
@@ -151,13 +150,17 @@ export default function RegionalEsim() {
       setIsOrdering(true);
       try {
         const details = buildOrderMessage(plan, pkg.name, orderLang);
-        await createOrder({
+        const result = await createOrder({
           wa_id: waId,
           type: 'esim',
           code: plan.code || pkg.name.toUpperCase(),
           id: plan.id || `${plan.gb}GB`,
           details,
         });
+        if (!result.ok) {
+          window.location.href = getWhatsAppLink('esim', details);
+          return;
+        }
         alert(
         msg(orderLang, {
           en: 'Your order has been sent to WhatsApp! Please return to your chat.',
@@ -173,7 +176,7 @@ export default function RegionalEsim() {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`;
+      window.location.href = getWhatsAppLink('esim', rawMsg);
     }
   };
 

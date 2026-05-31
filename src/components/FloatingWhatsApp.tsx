@@ -1,7 +1,7 @@
 import { MessageCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { createOrder, getWaId, getWhatsAppLink } from '../utils/whatsapp';
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { isEsimRoute } from '../utils/routes';
@@ -11,10 +11,10 @@ export default function FloatingWhatsApp() {
   const { t, language } = useLanguage();
   // WhatsApp message rule: if UI is Arabic, still send EN message text.
   const waLang = language === 'ar' ? 'en' : language;
-
-  if (isEsimRoute(pathname)) return null;
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
+
+  if (isEsimRoute(pathname)) return null;
 
   const isMiniApp = typeof window !== 'undefined' && 
     (window as any).Telegram?.WebApp?.platform !== undefined && 
@@ -23,27 +23,32 @@ export default function FloatingWhatsApp() {
 
   const handleSupportClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     trackEvent(EVENTS.WHATSAPP_CHAT_GENERAL, { source: 'floating_button' });
+    const supportMessage =
+      waLang === 'az'
+        ? 'Salam! Kömək lazımdır.'
+        : waLang === 'ru'
+          ? 'Здравствуйте! Мне нужна помощь.'
+          : waLang === 'tr'
+            ? 'Merhaba! Yardıma ihtiyacım var.'
+            : waLang === 'es'
+                ? '¡Hola! Necesito ayuda.'
+                : waLang === 'zh'
+                  ? '你好！我需要帮助。'
+                  : 'Hi! I need help.';
 
     if (waId) {
       e.preventDefault();
       setIsOrdering(true);
       try {
-        await createOrder({
+        const result = await createOrder({
           wa_id: waId,
           type: 'taxi',
-          details:
-            waLang === 'az'
-              ? 'Salam! Kömək lazımdır.'
-              : waLang === 'ru'
-                ? 'Здравствуйте! Мне нужна помощь.'
-                : waLang === 'tr'
-                  ? 'Merhaba! Yardıma ihtiyacım var.'
-                  : waLang === 'es'
-                      ? '¡Hola! Necesito ayuda.'
-                      : waLang === 'zh'
-                        ? '你好！我需要帮助。'
-                        : 'Hi! I need help.',
+          details: supportMessage,
         });
+        if (!result.ok) {
+          window.location.href = getWhatsAppLink('taxi', supportMessage);
+          return;
+        }
         alert(
           language === 'az'
             ? 'Mesajınız WhatsApp-a göndərildi! Çat bölməsinə qayıdın.'

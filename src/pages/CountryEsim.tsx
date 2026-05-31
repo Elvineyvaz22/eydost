@@ -5,14 +5,12 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getPackageBySlug } from '../data/esimPackages';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { createOrder, getWaId, getWhatsAppLink } from '../utils/whatsapp';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
 import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
 import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryNameLocalized, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
-
-const WA_LINK = 'https://wa.me/994992010117';
 
 const SLUG_TO_CODE: Record<string, string> = {
   'turkey-esim': 'TR', 'united-states-esim': 'US', 'germany-esim': 'DE',
@@ -161,7 +159,11 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
       setIsOrdering(true);
       try {
         // Include localized message so the backend/bot doesn't default to English.
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
+        if (!result.ok) {
+          window.location.href = getWhatsAppLink('esim', textMsg);
+          return;
+        }
         showToast(
           language === 'az'
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
@@ -181,7 +183,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      window.location.href = getWhatsAppLink('esim', textMsg);
     }
   };
 
@@ -266,7 +268,11 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
+        if (!result.ok) {
+          window.location.href = getWhatsAppLink('esim', textMsg);
+          return;
+        }
         showToast(
           language === 'az'
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
@@ -278,7 +284,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      window.location.href = getWhatsAppLink('esim', textMsg);
     }
   };
 

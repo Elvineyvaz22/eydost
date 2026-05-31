@@ -76,13 +76,20 @@ export const getWaId = (): string | null => {
   return sessionStorage.getItem('eydost_wa_id');
 };
 
+export type CreateOrderResult = {
+  ok: boolean;
+  status?: string;
+  message?: string;
+  [key: string]: unknown;
+};
+
 export const createOrder = async (data: {
   wa_id: string;
   type: 'esim' | 'taxi';
   code?: string;
   id?: string;
   details?: string;
-}) => {
+}): Promise<CreateOrderResult> => {
   try {
     const response = await fetch('/api/whatsapp/order', {
       method: 'POST',
@@ -91,10 +98,29 @@ export const createOrder = async (data: {
       },
       body: JSON.stringify(data),
     });
-    return await response.json();
+
+    const contentType = response.headers.get('content-type') || '';
+    const payload = contentType.includes('application/json')
+      ? await response.json().catch(() => null)
+      : null;
+
+    if (!response.ok || !payload || typeof payload !== 'object') {
+      return {
+        ok: false,
+        status: 'error',
+        message: `Order API returned ${response.status}`,
+      };
+    }
+
+    const status = 'status' in payload ? String(payload.status).toLowerCase() : '';
+    if (status === 'error' || status === 'failed' || status === 'failure') {
+      return { ...(payload as Record<string, unknown>), ok: false };
+    }
+
+    return { ...(payload as Record<string, unknown>), ok: true };
   } catch (error) {
     console.error('Failed to create order:', error);
-    return { status: 'error', message: 'Connection failed' };
+    return { ok: false, status: 'error', message: 'Connection failed' };
   }
 };
 
