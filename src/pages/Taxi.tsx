@@ -6,7 +6,7 @@ import Header from '../components/Header';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, EVENTS } from '../utils/analytics';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { createOrder, getWaId, getWhatsAppLink } from '../utils/whatsapp';
 import {
   GOOGLE_MAPS_API_KEY,
   GOOGLE_MAPS_LIBRARIES,
@@ -407,9 +407,9 @@ export default function Taxi() {
             type: 'taxi',
             details,
           }).catch(console.error);
-          window.location.replace(WA_LINK);
+          window.location.replace(getWhatsAppLink('taxi', details));
         } else {
-          window.location.replace(WA_LINK);
+          window.location.replace(getWhatsAppLink('taxi'));
         }
       }, 800);
     };
