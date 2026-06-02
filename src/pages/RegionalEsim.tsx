@@ -73,6 +73,10 @@ function buildOrderMessage(
   return lines.join('\n');
 }
 
+function openWhatsAppOrder(message: string) {
+  window.location.href = `${WA_LINK}?text=${encodeURIComponent(message)}`;
+}
+
 function getRegionalBySlug(slug: string): RegionalPackage | undefined {
   if (globalPackage.slug === slug) return globalPackage;
   return regionalPackages.find(p => p.slug === slug);
@@ -151,13 +155,17 @@ export default function RegionalEsim() {
       setIsOrdering(true);
       try {
         const details = buildOrderMessage(plan, pkg.name, orderLang);
-        await createOrder({
+        const result = await createOrder({
           wa_id: waId,
           type: 'esim',
           code: plan.code || pkg.name.toUpperCase(),
           id: plan.id || `${plan.gb}GB`,
           details,
         });
+        if (!result.ok) {
+          openWhatsAppOrder(details);
+          return;
+        }
         alert(
         msg(orderLang, {
           en: 'Your order has been sent to WhatsApp! Please return to your chat.',
@@ -173,7 +181,7 @@ export default function RegionalEsim() {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`;
+      openWhatsAppOrder(rawMsg);
     }
   };
 

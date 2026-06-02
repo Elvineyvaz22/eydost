@@ -134,6 +134,10 @@ function buildOrderMessage(opts: {
   return lines.join('\n');
 }
 
+function openWhatsAppOrder(textMsg: string) {
+  window.location.href = `${WA_LINK}?text=${encodeURIComponent(textMsg)}`;
+}
+
 function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: string }) {
   const { t, language } = useLanguage();
   const [isOrdering, setIsOrdering] = useState(false);
@@ -161,7 +165,11 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
       setIsOrdering(true);
       try {
         // Include localized message so the backend/bot doesn't default to English.
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
+        if (!result.ok) {
+          openWhatsAppOrder(textMsg);
+          return;
+        }
         showToast(
           language === 'az'
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
@@ -181,7 +189,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      openWhatsAppOrder(textMsg);
     }
   };
 
@@ -266,7 +274,11 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
+        const result = await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
+        if (!result.ok) {
+          openWhatsAppOrder(textMsg);
+          return;
+        }
         showToast(
           language === 'az'
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
@@ -278,7 +290,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
         setIsOrdering(false);
       }
     } else {
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
+      openWhatsAppOrder(textMsg);
     }
   };
 
