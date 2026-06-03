@@ -869,7 +869,6 @@ export const planCodeMap: Record<string, PlanCodeEntry[]> = {
     { code: 'EC', id: 'CKH337' },
   ],
   'eg': [
-    { code: 'EG', id: 'PXG3YL37H' },
     { code: 'EG', id: 'PIXA8CXUL' },
     { code: 'EG', id: 'PZ23T9OT0' },
     { code: 'EG', id: 'PNLOUKFKT' },

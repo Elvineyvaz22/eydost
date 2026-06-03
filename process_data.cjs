@@ -7,6 +7,10 @@ const headers = lines[0].split(',');
 // 0: Type, 1: Region, 2: Name, 3: Data Type, 4: Price(USD), 5: Variant Price, 6: Code, 7: GBs, 8: Validity(Days), 9: Slug, 10: Coverage, 11: ID
 
 const countryMap = {};
+const SKIPPED_PACKAGE_IDS = new Set([
+  // Keep Egypt's removed 100 MB micro-plan out of the static fallback catalog.
+  'PXG3YL37H',
+]);
 
 for (let i = 1; i < lines.length; i++) {
   // Use regex to properly split CSV just in case there are quotes, though simple split is usually okay for this data
@@ -19,15 +23,15 @@ for (let i = 1; i < lines.length; i++) {
   const region = parts[1].trim(); // Country name
   let rawPrice = parts[4].trim(); // Price(USD)
   rawPrice = rawPrice.replace('$', '');
-  let priceNum = parseFloat(rawPrice);
-  // Add 75% margin and round to 2 decimal places
-  priceNum = Math.round(priceNum * 1.75 * 100) / 100;
+  const priceNum = parseFloat(rawPrice);
 
   const code = parts[6].trim();
   const gbRaw = parts[7].trim();
   let gb = parseFloat(gbRaw);
   const days = parseInt(parts[8].trim(), 10);
+  const slug = parts[9].trim();
   const id = parts[11].trim();
+  if (SKIPPED_PACKAGE_IDS.has(id)) continue;
 
   // "0" GBs usually means something like 500MB or 100MB. Let's look at the name to find out.
   const name = parts[2].trim();
@@ -49,6 +53,7 @@ for (let i = 1; i < lines.length; i++) {
     priceVal: priceNum,
     code: code,
     id: id,
+    slug: slug,
     name: name,
     dataType: parts[3].trim()
   });
@@ -68,7 +73,10 @@ let modifiedEsimContent = esimContent;
 for (const [code, plans] of Object.entries(countryMap)) {
   // generate plans array string
   const plansStr = `[\n` + plans.map(p => {
-    return `      { gb: ${p.gb}, days: ${p.days}, price: m(${p.priceVal}), code: '${p.code}', id: '${p.id}' }`;
+    const unlimitedFlag = p.dataType === 'Daily Unlimited' || /GB\/Day/i.test(p.name)
+      ? ', isUnlimited: true'
+      : '';
+    return `      { gb: ${p.gb}, days: ${p.days}, price: m(${p.priceVal}), code: '${p.code}', id: '${p.id}', slug: '${p.slug}'${unlimitedFlag} }`;
   }).join(',\n') + `\n    ]`;
 
   // Regex to find countryCode: 'code' and replace its plans: ...
