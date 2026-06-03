@@ -370,11 +370,14 @@ export default function CountryEsim() {
     gb: p.gb * 1024 * 1024 * 1024,
     days: p.days,
     price: typeof p.price === 'string' ? p.price : `$${(p.price as number).toFixed(2)}`,
-    code: p.code || '',
-    id: p.id || '',
-    isUnlimited: false,
+    // Generated static rows store the supplier package code in `id`.
+    code: p.id || p.code || '',
+    id: p.slug || p.id || '',
+    isUnlimited: Boolean(p.isUnlimited),
     countryCode: activeCountryCode || '',
   }));
+  const staticLimitedPlans = staticPlans.filter(p => !p.isUnlimited).sort((a, b) => a.gb - b.gb);
+  const staticUnlimitedPlans = staticPlans.filter(p => p.isUnlimited).sort((a, b) => a.days - b.days);
 
   const limitedPlans: LivePlan[] = livePkgs
     .filter(isDataPlanPackage)
@@ -402,9 +405,11 @@ export default function CountryEsim() {
     }))
     .sort((a, b) => a.days - b.days);
 
-  const displayLimitedPlans = limitedPlans.length > 0 ? limitedPlans : staticPlans;
-  const showFallbackNote = limitedPlans.length === 0 && staticPlans.length > 0;
-  const totalPlans = displayLimitedPlans.length + unlimitedPlans.length;
+  const shouldUseStaticFallback = livePkgs.length === 0 && staticPlans.length > 0;
+  const displayLimitedPlans = shouldUseStaticFallback ? staticLimitedPlans : limitedPlans;
+  const displayUnlimitedPlans = shouldUseStaticFallback ? staticUnlimitedPlans : unlimitedPlans;
+  const showFallbackNote = shouldUseStaticFallback;
+  const totalPlans = displayLimitedPlans.length + displayUnlimitedPlans.length;
 
   if (liveLoading) {
     return (
@@ -418,7 +423,7 @@ export default function CountryEsim() {
     );
   }
 
-  if (displayLimitedPlans.length === 0 && unlimitedPlans.length === 0) {
+  if (displayLimitedPlans.length === 0 && displayUnlimitedPlans.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Seo title="eSIM not found" canonicalPath={"/" + (slug || '')} />
@@ -505,14 +510,14 @@ export default function CountryEsim() {
             </div>
           )}
 
-          {unlimitedPlans.length > 0 && (
+          {displayUnlimitedPlans.length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <InfinityIcon className="w-5 h-5 text-purple-600" />
-                Unlimited Plans ({unlimitedPlans.length})
+                Unlimited Plans ({displayUnlimitedPlans.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {unlimitedPlans.map((plan) => (
+                {displayUnlimitedPlans.map((plan) => (
                   <UnlimitedPlanCard key={plan.code} plan={plan} countryName={countryName} />
                 ))}
               </div>
