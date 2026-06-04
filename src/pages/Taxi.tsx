@@ -60,6 +60,7 @@ export default function Taxi() {
   const [mobileStep, setMobileStep] = useState<'select_pickup' | 'select_dropoff' | 'confirm_ride'>('select_pickup');
   const [isSuccess, setIsSuccess] = useState(false);
   const [isOrdering, setIsOrdering] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   
   // Coordinates
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -89,6 +90,12 @@ export default function Taxi() {
       : language === 'ru'
         ? { home: 'Главная', requests: 'Заказы', requestsTitle: 'История заказов', requestsEmpty: 'Заказов пока нет.', repeat: 'Повторить' }
         : { home: 'Home', requests: 'Requests', requestsTitle: 'Past orders', requestsEmpty: 'No orders yet.', repeat: 'Repeat' };
+  const orderErrorMessage =
+    language === 'az'
+      ? 'Sifarişi göndərmək mümkün olmadı. Zəhmət olmasa bir daha cəhd edin və ya WhatsApp dəstəyə yazın.'
+      : language === 'ru'
+        ? 'Не удалось отправить заказ. Пожалуйста, попробуйте ещё раз или напишите в поддержку WhatsApp.'
+        : 'We could not send your order. Please try again or contact WhatsApp support.';
 
   const { orders, activeTab, setActiveTab, saveOrderToHistory } = useTaxiLinkStorage(
     linkId,
@@ -319,6 +326,7 @@ export default function Taxi() {
       });
 
       setIsOrdering(true);
+      setOrderError(null);
       try {
       if (linkId) {
         try {
@@ -354,11 +362,13 @@ export default function Taxi() {
         });
         console.log('[TAXI_WEBHOOK] status:', res.status, 'ok:', res.ok);
         if (!res.ok) {
-          const body = await res.text();
-          console.warn('[TAXI_WEBHOOK] error body:', body);
+          const body = await res.text().catch(() => '');
+          throw new Error(`Taxi webhook returned ${res.status}${body ? `: ${body}` : ''}`);
         }
       } catch (e) {
-        console.warn('Taxi webhook failed:', e);
+        console.error('Taxi webhook failed:', e);
+        setOrderError(orderErrorMessage);
+        return;
       }
       } finally {
         setIsOrdering(false);
@@ -678,6 +688,12 @@ export default function Taxi() {
                       </div>
                     )}
 
+                    {orderError && (
+                      <div role="alert" className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">
+                        {orderError}
+                      </div>
+                    )}
+
                     <button
                       onClick={handleBooking}
                       disabled={isOrdering}
@@ -967,6 +983,12 @@ export default function Taxi() {
                     <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">
                       {routeDetails.distance?.text} • {routeDetails.duration?.text}
                     </span>
+                  </div>
+                )}
+
+                {orderError && (
+                  <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    {orderError}
                   </div>
                 )}
 
