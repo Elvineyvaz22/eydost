@@ -73,12 +73,18 @@ interface BotPackage {
   description?: string;
 }
 
+interface BotFetchResult {
+  ok: boolean;
+  packages: BotPackage[];
+  errorMessage?: string;
+}
+
 // ── Fetch from bot API ─────────────────────────────────────────────────────────
 // The bot occasionally returns an empty `data` array (200 OK, no rows) when
 // it gets hit with too many concurrent requests for the same country. To stop
 // these false zeros from clobbering legitimate countries (TR, DE, FR, US, ...)
 // we retry once with a short jittered delay if the first response is empty.
-async function fetchBotPackagesOnce(countryCode: string): Promise<BotPackage[] | null> {
+async function fetchBotPackagesOnce(countryCode: string): Promise<BotFetchResult> {
   const url = `${BOT_API}?country_code=${encodeURIComponent(countryCode)}`;
   try {
     const res = await fetch(url, {
@@ -87,45 +93,52 @@ async function fetchBotPackagesOnce(countryCode: string): Promise<BotPackage[] |
         'Content-Type': 'application/json',
       },
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      return { ok: false, packages: [], errorMessage: `Bot API returned ${res.status}` };
+    }
     const data = await res.json();
-    if (!data.success || !Array.isArray(data.data)) return [];
-    return data.data as BotPackage[];
-  } catch {
-    return null;
+    if (!data.success || !Array.isArray(data.data)) {
+      return { ok: false, packages: [], errorMessage: 'Bot API returned an invalid package payload' };
+    }
+    return { ok: true, packages: data.data as BotPackage[] };
+  } catch (err: any) {
+    return { ok: false, packages: [], errorMessage: err?.message || 'Bot API request failed' };
   }
 }
 
 async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
   const first = await fetchBotPackagesOnce(countryCode);
   // If the first call genuinely returned packages, we're done.
-  if (first && first.length > 0) return first;
+  if (first.ok && first.packages.length > 0) return first.packages;
   // Otherwise back off briefly (jitter to avoid retrying in lockstep) and try
   // again. This lets us tell apart "country has no packages" from "bot just
   // rate-limited us under high concurrency".
   await new Promise((r) => setTimeout(r, 400 + Math.floor(Math.random() * 600)));
   const second = await fetchBotPackagesOnce(countryCode);
-  if (second && second.length > 0) return second;
-  return first ?? second ?? [];
+  if (second.ok && second.packages.length > 0) return second.packages;
+
+  const confirmedEmpty = first.ok ? first : (second.ok ? second : null);
+  if (confirmedEmpty) return confirmedEmpty.packages;
+
+  throw new Error(
+    `Bot API fetch failed for ${countryCode}: ${[first.errorMessage, second.errorMessage].filter(Boolean).join('; ')}`
+  );
+}
+
+function toPostgrestInList(values: string[]): string {
+  return `(${values
+    .map((value) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`)
+    .join(',')})`;
 }
 
 // ── Upsert single country packages (compound-unique upsert) ──────────────────
 // Requires the migration 20260525000000_fix_esim_packages_constraints.sql
 // to have been applied so that (country_code, package_code) is UNIQUE.
-async function upsertPackagesForCountry(
+export async function upsertPackagesForCountry(
   supabaseAdmin: any,
   countryCode: string,
   packages: BotPackage[]
 ): Promise<{ upserted: number; errors: number; errorMessage?: string }> {
-  // Mark all rows for this country inactive first; the upsert below will
-  // flip rows it touches back to active. Anything bot stopped offering for
-  // this country stays inactive.
-  await supabaseAdmin
-    .from('esim_packages')
-    .update({ is_active: false } as any)
-    .eq('country_code', countryCode)
-    .eq('is_active', true);
-
   if (packages.length === 0) {
     return { upserted: 0, errors: 0 };
   }
@@ -161,6 +174,8 @@ async function upsertPackagesForCountry(
     return { upserted: 0, errors: 0 };
   }
 
+  const activePackageCodes = records.map((record) => record.package_code);
+
   const { error: upError } = await supabaseAdmin
     .from('esim_packages')
     .upsert(records as any, {
@@ -172,6 +187,21 @@ async function upsertPackagesForCountry(
     console.error(`  ✗ ${countryCode} upsert: ${upError.message}`);
     return { upserted: 0, errors: records.length, errorMessage: upError.message };
   }
+
+  // Only deactivate stale rows after a successful, non-empty bot response.
+  // Failed/empty fetches must never clobber the last known-good catalog.
+  const { error: deactivateError } = await supabaseAdmin
+    .from('esim_packages')
+    .update({ is_active: false } as any)
+    .eq('country_code', countryCode)
+    .eq('is_active', true)
+    .not('package_code', 'in', toPostgrestInList(activePackageCodes));
+
+  if (deactivateError) {
+    console.error(`  ✗ ${countryCode} deactivate stale rows: ${deactivateError.message}`);
+    return { upserted: records.length, errors: 1, errorMessage: deactivateError.message };
+  }
+
   return { upserted: records.length, errors: 0 };
 }
 
