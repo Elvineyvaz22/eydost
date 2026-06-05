@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getPackageBySlug } from '../data/esimPackages';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { appendReferralToMessage, getWaId, createOrder, trackAgentLead } from '../utils/whatsapp';
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
@@ -13,6 +13,10 @@ import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '.
 import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryNameLocalized, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
 
 const WA_LINK = 'https://wa.me/994992010117';
+const UNLIMITED_DAY_ORDER = [3, 5, 7, 10, 15, 30];
+const UNLIMITED_LIMIT_PRIORITY = ['3 GB/Day', '2 GB/Day', '1 GB/Day'];
+const MIN_STANDARD_BYTES = 1024 * 1024 * 1024;
+const STANDARD_PLAN_LIMIT = 7;
 
 const SLUG_TO_CODE: Record<string, string> = {
   'turkey-esim': 'TR', 'united-states-esim': 'US', 'germany-esim': 'DE',
@@ -53,14 +57,84 @@ function isUnlimitedPlan(name: string): boolean {
   return /GB\/Day/i.test(name);
 }
 
+function getUnlimitedDailyLimit(p: ESIMPackageRaw): string {
+  const nameMatch = p.name.match(/(\d+(?:[.,]\d+)?)\s*(GB|MB)\s*\/\s*Day/i);
+  if (nameMatch) {
+    return `${nameMatch[1].replace(',', '.')} ${nameMatch[2].toUpperCase()}/Day`;
+  }
+  if (p.volume && p.volume > 0) return `${formatGB(p.volume)}/Day`;
+  return 'FUP';
+}
+
+function limitSortValue(limit: string): number {
+  const match = limit.match(/(\d+(?:[.,]\d+)?)\s*(GB|MB)/i);
+  if (!match) return Number.MAX_SAFE_INTEGER;
+  const value = Number(match[1].replace(',', '.'));
+  return match[2].toUpperCase() === 'GB' ? value * 1024 : value;
+}
+
+function sortUnlimitedDays(a: LivePlan, b: LivePlan): number {
+  const ai = UNLIMITED_DAY_ORDER.indexOf(a.days);
+  const bi = UNLIMITED_DAY_ORDER.indexOf(b.days);
+  if (ai !== -1 || bi !== -1) {
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  }
+  return a.days - b.days;
+}
+
+function standardPlanRank(plan: LivePlan): number {
+  const gb = Math.round(plan.gb / (1024 * 1024 * 1024));
+  const preferred = [
+    [1, 7],
+    [3, 15],
+    [3, 30],
+    [5, 30],
+    [10, 30],
+    [20, 30],
+    [50, 30],
+  ];
+  const rank = preferred.findIndex(([pgb, days]) => pgb === gb && days === plan.days);
+  return rank === -1 ? 1000 + gb + plan.days / 1000 : rank;
+}
+
+function normalizeStandardPlans(plans: LivePlan[]): LivePlan[] {
+  const bestByTier = new Map<string, LivePlan>();
+  for (const plan of plans) {
+    if (plan.gb < MIN_STANDARD_BYTES) continue;
+    const gb = Math.round((plan.gb / (1024 * 1024 * 1024)) * 10) / 10;
+    const key = `${gb}-${plan.days}`;
+    const current = bestByTier.get(key);
+    if (!current || (plan.priceMinor ?? Number.MAX_SAFE_INTEGER) < (current.priceMinor ?? Number.MAX_SAFE_INTEGER)) {
+      bestByTier.set(key, plan);
+    }
+  }
+  return Array.from(bestByTier.values())
+    .sort((a, b) => standardPlanRank(a) - standardPlanRank(b) || a.gb - b.gb || a.days - b.days)
+    .slice(0, STANDARD_PLAN_LIMIT);
+}
+
 interface LivePlan {
   gb: number; // raw volume in bytes
   days: number;
   price: string;
+  priceMinor?: number;
+  currencyCode?: string;
   code: string;
   id: string;
   isUnlimited: boolean;
   countryCode: string;
+  dailyLimit?: string;
+  name?: string;
+}
+
+function multiplyPlanPrice(plan: LivePlan, days: number): string {
+  if (typeof plan.priceMinor === 'number') {
+    return formatPrice(plan.priceMinor * days, plan.currencyCode || 'AZN');
+  }
+  const amount = Number((plan.price || '').replace(/[^0-9.]/g, ''));
+  return Number.isFinite(amount) && amount > 0 ? `$${(amount * days).toFixed(2)}` : plan.price;
 }
 
 // Build a localized WhatsApp order message. Keeps `Code:` and `ID:` as machine
@@ -115,7 +189,8 @@ function buildOrderMessage(opts: {
 
   let planText: string;
   if (unlimited) {
-    planText = `${unlimitedWord} · ${plan.days} ${daysWord}`;
+    const dailyLimit = plan.dailyLimit ? ` ${plan.dailyLimit}` : '';
+    planText = `${unlimitedWord}${dailyLimit} · ${plan.days} ${daysWord}`;
   } else {
     const gbBytes = plan.gb;
     const gb = gbBytes / (1024 * 1024 * 1024);
@@ -143,13 +218,20 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
 
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const textMsg = buildOrderMessage({ countryName, plan, language });
+    const textMsg = appendReferralToMessage(buildOrderMessage({ countryName, plan, language }), language);
 
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,
       value: parseUsdPrice(plan.price),
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
+    trackAgentLead({
+      productType: 'esim',
+      packageCode: plan.code || plan.id,
+      packageName: countryName,
+      viewedPackage: `${countryName} eSIM · ${formatGB(plan.gb)} · ${plan.days} gün · ${plan.price}`,
+      page: window.location.pathname,
+    });
 
     if (isTelegramWebApp && tg) {
       tg.sendData(textMsg);
@@ -186,7 +268,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-xl transition-all duration-300 group flex flex-col h-full sm:p-6">
       <div className="flex items-center justify-between mb-5">
         <div>
           <span className="text-2xl font-extrabold text-gray-900">{plan.price}</span>
@@ -249,13 +331,20 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
 
   const handleBuyClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const textMsg = buildOrderMessage({ countryName, plan, language, unlimited: true });
+    const textMsg = appendReferralToMessage(buildOrderMessage({ countryName, plan, language, unlimited: true }), language);
 
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,
       value: parseUsdPrice(plan.price),
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
+    trackAgentLead({
+      productType: 'esim',
+      packageCode: plan.code || plan.id,
+      packageName: countryName,
+      viewedPackage: `${countryName} eSIM · Limitsiz ${plan.dailyLimit || 'FUP'} · ${plan.days} gün · ${plan.price}`,
+      page: window.location.pathname,
+    });
 
     if (isTelegramWebApp && tg) {
       tg.sendData(textMsg);
@@ -283,9 +372,9 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-purple-200 p-6 hover:shadow-xl transition-all duration-300 group flex flex-col h-full relative overflow-hidden">
-      <div className="absolute top-0 right-0 bg-gradient-to-l from-purple-600 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
-        UNLIMITED
+    <div className="bg-white rounded-2xl border border-orange-200 p-5 hover:shadow-xl transition-all duration-300 group flex flex-col h-full relative overflow-hidden sm:p-6">
+      <div className="absolute top-0 right-0 bg-slate-900 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
+        LİMİTSİZ
       </div>
       <div className="flex items-center justify-between mb-5">
         <div>
@@ -298,12 +387,12 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
       </div>
       <div className="space-y-3 mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-            <InfinityIcon className="w-4 h-4 text-purple-600" />
+          <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+            <InfinityIcon className="w-4 h-4 text-orange-600" />
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wide">{t.countryEsim.data}</p>
-            <p className="text-sm font-bold text-purple-700">Unlimited</p>
+            <p className="text-sm font-bold text-orange-700">Limitsiz {plan.dailyLimit || 'FUP'}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -352,6 +441,7 @@ export default function CountryEsim() {
   const [livePkgs, setLivePkgs] = useState<ESIMPackageRaw[]>([]);
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveError, setLiveError] = useState<string | null>(null);
+  const [activePlanType, setActivePlanType] = useState<'standard' | 'unlimited'>('standard');
 
   useEffect(() => {
     if (!activeCountryCode) return;
@@ -374,6 +464,7 @@ export default function CountryEsim() {
     id: p.id || '',
     isUnlimited: false,
     countryCode: activeCountryCode || '',
+    name: p.id || p.code || '',
   }));
 
   const limitedPlans: LivePlan[] = livePkgs
@@ -382,10 +473,13 @@ export default function CountryEsim() {
       gb: p.volume as number,
       days: p.duration,
       price: formatPrice(p.sell_price_minor, p.currencyCode),
+      priceMinor: p.sell_price_minor,
+      currencyCode: p.currencyCode,
       code: p.packageCode,
       id: p.slug,
       isUnlimited: false,
       countryCode: activeCountryCode || '',
+      name: p.name,
     }))
     .sort((a, b) => a.gb - b.gb);
 
@@ -395,16 +489,51 @@ export default function CountryEsim() {
       gb: 0,
       days: p.duration,
       price: formatPrice(p.sell_price_minor, p.currencyCode),
+      priceMinor: p.sell_price_minor,
+      currencyCode: p.currencyCode,
       code: p.packageCode,
       id: p.slug,
       isUnlimited: true,
       countryCode: activeCountryCode || '',
+      dailyLimit: getUnlimitedDailyLimit(p),
+      name: p.name,
     }))
-    .sort((a, b) => a.days - b.days);
+    .sort((a, b) => {
+      const limitDiff = limitSortValue(a.dailyLimit || '') - limitSortValue(b.dailyLimit || '');
+      return limitDiff || sortUnlimitedDays(a, b);
+    });
 
-  const displayLimitedPlans = limitedPlans.length > 0 ? limitedPlans : staticPlans;
+  const displayLimitedPlans = normalizeStandardPlans(limitedPlans.length > 0 ? limitedPlans : staticPlans);
   const showFallbackNote = limitedPlans.length === 0 && staticPlans.length > 0;
+  const unlimitedLimitOptions = Array.from(new Set(unlimitedPlans.map(plan => plan.dailyLimit || 'FUP')))
+    .sort((a, b) => limitSortValue(a) - limitSortValue(b));
+  const selectedUnlimitedLimit =
+    UNLIMITED_LIMIT_PRIORITY.find(priority =>
+      unlimitedLimitOptions.some(limit => limit.toLowerCase() === priority.toLowerCase())
+    ) || unlimitedLimitOptions[0] || null;
+  const filteredUnlimitedPlans = selectedUnlimitedLimit
+    ? unlimitedPlans
+        .filter(plan => (plan.dailyLimit || 'FUP') === selectedUnlimitedLimit)
+        .sort(sortUnlimitedDays)
+    : unlimitedPlans;
+  const realMultiDayUnlimitedPlans = filteredUnlimitedPlans.filter(plan => plan.days > 1 && UNLIMITED_DAY_ORDER.includes(plan.days));
+  const baseUnlimitedPlan = filteredUnlimitedPlans
+    .filter(plan => plan.days === 1)
+    .sort((a, b) => (a.priceMinor ?? 0) - (b.priceMinor ?? 0))[0] || filteredUnlimitedPlans[0];
+  const displayUnlimitedPlans = realMultiDayUnlimitedPlans.length > 0
+    ? realMultiDayUnlimitedPlans.sort(sortUnlimitedDays)
+    : baseUnlimitedPlan
+      ? UNLIMITED_DAY_ORDER.map(days => ({
+          ...baseUnlimitedPlan,
+          days,
+          price: multiplyPlanPrice(baseUnlimitedPlan, days),
+          id: `${baseUnlimitedPlan.id}-${days}d`,
+          name: `${baseUnlimitedPlan.name || baseUnlimitedPlan.dailyLimit || 'Unlimited'} ${days} days`,
+        }))
+      : filteredUnlimitedPlans;
   const totalPlans = displayLimitedPlans.length + unlimitedPlans.length;
+  const selectedPlanType = activePlanType === 'unlimited' && unlimitedPlans.length > 0 ? 'unlimited' : 'standard';
+  const visiblePlans = selectedPlanType === 'unlimited' ? displayUnlimitedPlans : displayLimitedPlans;
 
   if (liveLoading) {
     return (
@@ -491,33 +620,76 @@ export default function CountryEsim() {
             </p>
           )}
 
-          {displayLimitedPlans.length > 0 && (
-            <div className="mb-10">
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Wifi className="w-5 h-5 text-blue-600" />
-                {t.countryEsim.availablePlans || 'Available Plans'} ({displayLimitedPlans.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayLimitedPlans.map((plan, i) => (
-                  <LimitedPlanCard key={plan.id || plan.code || String(i)} plan={plan} countryName={countryName} />
-                ))}
+          <section className="mb-10">
+            <div className="sticky top-16 z-20 -mx-4 mb-5 border-y border-gray-100 bg-gray-50/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+              <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-gray-200 sm:max-w-md">
+                <button
+                  type="button"
+                  onClick={() => setActivePlanType('standard')}
+                  className={
+                    'flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-3 text-sm font-black transition active:scale-[0.98] ' +
+                    (selectedPlanType === 'standard'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-gray-50')
+                  }
+                >
+                  <Wifi className="h-4 w-4" />
+                  <span>Standart</span>
+                  <span className={selectedPlanType === 'standard' ? 'text-blue-100' : 'text-gray-400'}>
+                    {displayLimitedPlans.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => unlimitedPlans.length > 0 && setActivePlanType('unlimited')}
+                  disabled={unlimitedPlans.length === 0}
+                  className={
+                    'flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-3 text-sm font-black transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 ' +
+                    (selectedPlanType === 'unlimited'
+                      ? 'bg-orange-500 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-gray-50')
+                  }
+                >
+                  <InfinityIcon className="h-4 w-4" />
+                  <span>Limitsiz</span>
+                  <span className={selectedPlanType === 'unlimited' ? 'text-orange-100' : 'text-gray-400'}>
+                    {displayUnlimitedPlans.length}
+                  </span>
+                </button>
               </div>
             </div>
-          )}
 
-          {unlimitedPlans.length > 0 && (
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <InfinityIcon className="w-5 h-5 text-purple-600" />
-                Unlimited Plans ({unlimitedPlans.length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {unlimitedPlans.map((plan) => (
-                  <UnlimitedPlanCard key={plan.code} plan={plan} countryName={countryName} />
-                ))}
+            <div className="mb-5 flex items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black text-gray-900 sm:text-2xl">
+                  {selectedPlanType === 'unlimited' ? 'Limitsiz paketlər' : 'Standart paketlər'}
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  {selectedPlanType === 'unlimited'
+                    ? 'Gündəlik limitli/FUP paketləri. Uzun istifadə üçün daha rahat seçimdir.'
+                    : 'Sabit GB həcmi olan klassik data paketləri.'}
+                </p>
               </div>
+              <span className={
+                'shrink-0 rounded-full px-3 py-1 text-sm font-bold ' +
+                (selectedPlanType === 'unlimited'
+                  ? 'bg-orange-50 text-orange-700'
+                  : 'bg-blue-50 text-blue-700')
+              }>
+                {visiblePlans.length} paket
+              </span>
             </div>
-          )}
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+              {selectedPlanType === 'unlimited'
+                ? visiblePlans.map((plan) => (
+                    <UnlimitedPlanCard key={plan.id || plan.code} plan={plan} countryName={countryName} />
+                  ))
+                : visiblePlans.map((plan, i) => (
+                    <LimitedPlanCard key={plan.id || plan.code || String(i)} plan={plan} countryName={countryName} />
+                  ))}
+            </div>
+          </section>
         </div>
       </main>
       <Footer />

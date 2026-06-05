@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
+import { Globe2, MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { isEsimRoute } from '../utils/routes';
@@ -22,14 +22,13 @@ export default function Header() {
   const langOptions = useMemo(
     () =>
       [
-        { code: 'en', label: 'EN', flag: '🇬🇧' },
-        { code: 'az', label: 'AZ', flag: '🇦🇿' },
-        { code: 'ru', label: 'RU', flag: '🇷🇺' },
-        { code: 'tr', label: 'TR', flag: '🇹🇷' },
-        // Arabic is a language, not a country — we use a common MENA flag for UI.
-        { code: 'ar', label: 'AR', flag: '🇸🇦' },
-        { code: 'es', label: 'ES', flag: '🇪🇸' },
-        { code: 'zh', label: '中文', flag: '🇨🇳' },
+        { code: 'en', label: 'EN', name: 'English', flag: '🇬🇧' },
+        { code: 'az', label: 'AZ', name: 'Azərbaycan', flag: '🇦🇿' },
+        { code: 'ru', label: 'RU', name: 'Русский', flag: '🇷🇺' },
+        { code: 'tr', label: 'TR', name: 'Türkçe', flag: '🇹🇷' },
+        { code: 'ar', label: 'AR', name: 'العربية', flag: '🇸🇦' },
+        { code: 'es', label: 'ES', name: 'Español', flag: '🇪🇸' },
+        { code: 'zh', label: '中文', name: '中文', flag: '🇨🇳' },
       ] as const,
     []
   );
@@ -52,8 +51,6 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
-
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20 transition-all">
           <a href="/" className="flex items-center gap-2 shrink-0">
@@ -65,7 +62,7 @@ export default function Header() {
           </a>
 
           <nav className="hidden lg:flex items-center gap-6">
-            {navLinks.map(link => (
+            {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -77,7 +74,6 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Conditional Mobile Buttons */}
             {isTaxiPage && (
               <a
                 href="/esim"
@@ -98,28 +94,29 @@ export default function Header() {
               </a>
             )}
 
-            {/* Language dropdown (flags) */}
             <div className="relative" dir="ltr">
               <button
                 type="button"
                 onClick={() => setLangOpen((v) => !v)}
                 onBlur={() => setTimeout(() => setLangOpen(false), 120)}
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
+                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-2.5 lg:px-3 py-1.5 lg:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
                 aria-haspopup="menu"
                 aria-expanded={langOpen}
+                aria-label="Choose language"
               >
-                <span className="text-base leading-none" aria-hidden>
+                <Globe2 className="w-4 h-4" />
+                <span className="lg:hidden text-base leading-none" aria-hidden>
                   {currentLang.flag}
                 </span>
                 <span className="leading-none">{currentLang.label}</span>
-                <span className="text-gray-400 leading-none" aria-hidden>
+                <span className="text-gray-500 leading-none" aria-hidden>
                   ▾
                 </span>
               </button>
               {langOpen && (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-40 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden z-50"
+                  className="absolute right-0 mt-2 w-56 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden z-50 p-2"
                 >
                   {langOptions.map((opt) => {
                     const active = opt.code === language;
@@ -133,15 +130,19 @@ export default function Header() {
                           switchLocale(opt.code);
                           setLangOpen(false);
                         }}
-                        className={`w-full px-3 py-2.5 flex items-center gap-2 text-sm font-semibold transition-colors ${
-                          active ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
+                        className={`w-full px-4 py-3 flex items-center justify-between gap-3 rounded-xl text-sm font-semibold transition-colors ${
+                          active
+                            ? 'bg-orange-50 text-orange-700 ring-1 ring-orange-500'
+                            : 'text-gray-800 hover:bg-gray-50'
                         }`}
                       >
-                        <span className="text-base leading-none" aria-hidden>
-                          {opt.flag}
+                        <span className="flex items-center gap-2 text-left">
+                          <span className="lg:hidden text-base leading-none" aria-hidden>
+                            {opt.flag}
+                          </span>
+                          {opt.name}
                         </span>
-                        <span className="flex-1 text-left">{opt.label}</span>
-                        {active ? <span className="text-blue-600">✓</span> : null}
+                        {active ? <span className="text-orange-600">✓</span> : null}
                       </button>
                     );
                   })}
@@ -175,7 +176,7 @@ export default function Header() {
       {mobileOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 shadow-lg">
           <nav className="px-4 py-4 space-y-1">
-            {navLinks.map(link => (
+            {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}

@@ -7,7 +7,7 @@ import type { RegionalPackage } from '../data/esimPackages';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FlagImage from '../components/FlagImage';
-import { getWaId, createOrder } from '../utils/whatsapp';
+import { appendReferralToMessage, getWaId, createOrder, trackAgentLead } from '../utils/whatsapp';
 import { useState, useMemo } from 'react';
 import Seo from '../components/Seo';
 import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
@@ -135,13 +135,20 @@ export default function RegionalEsim() {
       package_code: plan.code,
       package_id: plan.id,
     });
+    trackAgentLead({
+      productType: 'esim',
+      packageCode: plan.code || plan.id || pkg.name,
+      packageName: pkg.name,
+      viewedPackage: `${pkg.name} eSIM · ${plan.gb} GB · ${plan.days} gün · ${plan.price}`,
+      page: window.location.pathname,
+    });
 
     if (isTelegramWebApp) {
       e.preventDefault();
       const tg = window.Telegram?.WebApp;
       if (!tg) return;
 
-      tg.sendData(buildOrderMessage(plan, pkg.name, orderLang));
+      tg.sendData(appendReferralToMessage(buildOrderMessage(plan, pkg.name, orderLang), orderLang));
       tg.close();
       return;
     }
@@ -150,7 +157,7 @@ export default function RegionalEsim() {
       e.preventDefault();
       setIsOrdering(true);
       try {
-        const details = buildOrderMessage(plan, pkg.name, orderLang);
+        const details = appendReferralToMessage(buildOrderMessage(plan, pkg.name, orderLang), orderLang);
         await createOrder({
           wa_id: waId,
           type: 'esim',
@@ -173,7 +180,7 @@ export default function RegionalEsim() {
         setIsOrdering(false);
       }
     } else {
-      window.location.href = `${WA_LINK}?text=${encodeURIComponent(rawMsg)}`;
+      window.location.href = `${WA_LINK}?text=${encodeURIComponent(appendReferralToMessage(rawMsg, orderLang))}`;
     }
   };
 

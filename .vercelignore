@@ -1,0 +1,7 @@
+.git
+.pytest_cache
+node_modules
+dist
+scratch
+*.psd
+*.log

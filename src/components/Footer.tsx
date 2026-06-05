@@ -42,6 +42,7 @@ export default function Footer() {
               <li><a href="/esim" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.features}</a></li>
               <li><a href="#faq" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.faq}</a></li>
               <li><a href="#contact" className="text-gray-400 hover:text-cyan-400 transition-colors">{t.footer.contact}</a></li>
+              <li><Link to="/partners" className="text-gray-400 hover:text-cyan-400 transition-colors">Partner proqrami</Link></li>
               <li><Link to={blogPath(undefined, language)} className="text-gray-400 hover:text-cyan-400 transition-colors">{(t.footer as Record<string, string>).blog}</Link></li>
             </ul>
           </div>

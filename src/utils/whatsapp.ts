@@ -76,6 +76,90 @@ export const getWaId = (): string | null => {
   return sessionStorage.getItem('eydost_wa_id');
 };
 
+export const getReferralCode = (): string | null => {
+  const storageKey = 'eydost_referral_code';
+  const expiresKey = 'eydost_referral_expires_at';
+  const params = new URLSearchParams(window.location.search);
+  const rawRef =
+    params.get('ref') ||
+    params.get('referral') ||
+    params.get('partner') ||
+    params.get('discount');
+
+  if (rawRef) {
+    const ref = rawRef.trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+    if (ref) {
+      const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem(storageKey, ref);
+      localStorage.setItem(expiresKey, String(expiresAt));
+      sessionStorage.setItem(storageKey, ref);
+      return ref;
+    }
+  }
+
+  const sessionRef = sessionStorage.getItem(storageKey);
+  if (sessionRef) return sessionRef;
+
+  const savedRef = localStorage.getItem(storageKey);
+  const expiresAt = Number(localStorage.getItem(expiresKey) || 0);
+
+  if (savedRef && expiresAt > Date.now()) {
+    sessionStorage.setItem(storageKey, savedRef);
+    return savedRef;
+  }
+
+  localStorage.removeItem(storageKey);
+  localStorage.removeItem(expiresKey);
+  return null;
+};
+
+export const appendReferralToMessage = (message: string, language = 'az'): string => {
+  const ref = getReferralCode();
+  if (!ref) return message;
+
+  const label =
+    language === 'az'
+      ? 'Endirim kodu'
+      : language === 'tr'
+        ? 'Indirim kodu'
+        : language === 'ru'
+          ? 'Promo code'
+          : 'Promo code';
+
+  return `${message}\n${label}: ${ref}`;
+};
+
+export const trackAgentLead = async (data: {
+  productType?: 'esim' | 'taxi' | 'other';
+  packageCode?: string;
+  packageName?: string;
+  viewedPackage?: string;
+  page?: string;
+} = {}) => {
+  const ref = getReferralCode();
+  if (!ref) return;
+
+  try {
+    await fetch('/api/agent-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        referralCode: ref,
+        productType: data.productType || 'esim',
+        packageCode: data.packageCode,
+        packageName: data.packageName,
+        viewedPackage: data.viewedPackage,
+        page: data.page || window.location.pathname,
+        deviceType: window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768 ? 'mobile' : 'desktop',
+        browserLanguage: navigator.language,
+        referrer: document.referrer,
+      }),
+    });
+  } catch (error) {
+    console.warn('Failed to track agent lead:', error);
+  }
+};
+
 export const createOrder = async (data: {
   wa_id: string;
   type: 'esim' | 'taxi';

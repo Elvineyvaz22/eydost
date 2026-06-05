@@ -15,6 +15,7 @@ import FloatingWhatsApp from './components/FloatingWhatsApp';
 import CookieConsent from './components/CookieConsent';
 import VercelAnalytics from './components/VercelAnalytics';
 import VercelSpeedInsights from './components/VercelSpeedInsights';
+import ReferralTracker from './components/ReferralTracker';
 import CountryEsim from './pages/CountryEsim';
 import RegionalEsim from './pages/RegionalEsim';
 import Taxi from './pages/Taxi';
@@ -26,6 +27,8 @@ import Privacy from './pages/Privacy';
 import About from './pages/About';
 import Terms from './pages/Terms';
 import Refund from './pages/Refund';
+import Partners from './pages/Partners';
+import WorldCupEsim from './pages/WorldCupEsim';
 import {
   LegacyBlogIndexRedirect,
   LegacyBlogPostRedirect,
@@ -70,6 +73,10 @@ const Analytics = lazy(() => import('./pages/admin/Analytics'));
 const TranslationsEditor = lazy(() => import('./pages/admin/TranslationsEditor'));
 const Messages = lazy(() => import('./pages/admin/Messages'));
 const PricingEditor = lazy(() => import('./pages/admin/PricingEditor'));
+const Outreach = lazy(() => import('./pages/admin/Outreach'));
+const PartnersAdmin = lazy(() => import('./pages/admin/PartnersAdmin'));
+const AgentLogin = lazy(() => import('./pages/agent/AgentLogin'));
+const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
 const HOME_JSON_LD = [
   {
@@ -233,12 +240,15 @@ function App() {
             <VercelAnalytics />
             <VercelSpeedInsights />
             <TaxiLinkRedirect />
+            <ReferralTracker />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/refund" element={<Refund />} />
+                <Route path="/partners" element={<Partners />} />
+                <Route path="/world-cup-2026-esim" element={<WorldCupEsim />} />
                 <Route path="/blog" element={<LegacyBlogIndexRedirect />} />
                 <Route path="/blog/:slug" element={<LegacyBlogPostRedirect />} />
                 <Route path="/:lang/blog" element={<LocalizedBlogIndexRoute />} />
@@ -248,6 +258,8 @@ function App() {
                 <Route path="/esim-demo" element={<EsimAccountDemo />} />
                 <Route path="/taxi" element={<Taxi />} />
                 <Route path="/taxi-order" element={<TaxiOrderTest />} />
+                <Route path="/agent/login" element={<AgentLogin />} />
+                <Route path="/agent/dashboard" element={<AgentDashboard />} />
                 <Route
                   path="/admin/login"
                   element={
@@ -309,6 +321,24 @@ function App() {
                     <ProtectedRoute>
                       <Seo title="Admin Messages" noIndex canonicalPath="/admin/messages" />
                       <Messages />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/outreach"
+                  element={
+                    <ProtectedRoute>
+                      <Seo title="Outreach Email" noIndex canonicalPath="/admin/outreach" />
+                      <Outreach />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/partners"
+                  element={
+                    <ProtectedRoute>
+                      <Seo title="Admin Partners" noIndex canonicalPath="/admin/partners" />
+                      <PartnersAdmin />
                     </ProtectedRoute>
                   }
                 />

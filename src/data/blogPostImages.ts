@@ -19,4 +19,9 @@ export const BLOG_POST_IMAGES: Record<string, string> = {
   'best-esim-uae-dubai-2026': U('1745750434535-5943ef2fd31a'),
   'london-heathrow-airport-taxi-whatsapp': U('1513635269977-59663e0ac1ad'),
   'paris-cdg-airport-transfer-guide': U('1502602898657-3e91760cbb34'),
+  'fifa-world-cup-2026-travel-guide': U('1574629810360-7efbbe195018'),
+  'world-cup-2026-host-cities-esim-taxi': U('1522778119026-d647f0596c20'),
+  'world-cup-2026-tickets-travel-checklist': U('1508098682722-e99c643e7f0b'),
+  'best-esim-for-world-cup-2026-fans': U('1518091043644-c1d4457512c6'),
+  'world-cup-2026-usa-canada-mexico-esim': U('1500530855697-b586d89ba3ee'),
 };
