@@ -15,7 +15,6 @@ interface WorldCupPlan {
   days: string;
   price: number;
   comparePrice: number;
-  currency: string;
   packageCode: string;
   slug: string;
   dataType: number;
@@ -64,8 +63,10 @@ interface ApiPackage {
   duration: number;
 }
 
-function money(value: number, currency = 'AZN'): string {
-  return `${value.toFixed(2)} ${currency}`;
+const USD_TO_AZN_RATE = 1.7;
+
+function money(value: number): string {
+  return `$${(value / USD_TO_AZN_RATE).toFixed(2)}`;
 }
 
 function bytesToGb(value: string | number): number {
@@ -113,7 +114,6 @@ function normalizeApiPackages(country: HostCountry, packages: ApiPackage[], type
       days: isDaily ? '1-365' : String(pkg.duration),
       price,
       comparePrice: Number((price * 1.35).toFixed(2)),
-      currency: pkg.currency || 'AZN',
       packageCode: pkg.package_code,
       slug: pkg.slug,
       dataType: pkg.data_type,
@@ -190,7 +190,7 @@ export default function WorldCupEsim() {
       productType: 'esim',
       packageName: plan.name,
       packageCode: plan.packageCode,
-      viewedPackage: `World Cup 2026 ${plan.country} ${plan.data} ${plan.days} days ${money(plan.price, plan.currency)}`,
+      viewedPackage: `World Cup 2026 ${plan.country} ${plan.data} ${plan.days} days ${money(plan.price)}`,
       page: '/world-cup-2026-esim',
     });
 
@@ -199,7 +199,7 @@ export default function WorldCupEsim() {
         'Salam, World Cup 2026 ucun eSIM almaq isteyirem.',
         `Olke: ${plan.country}`,
         `Paket: ${plan.data} / ${plan.days} gun`,
-        `Qiymet: ${money(plan.price, plan.currency)}`,
+        `Qiymet: ${money(plan.price)}`,
         `Paket kodu: ${plan.packageCode}`,
       ].join('\n'),
       'az'
@@ -366,10 +366,10 @@ export default function WorldCupEsim() {
                   <div className="relative mt-5 flex items-end justify-between">
                     <div>
                       <div className="flex items-center gap-2 text-gray-400">
-                        <span className="text-lg font-black line-through">{money(plan.comparePrice, plan.currency)}</span>
+                        <span className="text-lg font-black line-through">{money(plan.comparePrice)}</span>
                         <BadgePercent className="h-4 w-4" />
                       </div>
-                      <p className="text-3xl font-black text-gray-950">{money(plan.price, plan.currency)}</p>
+                      <p className="text-3xl font-black text-gray-950">{money(plan.price)}</p>
                     </div>
                     {plan.featured && (
                       <div className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">
