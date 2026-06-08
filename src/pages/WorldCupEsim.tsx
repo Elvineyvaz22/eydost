@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BadgePercent, CalendarDays, Check, Globe2, MessageCircle, ShieldCheck, Sparkles, Trophy, Wifi } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -13,16 +13,24 @@ interface WorldCupPlan {
   name: string;
   data: string;
   days: string;
-  cost: number;
-  normalPrice?: number;
+  price: number;
+  comparePrice: number;
+  currency: string;
+  packageCode: string;
+  slug: string;
+  dataType: number;
+  periodNum: number;
   type: PlanType;
   network: string;
   featured?: boolean;
 }
 
-const MARKUP = 1.75;
-
 const COUNTRIES: HostCountry[] = ['United States', 'Canada', 'Mexico'];
+const COUNTRY_CODES: Record<HostCountry, string> = {
+  'United States': 'US',
+  Canada: 'CA',
+  Mexico: 'MX',
+};
 
 const COUNTRY_COPY: Record<HostCountry, { city: string; flag: string; note: string }> = {
   'United States': {
@@ -42,37 +50,89 @@ const COUNTRY_COPY: Record<HostCountry, { city: string; flag: string; note: stri
   },
 };
 
-const US_PLANS: WorldCupPlan[] = [
-  { country: 'United States', name: 'United States 1GB 7Days', data: '1GB', days: '7', cost: 0.9, normalPrice: 2.9, type: 'standard', network: '3G/4G/5G' },
-  { country: 'United States', name: 'United States 3GB 15Days', data: '3GB', days: '15', cost: 2.2, normalPrice: 7.3, type: 'standard', network: '3G/4G/5G' },
-  { country: 'United States', name: 'United States 5GB 30Days', data: '5GB', days: '30', cost: 3.4, normalPrice: 10.9, type: 'standard', network: '3G/4G/5G' },
-  { country: 'United States', name: 'United States 10GB 30Days', data: '10GB', days: '30', cost: 6.63, normalPrice: 18.9, type: 'standard', network: '3G/4G/5G', featured: true },
-  { country: 'United States', name: 'United States 20GB 30Days', data: '20GB', days: '30', cost: 12.43, normalPrice: 33.9, type: 'standard', network: '3G/4G/5G', featured: true },
-  { country: 'United States', name: 'United States 50GB 30Days', data: '50GB', days: '30', cost: 28, normalPrice: 74.9, type: 'standard', network: '3G/4G/5G', featured: true },
-  { country: 'United States', name: 'United States 100GB 10Days (USIP-FIFA)', data: '100GB', days: '10', cost: 69.9, normalPrice: 119, type: 'standard', network: '3G/4G/5G', featured: true },
-  { country: 'United States', name: 'United States 1GB/Day', data: '1GB/Day', days: '1-365', cost: 1.3, type: 'daily', network: '3G/4G/5G' },
-  { country: 'United States', name: 'United States 2GB/Day', data: '2GB/Day', days: '1-365', cost: 1.59, type: 'daily', network: '3G/4G/5G' },
-  { country: 'United States', name: 'United States 3GB/Day', data: '3GB/Day', days: '1-365', cost: 3.8, type: 'daily', network: '3G/4G/5G' },
-  { country: 'United States', name: 'United States 5GB/Day (USIP)', data: '5GB/Day', days: '1-365', cost: 3.21, type: 'daily', network: '3G/4G/5G' },
-  { country: 'United States', name: 'United States 10GB/Day', data: '10GB/Day', days: '1-365', cost: 4.95, type: 'daily', network: '3G/4G/5G', featured: true },
-];
-
-function money(value: number): string {
-  return `$${value.toFixed(2)}`;
+interface ApiPackage {
+  package_code: string;
+  slug: string;
+  name: string;
+  country_code: string;
+  data_type: number;
+  unlimited: boolean;
+  currency: string;
+  sell_price: string;
+  sell_price_minor: number;
+  volume: string;
+  duration: number;
 }
 
-function salePrice(plan: WorldCupPlan): number {
-  return Number((plan.cost * MARKUP).toFixed(2));
+function money(value: number, currency = 'AZN'): string {
+  return `${value.toFixed(2)} ${currency}`;
 }
 
-function comparePrice(plan: WorldCupPlan): number {
-  return plan.normalPrice ?? Number((plan.cost * 2).toFixed(2));
+function bytesToGb(value: string | number): number {
+  const bytes = typeof value === 'string' ? Number(value) : value;
+  if (!Number.isFinite(bytes) || bytes <= 0) return 0;
+  return bytes / (1024 * 1024 * 1024);
+}
+
+function dataLabel(pkg: ApiPackage): string {
+  const gb = bytesToGb(pkg.volume);
+  const rounded = Math.round(gb * 10) / 10;
+  const label = Number.isInteger(rounded) ? `${rounded.toFixed(0)}GB` : `${rounded}GB`;
+  return pkg.data_type === 2 || pkg.unlimited ? `${label}/Day` : label;
 }
 
 function discountPercent(plan: WorldCupPlan): number {
-  const compare = comparePrice(plan);
-  const sale = salePrice(plan);
+  const compare = plan.comparePrice;
+  const sale = plan.price;
   return Math.round(((compare - sale) / compare) * 100);
+}
+
+function standardRank(plan: WorldCupPlan): number {
+  const preferred = ['1GB-7', '3GB-15', '3GB-30', '5GB-30', '10GB-30', '20GB-30', '50GB-30', '100GB-10'];
+  const rank = preferred.indexOf(`${plan.data}-${plan.days}`);
+  return rank === -1 ? 1000 + Number(plan.days) : rank;
+}
+
+function normalizeApiPackages(country: HostCountry, packages: ApiPackage[], type: PlanType): WorldCupPlan[] {
+  const best = new Map<string, WorldCupPlan>();
+
+  for (const pkg of packages) {
+    const gb = bytesToGb(pkg.volume);
+    if (gb < 1) continue;
+
+    const isDaily = pkg.data_type === 2 || pkg.unlimited || /\/Day/i.test(pkg.name);
+    if ((type === 'daily') !== isDaily) continue;
+
+    const price = Number(pkg.sell_price);
+    if (!Number.isFinite(price) || price <= 0) continue;
+
+    const plan: WorldCupPlan = {
+      country,
+      name: pkg.name,
+      data: dataLabel(pkg),
+      days: isDaily ? '1-365' : String(pkg.duration),
+      price,
+      comparePrice: Number((price * 1.35).toFixed(2)),
+      currency: pkg.currency || 'AZN',
+      packageCode: pkg.package_code,
+      slug: pkg.slug,
+      dataType: pkg.data_type,
+      periodNum: pkg.duration || 1,
+      type,
+      network: '3G/4G/5G',
+      featured: gb >= 10 || /FIFA/i.test(pkg.name),
+    };
+
+    const key = `${plan.data}-${plan.days}`;
+    const current = best.get(key);
+    if (!current || plan.price < current.price || /FIFA/i.test(plan.name)) {
+      best.set(key, plan);
+    }
+  }
+
+  return Array.from(best.values())
+    .sort((a, b) => Number(b.featured || false) - Number(a.featured || false) || standardRank(a) - standardRank(b) || a.price - b.price)
+    .slice(0, type === 'standard' ? 8 : 6);
 }
 
 function footballPattern(index: number): string {
@@ -83,19 +143,54 @@ function footballPattern(index: number): string {
 export default function WorldCupEsim() {
   const [country, setCountry] = useState<HostCountry>('United States');
   const [type, setType] = useState<PlanType>('standard');
+  const [apiPackages, setApiPackages] = useState<ApiPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadPackages() {
+      setLoading(true);
+      setError('');
+      try {
+        const response = await fetch(
+          `/api/public-api-proxy?path=/api/public/packages&country_code=${COUNTRY_CODES[country]}`,
+          { signal: controller.signal }
+        );
+        const json = await response.json();
+        if (!response.ok || !json?.success) {
+          throw new Error(json?.error || 'Paketler yuklenmedi');
+        }
+        if (!cancelled) setApiPackages(Array.isArray(json.data) ? json.data : []);
+      } catch (err: any) {
+        if (!cancelled && err?.name !== 'AbortError') {
+          setApiPackages([]);
+          setError(err?.message || 'Paketler yuklenmedi');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadPackages();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [country]);
 
   const plans = useMemo(() => {
-    if (country !== 'United States') return [];
-    return US_PLANS
-      .filter((plan) => plan.type === type)
-      .sort((a, b) => Number(b.featured || false) - Number(a.featured || false) || salePrice(a) - salePrice(b));
-  }, [country, type]);
+    return normalizeApiPackages(country, apiPackages, type);
+  }, [apiPackages, country, type]);
 
   const openWhatsApp = async (plan: WorldCupPlan) => {
     await trackAgentLead({
       productType: 'esim',
       packageName: plan.name,
-      viewedPackage: `World Cup 2026 ${plan.country} ${plan.data} ${plan.days} days`,
+      packageCode: plan.packageCode,
+      viewedPackage: `World Cup 2026 ${plan.country} ${plan.data} ${plan.days} days ${money(plan.price, plan.currency)}`,
       page: '/world-cup-2026-esim',
     });
 
@@ -104,7 +199,8 @@ export default function WorldCupEsim() {
         'Salam, World Cup 2026 ucun eSIM almaq isteyirem.',
         `Olke: ${plan.country}`,
         `Paket: ${plan.data} / ${plan.days} gun`,
-        `Qiymet: ${money(salePrice(plan))}`,
+        `Qiymet: ${money(plan.price, plan.currency)}`,
+        `Paket kodu: ${plan.packageCode}`,
       ].join('\n'),
       'az'
     );
@@ -214,10 +310,24 @@ export default function WorldCupEsim() {
             </div>
           </div>
 
-          {plans.length === 0 ? (
+          {loading ? (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="h-72 animate-pulse rounded-[2rem] bg-white shadow-sm ring-1 ring-gray-200">
+                  <div className="h-full rounded-[2rem] bg-gradient-to-br from-gray-100 via-white to-gray-100" />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="mt-6 rounded-[2rem] border border-red-200 bg-red-50 p-8 text-center">
+              <Globe2 className="mx-auto h-10 w-10 text-red-600" />
+              <p className="mt-4 text-xl font-black">Paketler yuklenmedi</p>
+              <p className="mt-2 text-sm font-semibold text-red-700">{error}</p>
+            </div>
+          ) : plans.length === 0 ? (
             <div className="mt-6 rounded-[2rem] border border-dashed border-gray-300 bg-white p-8 text-center">
               <Globe2 className="mx-auto h-10 w-10 text-[#0f7a3b]" />
-              <p className="mt-4 text-xl font-black">{country} paketleri hazirlanir</p>
+              <p className="mt-4 text-xl font-black">{country} paketleri tapilmadi</p>
               <p className="mt-2 text-sm font-semibold text-gray-600">{COUNTRY_COPY[country].note}</p>
             </div>
           ) : (
@@ -256,10 +366,10 @@ export default function WorldCupEsim() {
                   <div className="relative mt-5 flex items-end justify-between">
                     <div>
                       <div className="flex items-center gap-2 text-gray-400">
-                        <span className="text-lg font-black line-through">{money(comparePrice(plan))}</span>
+                        <span className="text-lg font-black line-through">{money(plan.comparePrice, plan.currency)}</span>
                         <BadgePercent className="h-4 w-4" />
                       </div>
-                      <p className="text-3xl font-black text-gray-950">{money(salePrice(plan))}</p>
+                      <p className="text-3xl font-black text-gray-950">{money(plan.price, plan.currency)}</p>
                     </div>
                     {plan.featured && (
                       <div className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">
