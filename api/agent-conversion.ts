@@ -103,7 +103,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     body.transaction_id,
     body.invoice_id
   );
-  const saleAmount = firstNumber(body.sale_amount, body.amount, body.total, body.price);
+  const saleAmount = firstNumber(
+    body.sale_amount,
+    body.paid_amount,
+    body.payment_amount,
+    body.charged_amount,
+    body.final_amount,
+    body.discounted_price,
+    body.checkout_amount,
+    body.total_paid,
+    body.total
+  );
   const productType = firstString(body.product_type, body.type) || 'esim';
   const status = firstString(body.status) || 'confirmed';
 
