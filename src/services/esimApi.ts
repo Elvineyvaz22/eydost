@@ -143,6 +143,20 @@ interface DbPackage {
   description: string;
 }
 
+interface PublicApiPackage {
+  package_code: string;
+  slug: string;
+  name: string;
+  country_code: string;
+  data_type?: number;
+  unlimited?: boolean;
+  currency?: string;
+  sell_price?: string;
+  sell_price_minor?: number;
+  volume?: string | number;
+  duration?: number;
+}
+
 function dbToRaw(p: DbPackage): ESIMPackageRaw {
   return {
     packageCode: p.package_code,
@@ -158,10 +172,39 @@ function dbToRaw(p: DbPackage): ESIMPackageRaw {
   };
 }
 
-/**
- * Fetch packages for a specific country from Supabase.
- */
-export async function fetchPublicPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
+function publicApiToRaw(p: PublicApiPackage): ESIMPackageRaw {
+  const volume = typeof p.volume === 'string' ? Number(p.volume) : Number(p.volume || 0);
+  const sellMinor =
+    typeof p.sell_price_minor === 'number'
+      ? p.sell_price_minor
+      : Math.round(Number(p.sell_price || 0) * 10000);
+
+  return {
+    packageCode: p.package_code,
+    slug: p.slug || p.package_code,
+    name: p.name,
+    sell_price_minor: sellMinor,
+    currencyCode: p.currency || 'AZN',
+    volume: Number.isFinite(volume) ? volume : 0,
+    duration: p.duration || 1,
+    speed: '3G/4G/5G',
+    description: p.name,
+    is_unlimited: Boolean(p.unlimited || p.data_type === 2 || /GB\/Day/i.test(p.name)),
+  };
+}
+
+async function fetchPackagesFromPublicApi(countryCode: string): Promise<ESIMPackageRaw[]> {
+  const response = await fetch(
+    `/api/public-api-proxy?path=/api/public/packages&country_code=${encodeURIComponent(countryCode.toUpperCase())}`
+  );
+  const json = await response.json();
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || 'Live eSIM API unavailable');
+  }
+  return (Array.isArray(json.data) ? json.data : []).map(publicApiToRaw);
+}
+
+async function fetchPackagesFromSupabase(countryCode: string): Promise<ESIMPackageRaw[]> {
   const { data, error } = await supabase
     .from('esim_packages')
     .select('country_code, package_code, slug, name, volume_bytes, duration_days, sell_price_minor, currency_code, is_unlimited, speed, description')
@@ -171,6 +214,19 @@ export async function fetchPublicPackagesForCountry(countryCode: string): Promis
 
   if (error) throw new Error(error.message);
   return (data || []).map(dbToRaw);
+}
+
+/**
+ * Fetch packages for a specific country from the live API, with Supabase fallback.
+ */
+export async function fetchPublicPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
+  try {
+    const live = await fetchPackagesFromPublicApi(countryCode);
+    if (live.length > 0) return live;
+  } catch {
+    // Keep the country page usable if the upstream API or proxy is unavailable.
+  }
+  return fetchPackagesFromSupabase(countryCode);
 }
 
 /**
