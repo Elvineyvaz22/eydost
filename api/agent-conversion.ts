@@ -56,6 +56,25 @@ function extractReferralCode(body: Record<string, unknown>) {
   return '';
 }
 
+function buildReferralNotes(body: Record<string, unknown>) {
+  const lines: string[] = [];
+  const viewedPackage = firstString(
+    body.viewed_package,
+    body.viewedPackage,
+    body.package_name,
+    body.package,
+    body.package_title
+  );
+  const packageCode = firstString(body.package_code, body.packageCode);
+  const rawNotes = firstString(body.notes);
+
+  if (viewedPackage) lines.push(`Package: ${viewedPackage}`);
+  if (packageCode) lines.push(`Package code: ${packageCode}`);
+  if (rawNotes) lines.push(`Notes: ${rawNotes}`);
+
+  return lines.join('\n') || null;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') {
@@ -113,7 +132,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     sale_amount: saleAmount,
     commission_amount: commissionAmount,
     status: ['lead', 'confirmed', 'paid', 'cancelled'].includes(status) ? status : 'confirmed',
-    notes: firstString(body.notes, body.package_code, body.package_name) || null,
+    notes: buildReferralNotes(body),
     updated_at: new Date().toISOString(),
   };
 
