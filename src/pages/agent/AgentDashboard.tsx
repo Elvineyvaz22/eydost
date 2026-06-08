@@ -1,5 +1,5 @@
 ﻿import { FormEvent, useEffect, useState } from 'react';
-import { Copy, ExternalLink, Globe2, Laptop, Loader2, LogOut, MapPin, Package, Plus, Smartphone, TrendingUp, Users, Wallet } from 'lucide-react';
+import { CheckCircle2, Copy, ExternalLink, Globe2, Laptop, Loader2, LogOut, MapPin, Package, Plus, Smartphone, TrendingUp, Users, Wallet } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import Seo from '../../components/Seo';
 
@@ -65,15 +65,15 @@ function LeadDetails({ notes }: { notes: string | null }) {
   const language = data['language'] || data['brauzer dili'];
 
   return (
-    <div className="min-w-[280px] max-w-md">
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+    <div className="min-w-0">
+      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
         <div className="flex gap-2">
-          <div className="mt-0.5 h-8 w-8 shrink-0 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700">
             <Package className="w-4 h-4" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="text-xs font-bold uppercase text-slate-400">Baxdığı paket</div>
-            <div className="text-sm font-bold text-slate-900 leading-snug">{packageText}</div>
+            <div className="break-words text-sm font-bold leading-snug text-slate-900">{packageText}</div>
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -105,6 +105,19 @@ function LeadDetails({ notes }: { notes: string | null }) {
       </div>
     </div>
   );
+}
+
+function statusStyle(status: string) {
+  switch (status) {
+    case 'paid':
+      return 'bg-emerald-50 text-emerald-700 ring-emerald-200';
+    case 'confirmed':
+      return 'bg-blue-50 text-blue-700 ring-blue-200';
+    case 'cancelled':
+      return 'bg-red-50 text-red-700 ring-red-200';
+    default:
+      return 'bg-amber-50 text-amber-700 ring-amber-200';
+  }
 }
 
 export default function AgentDashboard() {
@@ -196,148 +209,177 @@ export default function AgentDashboard() {
     }
   };
 
+  const referralLink = agent?.referral_code ? `https://eydost.com/esim?ref=${agent.referral_code}` : '';
+  const conversionRate = totals.leads > 0 ? Math.round((referrals.filter((item) => item.status === 'paid').length / totals.leads) * 100) : 0;
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#f6f7fb]">
       <Seo title="Agent Dashboard" noIndex canonicalPath="/agent/dashboard" />
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div>
-            <div className="text-lg font-bold text-gray-900">Ey Dost Agent</div>
-            <div className="text-sm text-gray-500">{agent?.company_name || 'Agent panel'}</div>
+      <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <div className="min-w-0">
+            <div className="text-lg font-black text-slate-950">Ey Dost Agent</div>
+            <div className="truncate text-sm text-slate-500">{agent?.company_name || 'Agent panel'}</div>
           </div>
-          <button onClick={logout} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-800 font-semibold hover:bg-gray-200">
+          <button onClick={logout} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-100 px-4 font-bold text-slate-700 transition hover:bg-slate-200">
             <LogOut className="w-4 h-4" />
-            Cixis
+            Çıxış
           </button>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {loading ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-8 flex items-center gap-3 text-gray-600">
+          <div className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white p-8 text-slate-600 shadow-sm">
             <Loader2 className="w-5 h-5 animate-spin" />
-            Yuklenir...
+            Yüklənir...
           </div>
         ) : error ? (
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-5 text-red-700 font-semibold">{error}</div>
+          <div className="rounded-3xl border border-red-100 bg-red-50 p-5 font-semibold text-red-700">{error}</div>
         ) : agent ? (
-          <div className="space-y-6">
-            <section className="bg-white border border-gray-200 rounded-2xl p-6">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Salam, {agent.full_name}</h1>
-                  <p className="text-gray-600 mt-1">Referral kodu yaradildiqdan sonra linkinizi paylasa ve neticeleri burada izleye bilersiniz.</p>
-                </div>
-                {agent.referral_code && (
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button onClick={copyReferral} className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700">
-                      <Copy className="w-4 h-4" />
-                      Linki kopyala
-                    </button>
-                    <a
-                      href={`https://eydost.com/esim?ref=${agent.referral_code}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-900 text-white font-bold hover:bg-gray-800"
-                    >
-                      Ac
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
+          <div className="space-y-5">
+            <section className="overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-sm">
+              <div className="grid gap-0 lg:grid-cols-[1.35fr_0.65fr]">
+                <div className="p-6 sm:p-8">
+                  <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/80 ring-1 ring-white/10">
+                    <span className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                    {agent.status === 'active' ? 'Aktiv agent' : 'Təsdiq gözləyir'}
                   </div>
-                )}
-              </div>
-
-              {agent.referral_code ? (
-                <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 p-4 text-sm">
-                  <b>Referral link:</b> https://eydost.com/esim?ref={agent.referral_code}
+                  <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Salam, {agent.full_name}</h1>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+                    Referral linkinizi paylaşın, WhatsApp kliklərini və satış nəticələrini bu paneldən izləyin.
+                  </p>
+                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+                      <div className="text-xs font-bold uppercase text-slate-400">Komissiya faizi</div>
+                      <div className="mt-1 text-2xl font-black">{Number(agent.commission_rate || 0).toFixed(0)}%</div>
+                    </div>
+                    <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+                      <div className="text-xs font-bold uppercase text-slate-400">Konversiya</div>
+                      <div className="mt-1 text-2xl font-black">{conversionRate}%</div>
+                    </div>
+                    <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+                      <div className="text-xs font-bold uppercase text-slate-400">Kod</div>
+                      <div className="mt-1 truncate text-xl font-black">{agent.referral_code || 'Yaradılmayıb'}</div>
+                    </div>
+                  </div>
                 </div>
-              ) : agent.status === 'active' ? (
-                <form onSubmit={createReferral} className="mt-5 rounded-xl bg-slate-50 border border-slate-100 p-4">
-                  <label className="block">
-                    <span className="text-sm font-bold text-gray-700">Referral kod yaradin</span>
-                    <div className="mt-2 flex flex-col sm:flex-row gap-3">
+
+                <div className="bg-white p-5 text-slate-950 sm:p-6 lg:rounded-l-[2rem]">
+                  {agent.referral_code ? (
+                    <div className="flex h-full flex-col justify-between gap-5">
+                      <div>
+                        <div className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700">
+                          <CheckCircle2 className="h-5 w-5" />
+                          Link aktivdir
+                        </div>
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                          <div className="text-xs font-bold uppercase text-slate-400">Referral link</div>
+                          <div className="mt-2 break-all text-sm font-bold text-slate-900">{referralLink}</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button onClick={copyReferral} className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 font-black text-white transition hover:bg-blue-700">
+                          <Copy className="w-4 h-4" />
+                          Kopyala
+                        </button>
+                        <a href={referralLink} target="_blank" rel="noopener noreferrer" className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 font-black text-white transition hover:bg-slate-800">
+                          Aç
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
+                    </div>
+                  ) : agent.status === 'active' ? (
+                    <form onSubmit={createReferral} className="space-y-3">
+                      <div>
+                        <div className="text-lg font-black">Referral kod yaradın</div>
+                        <p className="mt-1 text-sm text-slate-500">Kod təsdiqdən sonra linkinizdə istifadə olunacaq.</p>
+                      </div>
                       <input
                         required
                         minLength={4}
                         value={newReferralCode}
                         onChange={(e) => setNewReferralCode(e.target.value)}
                         placeholder="mes: elvinagenti10"
-                        className="flex-1 px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
+                        className="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                       />
-                      <button
-                        type="submit"
-                        disabled={savingReferral}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-700 disabled:opacity-60"
-                      >
+                      <button type="submit" disabled={savingReferral} className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 font-black text-white transition hover:bg-orange-700 disabled:opacity-60">
                         {savingReferral ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                         Yarat
                       </button>
+                    </form>
+                  ) : (
+                    <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
+                      Hesabınız admin təsdiqi gözləyir. İcazə veriləndən sonra referral kodu bu paneldən özünüz yaradacaqsınız.
                     </div>
-                  </label>
-                </form>
-              ) : (
-                <div className="mt-5 rounded-xl bg-amber-50 border border-amber-100 p-4 text-sm text-amber-800 font-semibold">
-                  Hesabiniz admin icazesi gozleyir. Icaze verilenden sonra referral kodu bu panelden ozunuz yaradacaqsiniz.
+                  )}
                 </div>
-              )}
+              </div>
             </section>
 
-            <section className="grid md:grid-cols-4 gap-4">
+            <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: 'Lead', value: totals.leads, icon: Users },
-                { label: 'Satis meblegi', value: `$${totals.sales.toFixed(2)}`, icon: TrendingUp },
-                { label: 'Komissiya', value: `$${totals.commission.toFixed(2)}`, icon: Wallet },
-                { label: 'Odenilib', value: `$${totals.paid.toFixed(2)}`, icon: Wallet },
+                { label: 'Lead', value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700' },
+                { label: 'Satış məbləği', value: `$${totals.sales.toFixed(2)}`, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
+                { label: 'Komissiya', value: `$${totals.commission.toFixed(2)}`, icon: Wallet, tone: 'bg-emerald-50 text-emerald-700' },
+                { label: 'Ödənilib', value: `$${totals.paid.toFixed(2)}`, icon: Wallet, tone: 'bg-slate-100 text-slate-700' },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.label} className="bg-white border border-gray-200 rounded-2xl p-5">
-                    <Icon className="w-5 h-5 text-orange-600 mb-3" />
-                    <div className="text-sm text-gray-500">{item.label}</div>
-                    <div className="text-2xl font-bold text-gray-900">{item.value}</div>
+                  <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${item.tone}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="text-sm font-semibold text-slate-500">{item.label}</div>
+                    <div className="mt-1 text-3xl font-black text-slate-950">{item.value}</div>
                   </div>
                 );
               })}
             </section>
 
-            <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-              <div className="p-5 border-b border-gray-200">
-                <h2 className="font-bold text-gray-900">Son muracietler ve satislar</h2>
+            <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+              <div className="flex flex-col gap-2 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-black text-slate-950">Son müraciətlər və satışlar</h2>
+                  <p className="text-sm text-slate-500">Kliklər, baxılan paketlər və ödəniş statusları.</p>
+                </div>
+                <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                  {referrals.length} qeyd
+                </span>
               </div>
               {referrals.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  Hele lead ve satis yoxdur. Referral kod aktiv olandan sonra WhatsApp klikleri ve satislar burada gorunecek.
+                <div className="p-10 text-center text-slate-500">
+                  Hələ lead və satış yoxdur. Referral kod aktiv olandan sonra WhatsApp klikləri və satışlar burada görünəcək.
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-gray-500">
-                      <tr>
-                        <th className="text-left p-3">Tarix</th>
-                        <th className="text-left p-3">Musteri</th>
-                        <th className="text-left p-3">Xidmet</th>
-                        <th className="text-left p-3">Detal</th>
-                        <th className="text-left p-3">Status</th>
-                        <th className="text-right p-3">Satis</th>
-                        <th className="text-right p-3">Komissiya</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {referrals.map((row) => (
-                        <tr key={row.id} className="border-t border-gray-100">
-                          <td className="p-3">{new Date(row.created_at).toLocaleDateString('az-AZ')}</td>
-                          <td className="p-3">{row.customer_name || row.customer_contact || '-'}</td>
-                          <td className="p-3">{row.product_type}</td>
-                          <td className="p-3">
+                <div className="divide-y divide-slate-100">
+                  {referrals.map((row) => (
+                    <div key={row.id} className="grid gap-4 p-4 transition hover:bg-slate-50/80 lg:grid-cols-[140px_1fr_140px_140px] lg:items-center">
+                      <div>
+                        <div className="text-sm font-black text-slate-950">{new Date(row.created_at).toLocaleDateString('az-AZ')}</div>
+                        <div className="mt-1 text-xs font-semibold uppercase text-slate-400">{row.product_type}</div>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-black ring-1 ${statusStyle(row.status)}`}>
+                            {row.status}
+                          </span>
+                          <span className="text-sm font-semibold text-slate-500">{row.customer_name || row.customer_contact || 'Müştəri məlumatı yoxdur'}</span>
+                        </div>
+                        <div className="max-w-2xl">
                             <LeadDetails notes={row.notes} />
-                          </td>
-                          <td className="p-3">{row.status}</td>
-                          <td className="p-3 text-right">${Number(row.sale_amount || 0).toFixed(2)}</td>
-                          <td className="p-3 text-right">${Number(row.commission_amount || 0).toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl bg-slate-50 p-3 lg:text-right">
+                        <div className="text-xs font-bold uppercase text-slate-400">Satış</div>
+                        <div className="text-lg font-black text-slate-950">${Number(row.sale_amount || 0).toFixed(2)}</div>
+                      </div>
+                      <div className="rounded-2xl bg-emerald-50 p-3 lg:text-right">
+                        <div className="text-xs font-bold uppercase text-emerald-600">Komissiya</div>
+                        <div className="text-lg font-black text-emerald-700">${Number(row.commission_amount || 0).toFixed(2)}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
