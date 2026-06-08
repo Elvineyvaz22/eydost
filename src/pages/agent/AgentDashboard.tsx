@@ -33,6 +33,10 @@ type Totals = {
   paid: number;
 };
 
+function money(value: number): string {
+  return `$${Number(value || 0).toFixed(2)}`;
+}
+
 function parseLeadNotes(notes: string | null) {
   const result: Record<string, string> = {};
   if (!notes) return result;
@@ -238,10 +242,10 @@ export default function AgentDashboard() {
           <div className="rounded-3xl border border-red-100 bg-red-50 p-5 font-semibold text-red-700">{error}</div>
         ) : agent ? (
           <div className="space-y-5">
-            <section className="overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-sm">
-              <div className="grid gap-0 lg:grid-cols-[1.35fr_0.65fr]">
-                <div className="p-6 sm:p-8">
-                  <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/80 ring-1 ring-white/10">
+            <section className="rounded-[2rem] bg-slate-950 p-5 text-white shadow-sm sm:p-7">
+              <div className="grid gap-5 xl:grid-cols-[1fr_420px] xl:items-stretch">
+                <div className="min-w-0">
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/80 ring-1 ring-white/10">
                     <span className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                     {agent.status === 'active' ? 'Aktiv agent' : 'Təsdiq gözləyir'}
                   </div>
@@ -249,7 +253,7 @@ export default function AgentDashboard() {
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
                     Referral linkinizi paylaşın, WhatsApp kliklərini və satış nəticələrini bu paneldən izləyin.
                   </p>
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <div className="mt-6 grid gap-3 md:grid-cols-3">
                     <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
                       <div className="text-xs font-bold uppercase text-slate-400">Komissiya faizi</div>
                       <div className="mt-1 text-2xl font-black">{Number(agent.commission_rate || 0).toFixed(0)}%</div>
@@ -265,7 +269,7 @@ export default function AgentDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white p-5 text-slate-950 sm:p-6 lg:rounded-l-[2rem]">
+                <div className="rounded-[1.5rem] bg-white p-4 text-slate-950 shadow-sm sm:p-5">
                   {agent.referral_code ? (
                     <div className="flex h-full flex-col justify-between gap-5">
                       <div>
@@ -320,9 +324,9 @@ export default function AgentDashboard() {
             <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Lead', value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700' },
-                { label: 'Satış məbləği', value: `$${totals.sales.toFixed(2)}`, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
-                { label: 'Komissiya', value: `$${totals.commission.toFixed(2)}`, icon: Wallet, tone: 'bg-emerald-50 text-emerald-700' },
-                { label: 'Ödənilib', value: `$${totals.paid.toFixed(2)}`, icon: Wallet, tone: 'bg-slate-100 text-slate-700' },
+                { label: 'Satış məbləği', value: money(totals.sales), icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
+                { label: 'Komissiya', value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700' },
+                { label: 'Ödənilib', value: money(totals.paid), icon: Wallet, tone: 'bg-slate-100 text-slate-700' },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -372,11 +376,11 @@ export default function AgentDashboard() {
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3 lg:text-right">
                         <div className="text-xs font-bold uppercase text-slate-400">Satış</div>
-                        <div className="text-lg font-black text-slate-950">${Number(row.sale_amount || 0).toFixed(2)}</div>
+                        <div className="text-lg font-black text-slate-950">{money(row.sale_amount)}</div>
                       </div>
                       <div className="rounded-2xl bg-emerald-50 p-3 lg:text-right">
                         <div className="text-xs font-bold uppercase text-emerald-600">Komissiya</div>
-                        <div className="text-lg font-black text-emerald-700">${Number(row.commission_amount || 0).toFixed(2)}</div>
+                        <div className="text-lg font-black text-emerald-700">{money(row.commission_amount)}</div>
                       </div>
                     </div>
                   ))}
