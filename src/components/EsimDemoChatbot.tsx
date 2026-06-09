@@ -162,8 +162,6 @@ export default function EsimDemoChatbot() {
 
   const handleInputChange = (value: string) => {
     setInput(value);
-    const country = detectCountry(value);
-    if (country) navigateToCountry(country);
   };
 
   const askAssistant = async (text: string) => {
@@ -210,7 +208,9 @@ export default function EsimDemoChatbot() {
 
     const country = detectCountry(text);
     if (country) {
-      chooseCountry(country.code, text);
+      setInput('');
+      navigateToCountry(country);
+      await askAssistant(text);
       return;
     }
 
