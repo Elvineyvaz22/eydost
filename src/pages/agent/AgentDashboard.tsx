@@ -1,5 +1,5 @@
-﻿import { FormEvent, useEffect, useState } from 'react';
-import { CheckCircle2, Copy, ExternalLink, Globe2, Laptop, Loader2, LogOut, MapPin, Package, Plus, Smartphone, TrendingUp, Users, Wallet } from 'lucide-react';
+﻿import { useEffect, useState } from 'react';
+import { CheckCircle2, Copy, ExternalLink, Globe2, Laptop, Loader2, LogOut, MapPin, Package, Smartphone, TrendingUp, Users, Wallet } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import Seo from '../../components/Seo';
 
@@ -158,8 +158,6 @@ export default function AgentDashboard() {
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [totals, setTotals] = useState<Totals>({ leads: 0, sales: 0, commission: 0, paid: 0 });
   const [loading, setLoading] = useState(true);
-  const [savingReferral, setSavingReferral] = useState(false);
-  const [newReferralCode, setNewReferralCode] = useState('');
   const [error, setError] = useState('');
 
   const rawSession = localStorage.getItem('eydost_agent_session');
@@ -172,7 +170,7 @@ export default function AgentDashboard() {
 
     try {
       const session = JSON.parse(rawSession);
-      if (!session?.agentId || !session?.accessCode) {
+      if (!session?.agentToken) {
         localStorage.removeItem('eydost_agent_session');
         navigate('/agent/login', { replace: true });
         return;
@@ -181,7 +179,7 @@ export default function AgentDashboard() {
       const response = await fetch('/api/agent-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agentId: session.agentId, accessCode: session.accessCode }),
+        body: JSON.stringify({ agentToken: session.agentToken }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Panel yuklenmedi');
@@ -210,35 +208,6 @@ export default function AgentDashboard() {
   const copyReferral = async () => {
     if (!agent?.referral_code) return;
     await navigator.clipboard.writeText(`https://eydost.com/esim?ref=${agent.referral_code}`);
-  };
-
-  const createReferral = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!rawSession) return;
-    setSavingReferral(true);
-    setError('');
-
-    try {
-      const session = JSON.parse(rawSession);
-      const response = await fetch('/api/agent-create-referral', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          agentId: session.agentId,
-          accessCode: session.accessCode,
-          referralCode: newReferralCode,
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || 'Referral kod yaradilmadi');
-      setAgent(payload.agent);
-      setNewReferralCode('');
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Referral kod yaradilmadi');
-    } finally {
-      setSavingReferral(false);
-    }
   };
 
   const referralLink = agent?.referral_code ? `https://eydost.com/esim?ref=${agent.referral_code}` : '';
@@ -321,28 +290,9 @@ export default function AgentDashboard() {
                         </a>
                       </div>
                     </div>
-                  ) : agent.status === 'active' ? (
-                    <form onSubmit={createReferral} className="space-y-3">
-                      <div>
-                        <div className="text-lg font-black">Referral kod yaradın</div>
-                        <p className="mt-1 text-sm text-slate-500">Kod təsdiqdən sonra linkinizdə istifadə olunacaq.</p>
-                      </div>
-                      <input
-                        required
-                        minLength={4}
-                        value={newReferralCode}
-                        onChange={(e) => setNewReferralCode(e.target.value)}
-                        placeholder="mes: elvinagenti10"
-                        className="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
-                      />
-                      <button type="submit" disabled={savingReferral} className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 font-black text-white transition hover:bg-orange-700 disabled:opacity-60">
-                        {savingReferral ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                        Yarat
-                      </button>
-                    </form>
                   ) : (
                     <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
-                      Hesabınız admin təsdiqi gözləyir. İcazə veriləndən sonra referral kodu bu paneldən özünüz yaradacaqsınız.
+                      Referral kodu bot backenddə/admin tərəfdə təsdiqlənəndən sonra burada görünəcək.
                     </div>
                   )}
                 </div>

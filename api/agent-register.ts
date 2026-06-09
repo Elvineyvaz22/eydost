@@ -1,17 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
+import { botApiConfigured, callBotAgentApi, normalizeAgent, pickAgentToken } from './_bot-agent';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-function getSupabase() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-function cleanText(value: unknown, max = 160) {
+function clean(value: unknown, max = 160) {
   return String(value || '').trim().slice(0, max);
 }
 
@@ -24,16 +14,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const supabase = getSupabase();
-  if (!supabase) {
-    return res.status(500).json({ error: 'Supabase env not configured' });
+  if (!botApiConfigured()) {
+    return res.status(500).json({ error: 'Bot API env not configured' });
   }
 
-  const fullName = cleanText(req.body?.fullName);
-  const companyName = cleanText(req.body?.companyName);
-  const email = cleanText(req.body?.email).toLowerCase();
-  const accessCode = cleanText(req.body?.accessCode, 40);
-  const partnerType = cleanText(req.body?.partnerType || 'agency', 40) || 'agency';
+  const fullName = clean(req.body?.fullName || req.body?.full_name);
+  const companyName = clean(req.body?.companyName || req.body?.company_name);
+  const email = clean(req.body?.email).toLowerCase();
+  const accessCode = clean(req.body?.accessCode || req.body?.password, 80);
+  const partnerType = clean(req.body?.partnerType || req.body?.partner_type || 'agency', 40) || 'agency';
 
   if (!fullName || !companyName || !email || !accessCode) {
     return res.status(400).json({ error: 'Ad, sirket adi, email ve giris kodu teleb olunur' });
@@ -43,31 +32,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Giris kodu minimum 8 simvol, 1 boyuk herf ve 1 reqem olmalidir' });
   }
 
-  const { data: existingAgent } = await supabase
-    .from('agents')
-    .select('id')
-    .eq('email', email)
-    .maybeSingle();
-  if (existingAgent) {
-    return res.status(409).json({ error: 'Bu email ile agent artiq movcuddur' });
+  try {
+    const payload = await callBotAgentApi('/api/agents/register', {
+      method: 'POST',
+      body: {
+        full_name: fullName,
+        fullName,
+        company_name: companyName,
+        companyName,
+        email,
+        access_code: accessCode,
+        accessCode,
+        password: accessCode,
+        partner_type: partnerType,
+        partnerType,
+      },
+    });
+
+    let agentToken = pickAgentToken(payload);
+    const agent = normalizeAgent(payload, { fullName, companyName, email });
+
+    if (!agentToken) {
+      const loginPayload = await callBotAgentApi('/api/agents/login', {
+        method: 'POST',
+        body: {
+          email,
+          access_code: accessCode,
+          accessCode,
+          password: accessCode,
+        },
+      });
+      agentToken = pickAgentToken(loginPayload);
+    }
+
+    return res.status(200).json({ agent, agentToken });
+  } catch (error: any) {
+    return res.status(400).json({ error: error?.message || 'Qeydiyyat alinmadi' });
   }
-
-  const { data, error } = await supabase
-    .from('agents')
-    .insert({
-      full_name: fullName,
-      company_name: companyName,
-      email,
-      whatsapp: null,
-      partner_type: partnerType,
-      referral_code: null,
-      access_code: accessCode,
-      commission_rate: 10,
-      status: 'pending',
-    })
-    .select('id, full_name, company_name, email, referral_code, access_code, commission_rate, status')
-    .single();
-
-  if (error) return res.status(500).json({ error: error.message });
-  return res.status(200).json({ agent: data });
 }

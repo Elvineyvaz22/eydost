@@ -27,14 +27,17 @@ export default function AgentLogin() {
     [accessCode]
   );
 
-  const saveSession = (agent: { id?: string; email?: string } | null | undefined, code: string) => {
+  const saveSession = (agent: { id?: string; email?: string } | null | undefined, code: string, agentToken?: string) => {
     if (!agent?.id || !agent?.email) {
       throw new Error('Agent melumati qayitmadi. Sehifeni yenileyib tekrar yoxlayin.');
+    }
+    if (!agentToken) {
+      throw new Error('Agent token qayitmadi. Qeydiyyatdan sonra giris bolmesinden tekrar daxil olun.');
     }
 
     localStorage.setItem(
       'eydost_agent_session',
-      JSON.stringify({ agentId: agent.id, accessCode: code, email: agent.email })
+      JSON.stringify({ agentId: agent.id, accessCode: code, email: agent.email, agentToken })
     );
     navigate('/agent/dashboard');
   };
@@ -53,7 +56,7 @@ export default function AgentLogin() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Giris alinmadi');
 
-      saveSession(payload.agent, accessCode);
+      saveSession(payload.agent, accessCode, payload.agentToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Giris alinmadi');
     } finally {
@@ -81,7 +84,7 @@ export default function AgentLogin() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Qeydiyyat alinmadi');
 
-      saveSession(payload.agent, accessCode);
+      saveSession(payload.agent, accessCode, payload.agentToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Qeydiyyat alinmadi');
     } finally {
