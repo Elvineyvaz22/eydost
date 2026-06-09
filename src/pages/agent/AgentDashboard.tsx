@@ -118,19 +118,19 @@ function LeadDetails({ notes }: { notes: string | null }) {
           {source && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               <Globe2 className="w-3.5 h-3.5" />
-              source: {source}
+              Mənbə: {source}
             </span>
           )}
           {medium && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               <Globe2 className="w-3.5 h-3.5" />
-              medium: {medium}
+              Medium: {medium}
             </span>
           )}
           {campaign && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               <Globe2 className="w-3.5 h-3.5" />
-              campaign: {campaign}
+              Campaign: {campaign}
             </span>
           )}
         </div>
@@ -397,6 +397,23 @@ export default function AgentDashboard() {
                             {row.status}
                           </span>
                           <span className="text-sm font-semibold text-slate-500">{row.customer_name || row.customer_contact || 'Müştəri məlumatı yoxdur'}</span>
+                        </div>
+                        <div className="mb-2 flex flex-wrap gap-2">
+                          {parseLeadNotes(row.notes)['source'] && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-200">
+                              Mənbə: {parseLeadNotes(row.notes)['source']}
+                            </span>
+                          )}
+                          {parseLeadNotes(row.notes)['medium'] && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 ring-1 ring-indigo-200">
+                              Medium: {parseLeadNotes(row.notes)['medium']}
+                            </span>
+                          )}
+                          {parseLeadNotes(row.notes)['campaign'] && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
+                              Campaign: {parseLeadNotes(row.notes)['campaign']}
+                            </span>
+                          )}
                         </div>
                         <div className="max-w-2xl">
                             <LeadDetails notes={row.notes} />

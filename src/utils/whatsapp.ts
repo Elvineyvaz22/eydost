@@ -216,6 +216,24 @@ export const getTrafficCampaign = (): string | null => {
   return null;
 };
 
+export const getTrafficReferrerHost = (): string | null => {
+  try {
+    const referrer = document.referrer || '';
+    if (!referrer) return null;
+    const host = new URL(referrer).hostname.toLowerCase();
+    if (!host) return null;
+
+    if (host.includes('instagram.com') || host.includes('l.instagram.com')) return 'instagram';
+    if (host.includes('linktr.ee')) return 'linktree';
+    if (host.includes('tiktok.com')) return 'tiktok';
+    if (host.includes('wa.me') || host.includes('whatsapp.com') || host.includes('l.whatsapp.com')) return 'whatsapp';
+    if (host.includes('facebook.com') || host.includes('l.facebook.com')) return 'facebook';
+    return host.replace(/^www\./, '').slice(0, 80);
+  } catch {
+    return null;
+  }
+};
+
 export const appendReferralToMessage = (message: string, language = 'az'): string => {
   const ref = getReferralCode();
   if (!ref) return message;
@@ -241,7 +259,7 @@ export const trackAgentLead = async (data: {
 } = {}) => {
   const ref = getReferralCode();
   if (!ref) return;
-  const source = getTrafficSource();
+  const source = getTrafficSource() || getTrafficReferrerHost();
   const medium = getTrafficMedium();
   const campaign = getTrafficCampaign();
 

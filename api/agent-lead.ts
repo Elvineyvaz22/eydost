@@ -32,6 +32,17 @@ function getGeo(req: VercelRequest) {
   return [country, region, city].filter(Boolean).join(' / ');
 }
 
+function normalizeSource(value: string) {
+  const v = clean(value, 80).toLowerCase();
+  if (!v) return '';
+  if (v.includes('instagram.com') || v.includes('l.instagram.com')) return 'instagram';
+  if (v.includes('linktr.ee')) return 'linktree';
+  if (v.includes('tiktok.com')) return 'tiktok';
+  if (v.includes('wa.me') || v.includes('whatsapp.com') || v.includes('l.whatsapp.com')) return 'whatsapp';
+  if (v.includes('facebook.com') || v.includes('l.facebook.com')) return 'facebook';
+  return v.replace(/^www\./, '').slice(0, 80);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -66,7 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const deviceType = clean(req.body?.deviceType, 30);
   const browserLanguage = clean(req.body?.browserLanguage, 40);
   const referrer = clean(req.body?.referrer, 180);
-  const utmSource = clean(req.body?.utmSource, 80);
+  const utmSource = normalizeSource(clean(req.body?.utmSource, 80)) || normalizeSource(referrer);
   const utmMedium = clean(req.body?.utmMedium, 80);
   const utmCampaign = clean(req.body?.utmCampaign, 120);
   const geo = getGeo(req);
