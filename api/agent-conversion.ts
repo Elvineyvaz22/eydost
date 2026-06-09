@@ -32,6 +32,15 @@ function firstNumber(...values: unknown[]) {
   return 0;
 }
 
+function normalizeStatus(value: unknown) {
+  const status = firstString(value).toLowerCase();
+  if (['paid', 'success', 'succeeded', 'completed', 'done'].includes(status)) return 'paid';
+  if (['confirmed', 'confirmed_payment', 'confirmed-order'].includes(status)) return 'confirmed';
+  if (['cancelled', 'canceled', 'declined', 'failed', 'error'].includes(status)) return 'cancelled';
+  if (['lead', 'view', 'clicked', 'opened', 'created'].includes(status)) return 'lead';
+  return 'confirmed';
+}
+
 function extractReferralCode(body: Record<string, unknown>) {
   const directCode = firstString(
     body.referral_code,
@@ -75,6 +84,20 @@ function buildReferralNotes(body: Record<string, unknown>) {
   return lines.join('\n') || null;
 }
 
+function pickMetadataFromNotes(notes: string | null) {
+  if (!notes) return {};
+  const out: Record<string, string> = {};
+  for (const line of notes.split('\n')) {
+    const index = line.indexOf(':');
+    if (index === -1) continue;
+    const key = line.slice(0, index).trim().toLowerCase();
+    const value = line.slice(index + 1).trim();
+    if (!key || !value) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') {
@@ -101,7 +124,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     body.order_id,
     body.payment_id,
     body.transaction_id,
-    body.invoice_id
+    body.invoice_id,
+    body.provider_order_no
   );
   const saleAmount = firstNumber(
     body.sale_amount,
@@ -115,7 +139,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     body.total
   );
   const productType = firstString(body.product_type, body.type) || 'esim';
-  const status = firstString(body.status) || 'confirmed';
+  const status = normalizeStatus(
+    body.status ||
+    body.order_status ||
+    body.payment_status ||
+    body.event ||
+    body.event_type
+  );
 
   if (!referralCode) {
     return res.status(400).json({ error: 'referral_code is required' });
@@ -132,6 +162,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(404).json({ error: 'Active agent not found for referral code' });
   }
 
+  const { data: recentLead } = await supabase
+    .from('agent_referrals')
+    .select('notes')
+    .eq('agent_id', agent.id)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  const leadMetadata =
+    (recentLead || [])
+      .map((row) => pickMetadataFromNotes(row.notes))
+      .find((meta) => meta['source'] || meta['utm source'] || meta['medium'] || meta['campaign']) || {};
+
   const commissionAmount = Number(((saleAmount * Number(agent.commission_rate || 0)) / 100).toFixed(2));
   const payload = {
     agent_id: agent.id,
@@ -142,7 +184,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     sale_amount: saleAmount,
     commission_amount: commissionAmount,
     status: ['lead', 'confirmed', 'paid', 'cancelled'].includes(status) ? status : 'confirmed',
-    notes: buildReferralNotes(body),
+    notes: [
+      buildReferralNotes(body),
+      leadMetadata['source'] ? `Source: ${leadMetadata['source']}` : '',
+      leadMetadata['medium'] ? `Medium: ${leadMetadata['medium']}` : '',
+      leadMetadata['campaign'] ? `Campaign: ${leadMetadata['campaign']}` : '',
+    ].filter(Boolean).join('\n') || null,
     updated_at: new Date().toISOString(),
   };
 
