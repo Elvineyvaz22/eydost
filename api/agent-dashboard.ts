@@ -5,7 +5,7 @@ import {
   getAgentTokenFromRequest,
   normalizeAgent,
   unwrapData,
-} from './_bot-agent';
+} from '../src/server/botAgent';
 
 function firstString(...values: unknown[]) {
   for (const value of values) {

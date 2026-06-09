@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { botApiConfigured, callBotAgentApi, getAgentTokenFromRequest } from './_bot-agent';
+import { botApiConfigured, callBotAgentApi, getAgentTokenFromRequest } from '../src/server/botAgent';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {

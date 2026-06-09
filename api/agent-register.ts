@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { botApiConfigured, callBotAgentApi, normalizeAgent, pickAgentToken } from './_bot-agent';
+import { botApiConfigured, callBotAgentApi, normalizeAgent, pickAgentToken } from '../src/server/botAgent';
 
 function clean(value: unknown, max = 160) {
   return String(value || '').trim().slice(0, max);

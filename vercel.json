@@ -115,6 +115,7 @@
     { "src": "/api/agent-login", "dest": "/api/agent-login.ts" },
     { "src": "/api/agent-register", "dest": "/api/agent-register.ts" },
     { "src": "/api/agent-dashboard", "dest": "/api/agent-dashboard.ts" },
+    { "src": "/api/agent-searches", "dest": "/api/agent-searches.ts" },
     { "src": "/api/agent-create-referral", "dest": "/api/agent-create-referral.ts" },
     { "src": "/api/agent-lead", "dest": "/api/agent-lead.ts" },
     { "src": "/api/agent-conversion", "dest": "/api/agent-conversion.ts" },
