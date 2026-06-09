@@ -83,6 +83,39 @@ function cleanText(value: unknown, maxLength: number) {
   return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
 }
 
+function isWorldCupIntent(input: string) {
+  const text = normalizeInput(input);
+  return (
+    text.includes('world cup') ||
+    text.includes('fifa') ||
+    text.includes('dunya kuboku') ||
+    text.includes('dunya cempionati') ||
+    text.includes('football') ||
+    text.includes('futbol')
+  );
+}
+
+function detectWorldCupCountry(input: string) {
+  const text = normalizeInput(input);
+  if (/\b(us|usa|abs|amerika|america|united states)\b/.test(text)) {
+    return { code: 'US', name: 'United States' };
+  }
+  if (/\b(canada|kanada|toronto|vancouver)\b/.test(text)) {
+    return { code: 'CA', name: 'Canada' };
+  }
+  if (/\b(mexico|meksika|mexico city|guadalajara|monterrey)\b/.test(text)) {
+    return { code: 'MX', name: 'Mexico' };
+  }
+  return null;
+}
+
+function detectPlanType(input: string) {
+  const text = normalizeInput(input);
+  if (text.includes('daily') || text.includes('gunluk') || text.includes('gunluk') || text.includes('/day')) return 'daily';
+  if (text.includes('standard') || text.includes('sabit') || text.includes('adi')) return 'standard';
+  return null;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -96,6 +129,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const detectedCountry = detectCountry(message);
 
   if (!message) return res.status(400).json({ ok: false, error: 'Message is required' });
+
+  if (isWorldCupIntent(message)) {
+    const wcCountry = detectWorldCupCountry(message);
+    const planType = detectPlanType(message);
+
+    if (!wcCountry) {
+      return res.status(200).json({
+        ok: true,
+        reply: 'World Cup 2026 ucun eSIM hazirdir. Hansi olke lazimdir: ABŞ, Kanada yoxsa Meksika?',
+        action: 'none',
+        country_code: null,
+        country_slug: null,
+        flow: 'worldcup_esim',
+        next_step: 'choose_country',
+      });
+    }
+
+    if (wcCountry.code !== 'US') {
+      return res.status(200).json({
+        ok: true,
+        reply: `${wcCountry.name} ucun World Cup paketleri hazirlanir. Indi aktiv siyahi ABŞ paketleridir. Kanada ve Meksika qiymetlerini elave eden kimi gondere bilecem.`,
+        action: 'none',
+        country_code: wcCountry.code,
+        country_slug: null,
+        flow: 'worldcup_esim',
+        next_step: 'pending_prices',
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      reply: planType === 'daily'
+        ? 'ABŞ World Cup gunluk paketleri hazirdir: 1GB/Day, 2GB/Day, 3GB/Day, 5GB/Day ve 10GB/Day. Nece gun qalacaginizi yazin, uygun paketi secim.'
+        : 'ABŞ World Cup standart paketleri hazirdir: 1GB, 3GB, 5GB, 10GB, 15GB, 20GB, 50GB ve 100GB. Nece gun qalacaginizi ve ne qeder data istediyinizi yazin.',
+      action: 'none',
+      country_code: 'US',
+      country_slug: null,
+      flow: 'worldcup_esim',
+      next_step: planType ? 'choose_plan' : 'choose_plan_type',
+      packages_endpoint: `/api/worldcup-packages?country=US${planType ? `&type=${planType}` : ''}`,
+    });
+  }
 
   const countryList = COUNTRIES.map((country) => `${country.code}:${country.slug}`).join(', ');
   const systemPrompt = [
