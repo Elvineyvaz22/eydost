@@ -54,7 +54,13 @@ export default function AgentLogin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, accessCode }),
       });
-      const payload = await response.json();
+      const responseText = await response.text();
+      let payload: any = {};
+      try {
+        payload = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        payload = { error: responseText || 'Giris server xetasi' };
+      }
       if (!response.ok) throw new Error(payload.error || 'Giris alinmadi');
 
       saveSession(payload.agent, accessCode, payload.agentToken);
@@ -82,7 +88,13 @@ export default function AgentLogin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName, companyName, phoneNumber, email, accessCode }),
       });
-      const payload = await response.json();
+      const responseText = await response.text();
+      let payload: any = {};
+      try {
+        payload = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        payload = { error: responseText || 'Qeydiyyat server xetasi' };
+      }
       if (!response.ok) throw new Error(payload.error || 'Qeydiyyat alinmadi');
 
       saveSession(payload.agent, accessCode, payload.agentToken);

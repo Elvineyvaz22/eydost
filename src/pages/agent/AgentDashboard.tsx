@@ -181,7 +181,13 @@ export default function AgentDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agentToken: session.agentToken }),
       });
-      const payload = await response.json();
+      const responseText = await response.text();
+      let payload: any = {};
+      try {
+        payload = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        payload = { error: responseText || 'Panel server xetasi' };
+      }
       if (!response.ok) throw new Error(payload.error || 'Panel yuklenmedi');
 
       setAgent(payload.agent);

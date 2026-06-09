@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import {
-  botApiConfigured,
-  callBotAgentApi,
-  getAgentTokenFromRequest,
-  normalizeAgent,
-  unwrapData,
-} from '../src/server/botAgent';
+
+const BOT_API_BASE_URL =
+  process.env.PUBLIC_API_BASE_URL ||
+  process.env.ESIM_BOT_BASE_URL ||
+  'https://bot.eydost.az';
+const PUBLIC_API_KEY = process.env.PUBLIC_API_KEY;
+const PUBLIC_API_AUTH_TOKEN = process.env.PUBLIC_API_AUTH_TOKEN;
 
 function firstString(...values: unknown[]) {
   for (const value of values) {
@@ -24,6 +24,68 @@ function firstNumber(...values: unknown[]) {
     }
   }
   return 0;
+}
+
+function unwrapData(payload: any) {
+  return payload?.data ?? payload?.agent ?? payload;
+}
+
+function normalizeAgent(raw: any) {
+  const data = raw?.data ?? raw;
+  const agent = data?.agent ?? data;
+  const firstCode = Array.isArray(data?.codes) ? data.codes[0] : null;
+  return {
+    id: firstString(agent?.id, agent?.email),
+    full_name: firstString(agent?.full_name, agent?.name, agent?.email),
+    company_name: firstString(agent?.company_name, agent?.company, 'Agent'),
+    email: firstString(agent?.email).toLowerCase(),
+    referral_code: firstString(agent?.referral_code, firstCode?.referral_code, firstCode?.code) || null,
+    commission_rate: firstNumber(agent?.commission_rate, 10) || 10,
+    status: firstString(agent?.status, agent?.is_active === false ? 'pending' : 'active') || 'active',
+  };
+}
+
+function getAgentTokenFromRequest(req: VercelRequest) {
+  return firstString(
+    req.body?.agentToken,
+    req.body?.token,
+    req.headers.authorization?.toString().replace(/^Bearer\s+/i, '')
+  );
+}
+
+async function readJson(response: Response) {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
+}
+
+async function callBotAgentApi(path: string, token: string, query?: Record<string, unknown>) {
+  const url = new URL(path, BOT_API_BASE_URL);
+  Object.entries(query || {}).forEach(([key, value]) => {
+    const single = firstString(value);
+    if (single) url.searchParams.set(key, single);
+  });
+
+  const upstream = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'x-api-key': PUBLIC_API_KEY || '',
+      'x-auth-token': PUBLIC_API_AUTH_TOKEN || '',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const payload = await readJson(upstream);
+  if (!upstream.ok) {
+    const detail = payload?.detail || payload?.error || payload?.message || `Bot API error (${upstream.status})`;
+    throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+  }
+  return payload;
 }
 
 function normalizeRows(payload: any) {
@@ -126,7 +188,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!botApiConfigured()) {
+  if (!PUBLIC_API_KEY || !PUBLIC_API_AUTH_TOKEN) {
     return res.status(500).json({ error: 'Bot API env not configured' });
   }
 
@@ -137,8 +199,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const [mePayload, searchesPayload] = await Promise.all([
-      callBotAgentApi('/api/agents/me', { token: agentToken }),
-      callBotAgentApi('/api/agents/searches', { token: agentToken, query: { limit: 100 } }),
+      callBotAgentApi('/api/agents/me', agentToken),
+      callBotAgentApi('/api/agents/searches', agentToken, { limit: 100 }),
     ]);
 
     const agent = normalizeAgent(mePayload);
