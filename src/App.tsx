@@ -16,6 +16,7 @@ import CookieConsent from './components/CookieConsent';
 import VercelAnalytics from './components/VercelAnalytics';
 import VercelSpeedInsights from './components/VercelSpeedInsights';
 import ReferralTracker from './components/ReferralTracker';
+import EsimDemoChatbot from './components/EsimDemoChatbot';
 import CountryEsim from './pages/CountryEsim';
 import RegionalEsim from './pages/RegionalEsim';
 import Taxi from './pages/Taxi';
@@ -29,6 +30,7 @@ import Terms from './pages/Terms';
 import Refund from './pages/Refund';
 import Partners from './pages/Partners';
 import WorldCupEsim from './pages/WorldCupEsim';
+import ChatbotDemo from './pages/ChatbotDemo';
 import {
   LegacyBlogIndexRedirect,
   LegacyBlogPostRedirect,
@@ -241,6 +243,7 @@ function App() {
             <VercelSpeedInsights />
             <TaxiLinkRedirect />
             <ReferralTracker />
+            <EsimDemoChatbot />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/privacy" element={<Privacy />} />
@@ -249,6 +252,7 @@ function App() {
                 <Route path="/refund" element={<Refund />} />
                 <Route path="/partners" element={<Partners />} />
                 <Route path="/world-cup-2026-esim" element={<WorldCupEsim />} />
+                <Route path="/chatbot-demo" element={<ChatbotDemo />} />
                 <Route path="/blog" element={<LegacyBlogIndexRedirect />} />
                 <Route path="/blog/:slug" element={<LegacyBlogPostRedirect />} />
                 <Route path="/:lang/blog" element={<LocalizedBlogIndexRoute />} />
