@@ -66,6 +66,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const deviceType = clean(req.body?.deviceType, 30);
   const browserLanguage = clean(req.body?.browserLanguage, 40);
   const referrer = clean(req.body?.referrer, 180);
+  const utmSource = clean(req.body?.utmSource, 80);
+  const utmMedium = clean(req.body?.utmMedium, 80);
+  const utmCampaign = clean(req.body?.utmCampaign, 120);
   const geo = getGeo(req);
 
   const notes = [
@@ -75,6 +78,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     page ? `Page: ${page}` : '',
     deviceType ? `Device: ${deviceType}` : '',
     browserLanguage ? `Language: ${browserLanguage}` : '',
+    utmSource ? `Source: ${utmSource}` : '',
+    utmMedium ? `Medium: ${utmMedium}` : '',
+    utmCampaign ? `Campaign: ${utmCampaign}` : '',
     geo ? `Geo: ${geo}` : '',
     referrer ? `Referrer: ${referrer}` : '',
   ]

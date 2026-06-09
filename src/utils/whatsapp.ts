@@ -113,6 +113,109 @@ export const getReferralCode = (): string | null => {
   return null;
 };
 
+export const getTrafficSource = (): string | null => {
+  const storageKey = 'eydost_traffic_source';
+  const expiresKey = 'eydost_traffic_source_expires_at';
+  const params = new URLSearchParams(window.location.search);
+  const rawSource =
+    params.get('utm_source') ||
+    params.get('source') ||
+    params.get('referrer_source') ||
+    params.get('channel');
+
+  if (rawSource) {
+    const source = rawSource.trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+    if (source) {
+      const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem(storageKey, source);
+      localStorage.setItem(expiresKey, String(expiresAt));
+      sessionStorage.setItem(storageKey, source);
+      return source;
+    }
+  }
+
+  const sessionSource = sessionStorage.getItem(storageKey);
+  if (sessionSource) return sessionSource;
+
+  const savedSource = localStorage.getItem(storageKey);
+  const expiresAt = Number(localStorage.getItem(expiresKey) || 0);
+
+  if (savedSource && expiresAt > Date.now()) {
+    sessionStorage.setItem(storageKey, savedSource);
+    return savedSource;
+  }
+
+  localStorage.removeItem(storageKey);
+  localStorage.removeItem(expiresKey);
+  return null;
+};
+
+export const getTrafficMedium = (): string | null => {
+  const storageKey = 'eydost_traffic_medium';
+  const expiresKey = 'eydost_traffic_medium_expires_at';
+  const params = new URLSearchParams(window.location.search);
+  const rawMedium = params.get('utm_medium') || params.get('medium');
+
+  if (rawMedium) {
+    const medium = rawMedium.trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+    if (medium) {
+      const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem(storageKey, medium);
+      localStorage.setItem(expiresKey, String(expiresAt));
+      sessionStorage.setItem(storageKey, medium);
+      return medium;
+    }
+  }
+
+  const sessionMedium = sessionStorage.getItem(storageKey);
+  if (sessionMedium) return sessionMedium;
+
+  const savedMedium = localStorage.getItem(storageKey);
+  const expiresAt = Number(localStorage.getItem(expiresKey) || 0);
+
+  if (savedMedium && expiresAt > Date.now()) {
+    sessionStorage.setItem(storageKey, savedMedium);
+    return savedMedium;
+  }
+
+  localStorage.removeItem(storageKey);
+  localStorage.removeItem(expiresKey);
+  return null;
+};
+
+export const getTrafficCampaign = (): string | null => {
+  const storageKey = 'eydost_traffic_campaign';
+  const expiresKey = 'eydost_traffic_campaign_expires_at';
+  const params = new URLSearchParams(window.location.search);
+  const rawCampaign = params.get('utm_campaign') || params.get('campaign');
+
+  if (rawCampaign) {
+    const campaign = rawCampaign.trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+    if (campaign) {
+      const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem(storageKey, campaign);
+      localStorage.setItem(expiresKey, String(expiresAt));
+      sessionStorage.setItem(storageKey, campaign);
+      return campaign;
+    }
+  }
+
+  const sessionCampaign = sessionStorage.getItem(storageKey);
+  if (sessionCampaign) return sessionCampaign;
+
+  const savedCampaign = localStorage.getItem(storageKey);
+  const expiresAt = Number(localStorage.getItem(expiresKey) || 0);
+
+  if (savedCampaign && expiresAt > Date.now()) {
+    sessionStorage.setItem(storageKey, savedCampaign);
+    return savedCampaign;
+  }
+
+  localStorage.removeItem(storageKey);
+  localStorage.removeItem(expiresKey);
+  return null;
+};
+
 export const appendReferralToMessage = (message: string, language = 'az'): string => {
   const ref = getReferralCode();
   if (!ref) return message;
@@ -138,6 +241,9 @@ export const trackAgentLead = async (data: {
 } = {}) => {
   const ref = getReferralCode();
   if (!ref) return;
+  const source = getTrafficSource();
+  const medium = getTrafficMedium();
+  const campaign = getTrafficCampaign();
 
   try {
     await fetch('/api/agent-lead', {
@@ -153,6 +259,9 @@ export const trackAgentLead = async (data: {
         deviceType: window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768 ? 'mobile' : 'desktop',
         browserLanguage: navigator.language,
         referrer: document.referrer,
+        utmSource: source,
+        utmMedium: medium,
+        utmCampaign: campaign,
       }),
     });
   } catch (error) {

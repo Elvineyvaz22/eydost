@@ -53,11 +53,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const totals = rows.reduce(
     (acc, row) => {
       acc.leads += 1;
-      if (row.status === 'confirmed' || row.status === 'paid') {
+      if (row.status === 'paid') {
         acc.sales += Number(row.sale_amount || 0);
         acc.commission += Number(row.commission_amount || 0);
+        acc.paid += Number(row.commission_amount || 0);
       }
-      if (row.status === 'paid') acc.paid += Number(row.commission_amount || 0);
       return acc;
     },
     { leads: 0, sales: 0, commission: 0, paid: 0 }

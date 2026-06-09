@@ -67,6 +67,10 @@ function LeadDetails({ notes }: { notes: string | null }) {
   const geo = data['geo'] || data['təxmini ölkə/şəhər'] || data['texmini olke/seher'];
   const page = data['page'] || data['səhifə'] || data['sehife'];
   const language = data['language'] || data['brauzer dili'];
+  const source = data['source'] || data['utm source'] || data['mənbə'];
+  const medium = data['medium'] || data['utm medium'];
+  const campaign = data['campaign'] || data['utm campaign'];
+  const orderReference = data['order reference'] || data['order_id'] || data['transaction id'] || data['provider order no'];
 
   return (
     <div className="min-w-0">
@@ -81,6 +85,12 @@ function LeadDetails({ notes }: { notes: string | null }) {
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
+          {orderReference && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              <Package className="w-3.5 h-3.5" />
+              {orderReference}
+            </span>
+          )}
           {device && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               {device === 'mobile' ? <Smartphone className="w-3.5 h-3.5" /> : <Laptop className="w-3.5 h-3.5" />}
@@ -103,6 +113,24 @@ function LeadDetails({ notes }: { notes: string | null }) {
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               <ExternalLink className="w-3.5 h-3.5" />
               {page}
+            </span>
+          )}
+          {source && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              <Globe2 className="w-3.5 h-3.5" />
+              source: {source}
+            </span>
+          )}
+          {medium && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              <Globe2 className="w-3.5 h-3.5" />
+              medium: {medium}
+            </span>
+          )}
+          {campaign && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              <Globe2 className="w-3.5 h-3.5" />
+              campaign: {campaign}
             </span>
           )}
         </div>
@@ -377,6 +405,9 @@ export default function AgentDashboard() {
                       <div className="rounded-2xl bg-slate-50 p-3 lg:text-right">
                         <div className="text-xs font-bold uppercase text-slate-400">Satış</div>
                         <div className="text-lg font-black text-slate-950">{money(row.sale_amount)}</div>
+                        {row.order_reference && (
+                          <div className="mt-1 text-xs font-semibold text-slate-400">Order: {row.order_reference}</div>
+                        )}
                       </div>
                       <div className="rounded-2xl bg-emerald-50 p-3 lg:text-right">
                         <div className="text-xs font-bold uppercase text-emerald-600">Komissiya</div>
