@@ -6,31 +6,46 @@ const DEMO_ACTIVE_KEY = 'eydost_esim_chatbot_demo_active';
 const DEMO_MESSAGES_KEY = 'eydost_esim_chatbot_demo_messages';
 const DEMO_COUNTRY_KEY = 'eydost_esim_chatbot_demo_country';
 const DEMO_VERSION_KEY = 'eydost_esim_chatbot_demo_version';
-const DEMO_VERSION = 'assistant-demo-v1';
+const DEMO_VERSION = 'openai-assistant-v1';
 
 type ChatMessage = {
   role: 'bot' | 'user';
   text: string;
 };
 
-const COUNTRY_MATCHES: Array<{ code: string; slug: string; names: string[] }> = [
-  { code: 'TR', slug: 'turkey-esim', names: ['turkey', 'turkiye', 'turkiyə', 'türkiye', 'türkiyə', 'istanbul', 'antalya'] },
-  { code: 'AZ', slug: 'azerbaijan-esim', names: ['azerbaijan', 'azerbaycan', 'azərbaycan', 'baku', 'baki', 'bakı'] },
-  { code: 'US', slug: 'united-states-esim', names: ['usa', 'us', 'united states', 'america', 'amerika', 'abs', 'abş'] },
-  { code: 'AE', slug: 'uae-esim', names: ['uae', 'dubai', 'abu dhabi', 'emirates', 'birləşmiş ərəb'] },
-  { code: 'GE', slug: 'georgia-esim', names: ['georgia', 'gurcustan', 'gürcüstan', 'tbilisi'] },
-  { code: 'DE', slug: 'germany-esim', names: ['germany', 'almaniya', 'deutschland'] },
-  { code: 'FR', slug: 'france-esim', names: ['france', 'fransa', 'paris'] },
-  { code: 'IT', slug: 'italy-esim', names: ['italy', 'italiya', 'rome', 'roma'] },
-  { code: 'ES', slug: 'spain-esim', names: ['spain', 'ispaniya', 'barcelona', 'madrid'] },
-  { code: 'GB', slug: 'uk-esim', names: ['uk', 'england', 'london', 'united kingdom', 'ingiltere', 'britain'] },
+type CountryMatch = {
+  code: string;
+  slug: string;
+  label: string;
+  names: string[];
+};
+
+const COUNTRY_MATCHES: CountryMatch[] = [
+  { code: 'TR', slug: 'turkey-esim', label: 'Turkiye', names: ['turkey', 'turkiye', 'türkiye', 'istanbul', 'antalya'] },
+  { code: 'AZ', slug: 'azerbaijan-esim', label: 'Azerbaycan', names: ['azerbaijan', 'azerbaycan', 'azərbaycan', 'baku', 'baki', 'bakı'] },
+  { code: 'US', slug: 'united-states-esim', label: 'ABŞ', names: ['usa', 'us', 'united states', 'america', 'amerika', 'abs', 'abş'] },
+  { code: 'AE', slug: 'uae-esim', label: 'Dubai', names: ['uae', 'dubai', 'abu dhabi', 'emirates', 'birləşmiş ərəb', 'birləşmiş ereb'] },
+  { code: 'GE', slug: 'georgia-esim', label: 'Gurcustan', names: ['georgia', 'gurcustan', 'gürcüstan', 'tbilisi'] },
+  { code: 'DE', slug: 'germany-esim', label: 'Almaniya', names: ['germany', 'almaniya', 'deutschland'] },
+  { code: 'FR', slug: 'france-esim', label: 'Fransa', names: ['france', 'fransa', 'paris'] },
+  { code: 'IT', slug: 'italy-esim', label: 'Italiya', names: ['italy', 'italiya', 'rome', 'roma'] },
+  { code: 'ES', slug: 'spain-esim', label: 'Ispaniya', names: ['spain', 'ispaniya', 'barcelona', 'madrid'] },
+  { code: 'GB', slug: 'uk-esim', label: 'Ingiltere', names: ['uk', 'england', 'london', 'united kingdom', 'ingiltere', 'britain'] },
+  { code: 'SA', slug: 'saudi-arabia-esim', label: 'Seudiyye', names: ['saudi', 'saudi arabia', 'seudiye', 'səudiyyə', 'riyadh', 'jeddah'] },
+  { code: 'QA', slug: 'qatar-esim', label: 'Qatar', names: ['qatar', 'doha'] },
+  { code: 'EG', slug: 'egypt-esim', label: 'Misir', names: ['egypt', 'misir', 'cairo', 'sharm'] },
+  { code: 'TH', slug: 'thailand-esim', label: 'Tayland', names: ['thailand', 'tayland', 'bangkok', 'phuket'] },
+  { code: 'JP', slug: 'japan-esim', label: 'Yaponiya', names: ['japan', 'yaponiya', 'tokyo'] },
+  { code: 'CN', slug: 'china-esim', label: 'Cin', names: ['china', 'cin', 'çin', 'beijing', 'shanghai'] },
+  { code: 'CA', slug: 'canada-esim', label: 'Kanada', names: ['canada', 'kanada', 'toronto'] },
+  { code: 'MX', slug: 'mexico-esim', label: 'Meksika', names: ['mexico', 'meksika', 'cancun'] },
 ];
 
 function initialMessages(): ChatMessage[] {
   return [
     {
       role: 'bot',
-      text: 'Salam! Hansı ölkə üçün eSIM lazımdır? Ölkə adını yazın, səhifəni açaq.',
+      text: 'Salam! Hansı ölkə üçün eSIM lazımdır? Ölkə adını yazın, uyğun səhifəni açım.',
     },
   ];
 }
@@ -65,7 +80,7 @@ function loadMessages() {
   try {
     if (sessionStorage.getItem(DEMO_VERSION_KEY) !== DEMO_VERSION) return initialMessages();
     const raw = sessionStorage.getItem(DEMO_MESSAGES_KEY);
-    return raw ? JSON.parse(raw) as ChatMessage[] : initialMessages();
+    return raw ? (JSON.parse(raw) as ChatMessage[]) : initialMessages();
   } catch {
     return initialMessages();
   }
@@ -129,15 +144,20 @@ export default function EsimDemoChatbot() {
     autoNavigatedCountry.current = '';
   };
 
-  const chooseCountry = (code: string, userText?: string) => {
-    const country = COUNTRY_MATCHES.find((item) => item.code === code);
-    if (!country || autoNavigatedCountry.current === country.code) return;
-
+  const navigateToCountry = (country: CountryMatch) => {
+    if (autoNavigatedCountry.current === country.code) return;
     autoNavigatedCountry.current = country.code;
     sessionStorage.setItem(DEMO_COUNTRY_KEY, country.code);
-    setMessages((current) => userText ? [...current, { role: 'user', text: userText }] : current);
     setInput('');
     navigate(`/${country.slug}`);
+  };
+
+  const chooseCountry = (code: string, userText?: string) => {
+    const country = COUNTRY_MATCHES.find((item) => item.code === code);
+    if (!country) return;
+
+    if (userText) setMessages((current) => [...current, { role: 'user', text: userText }]);
+    navigateToCountry(country);
   };
 
   const handleInputChange = (value: string) => {
@@ -149,34 +169,30 @@ export default function EsimDemoChatbot() {
   const askAssistant = async (text: string) => {
     setThinking(true);
     try {
-      const response = await fetch('/api/public-api-proxy?path=/api/public/assistant/message', {
+      const response = await fetch('/api/chatbot-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          session_id: 'eydost-chatbot-demo',
           language_code: 'az',
-          metadata: {
-            source: 'chatbot-demo',
-            current_path: location.pathname,
-          },
+          current_path: location.pathname,
         }),
       });
-      const rawText = await response.text();
-      let payload: any = {};
-      try {
-        payload = rawText ? JSON.parse(rawText) : {};
-      } catch {
-        payload = { error: rawText };
-      }
+      const payload = await response.json().catch(() => ({}));
 
       const assistantText =
-        payload?.data?.assistant_text ||
-        payload?.assistant_text ||
+        payload?.reply ||
         payload?.error ||
-        'Sizi uyğun eSIM səhifəsinə yönləndirə bilərəm. Ölkə adını yazın, məsələn: Fransa, Türkiyə, Dubai.';
+        'Hansı ölkə üçün eSIM lazımdır? Ölkə adını yazın, uyğun səhifəni açaq.';
 
       setMessages((current) => [...current, { role: 'bot', text: assistantText }]);
+
+      if (payload?.action === 'navigate_country' && payload?.country_slug) {
+        const country = COUNTRY_MATCHES.find((item) => item.slug === payload.country_slug);
+        if (country) {
+          window.setTimeout(() => navigateToCountry(country), 250);
+        }
+      }
     } catch {
       setMessages((current) => [
         ...current,
@@ -207,21 +223,23 @@ export default function EsimDemoChatbot() {
     <div className="fixed bottom-5 right-5 z-50">
       {open ? (
         <div className="flex h-[460px] w-[calc(100vw-2.5rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-          <div className="flex items-center justify-between bg-slate-950 px-4 py-3 text-white">
+          <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-3 text-white">
             <div>
-              <div className="text-sm font-black">Ey Dost eSIM Demo</div>
-              <div className="text-xs text-slate-300">Ölkəni yazın, səhifəni açaq</div>
+              <div className="text-sm font-black">Ey Dost AI eSIM</div>
+              <div className="text-xs text-white/85">Ölkəni yazın, səhifəni açaq</div>
             </div>
-            <button onClick={closeChatbot} className="rounded-lg p-2 hover:bg-white/10" aria-label="Bağla">
+            <button onClick={closeChatbot} className="rounded-lg p-2 hover:bg-white/15" aria-label="Bağla">
               <X className="h-4 w-4" />
             </button>
           </div>
           <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50 p-3">
             {messages.map((message, index) => (
               <div key={index} className={message.role === 'user' ? 'text-right' : 'text-left'}>
-                <div className={`inline-block max-w-[90%] rounded-2xl px-3 py-2 text-sm font-semibold leading-5 ${
-                  message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white text-slate-800 shadow-sm'
-                }`}>
+                <div
+                  className={`inline-block max-w-[90%] rounded-2xl px-3 py-2 text-sm font-semibold leading-5 ${
+                    message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white text-slate-800 shadow-sm'
+                  }`}
+                >
                   {message.text}
                 </div>
               </div>
@@ -236,20 +254,20 @@ export default function EsimDemoChatbot() {
             )}
           </div>
           <div className="flex gap-2 border-t border-slate-100 bg-white px-3 pt-3">
-            {[
-              { label: 'Türkiyə', value: 'TR' },
-              { label: 'Azərbaycan', value: 'AZ' },
-              { label: 'Fransa', value: 'FR' },
-            ].map((action) => (
-              <button
-                key={action.value}
-                type="button"
-                onClick={() => chooseCountry(action.value)}
-                className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700 hover:border-blue-300 hover:bg-blue-50"
-              >
-                {action.label}
-              </button>
-            ))}
+            {['TR', 'AZ', 'FR'].map((code) => {
+              const country = COUNTRY_MATCHES.find((item) => item.code === code);
+              if (!country) return null;
+              return (
+                <button
+                  key={country.code}
+                  type="button"
+                  onClick={() => chooseCountry(country.code)}
+                  className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700 hover:border-blue-300 hover:bg-blue-50"
+                >
+                  {country.label}
+                </button>
+              );
+            })}
           </div>
           <form onSubmit={submit} className="flex gap-2 border-t border-slate-200 bg-white p-3">
             <input
