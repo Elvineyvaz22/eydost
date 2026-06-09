@@ -32,6 +32,14 @@ function firstNumber(...values: unknown[]) {
   return 0;
 }
 
+function moneyToUsd(value: unknown, currency: unknown) {
+  const amount = firstNumber(value);
+  if (!amount) return 0;
+  return firstString(currency).toUpperCase() === 'AZN'
+    ? Number((amount / 1.7).toFixed(2))
+    : Number(amount.toFixed(2));
+}
+
 function normalizeStatus(value: unknown) {
   const status = firstString(value).toLowerCase();
   if (['paid', 'success', 'succeeded', 'completed', 'done'].includes(status)) return 'paid';
@@ -116,7 +124,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Supabase env not configured' });
   }
 
-  const body = req.body || {};
+  const rawBody = req.body || {};
+  const body = (rawBody.data && typeof rawBody.data === 'object')
+    ? { ...rawBody, ...(rawBody.data as Record<string, unknown>) }
+    : rawBody;
   const referralCode = extractReferralCode(body);
 
   const orderReference = firstString(
@@ -129,6 +140,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   );
   const saleAmount = firstNumber(
     body.sale_amount,
+    body.sell_price,
+    body.amount,
     body.paid_amount,
     body.payment_amount,
     body.charged_amount,
@@ -138,6 +151,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     body.total_paid,
     body.total
   );
+  const saleAmountUsd = moneyToUsd(saleAmount, body.currency);
   const productType = firstString(body.product_type, body.type) || 'esim';
   const status = normalizeStatus(
     body.status ||
@@ -174,14 +188,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .map((row) => pickMetadataFromNotes(row.notes))
       .find((meta) => meta['source'] || meta['utm source'] || meta['medium'] || meta['campaign']) || {};
 
-  const commissionAmount = Number(((saleAmount * Number(agent.commission_rate || 0)) / 100).toFixed(2));
+  const commissionAmount = Number(((saleAmountUsd * Number(agent.commission_rate || 0)) / 100).toFixed(2));
   const payload = {
     agent_id: agent.id,
     customer_name: firstString(body.customer_name, body.name) || null,
     customer_contact: firstString(body.customer_contact, body.phone, body.email, body.whatsapp) || null,
     product_type: ['esim', 'taxi', 'other'].includes(productType) ? productType : 'esim',
     order_reference: orderReference || null,
-    sale_amount: saleAmount,
+    sale_amount: saleAmountUsd,
     commission_amount: commissionAmount,
     status: ['lead', 'confirmed', 'paid', 'cancelled'].includes(status) ? status : 'confirmed',
     notes: [
