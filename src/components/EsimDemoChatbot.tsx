@@ -11,7 +11,6 @@ const DEMO_VERSION = 'country-route-only-v3';
 type ChatMessage = {
   role: 'bot' | 'user';
   text: string;
-  actions?: Array<{ label: string; value: string }>;
 };
 
 const COUNTRY_MATCHES: Array<{ code: string; slug: string; names: string[] }> = [
@@ -31,12 +30,7 @@ function initialMessages(): ChatMessage[] {
   return [
     {
       role: 'bot',
-      text: 'Salam! Hansı ölkə üçün eSIM lazımdır? Məsələn: Türkiyə, Azərbaycan, Fransa, ABŞ, Dubai.',
-      actions: [
-        { label: 'Türkiyə', value: 'TR' },
-        { label: 'Azərbaycan', value: 'AZ' },
-        { label: 'Fransa', value: 'FR' },
-      ],
+      text: 'Salam! Hansı ölkə üçün eSIM lazımdır? Ölkə adını yazın, səhifəni açaq.',
     },
   ];
 }
@@ -172,20 +166,23 @@ export default function EsimDemoChatbot() {
                 }`}>
                   {message.text}
                 </div>
-                {message.actions && (
-                  <div className="mt-2 grid gap-2">
-                    {message.actions.map((action) => (
-                      <button
-                        key={action.value}
-                        onClick={() => chooseCountry(action.value)}
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-bold text-slate-800 hover:border-blue-300 hover:bg-blue-50"
-                      >
-                        {action.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
+            ))}
+          </div>
+          <div className="flex gap-2 border-t border-slate-100 bg-white px-3 pt-3">
+            {[
+              { label: 'Türkiyə', value: 'TR' },
+              { label: 'Azərbaycan', value: 'AZ' },
+              { label: 'Fransa', value: 'FR' },
+            ].map((action) => (
+              <button
+                key={action.value}
+                type="button"
+                onClick={() => chooseCountry(action.value)}
+                className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700 hover:border-blue-300 hover:bg-blue-50"
+              >
+                {action.label}
+              </button>
             ))}
           </div>
           <form onSubmit={submit} className="flex gap-2 border-t border-slate-200 bg-white p-3">
