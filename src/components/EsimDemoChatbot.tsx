@@ -6,7 +6,7 @@ const DEMO_ACTIVE_KEY = 'eydost_esim_chatbot_demo_active';
 const DEMO_MESSAGES_KEY = 'eydost_esim_chatbot_demo_messages';
 const DEMO_COUNTRY_KEY = 'eydost_esim_chatbot_demo_country';
 const DEMO_VERSION_KEY = 'eydost_esim_chatbot_demo_version';
-const DEMO_VERSION = 'country-route-only-v3';
+const DEMO_VERSION = 'assistant-demo-v1';
 
 type ChatMessage = {
   role: 'bot' | 'user';
@@ -96,6 +96,7 @@ export default function EsimDemoChatbot() {
   const [open, setOpen] = useState(() => sessionStorage.getItem(DEMO_ACTIVE_KEY) === '1');
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
   const [input, setInput] = useState('');
+  const [thinking, setThinking] = useState(false);
   const autoNavigatedCountry = useRef('');
 
   useEffect(() => {
@@ -145,7 +146,48 @@ export default function EsimDemoChatbot() {
     if (country) chooseCountry(country.code, value);
   };
 
-  const submit = (event: FormEvent) => {
+  const askAssistant = async (text: string) => {
+    setThinking(true);
+    try {
+      const response = await fetch('/api/public-api-proxy?path=/api/public/assistant/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          session_id: 'eydost-chatbot-demo',
+          language_code: 'az',
+          metadata: {
+            source: 'chatbot-demo',
+            current_path: location.pathname,
+          },
+        }),
+      });
+      const rawText = await response.text();
+      let payload: any = {};
+      try {
+        payload = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        payload = { error: rawText };
+      }
+
+      const assistantText =
+        payload?.data?.assistant_text ||
+        payload?.assistant_text ||
+        payload?.error ||
+        'Sizi uyğun eSIM səhifəsinə yönləndirə bilərəm. Ölkə adını yazın, məsələn: Fransa, Türkiyə, Dubai.';
+
+      setMessages((current) => [...current, { role: 'bot', text: assistantText }]);
+    } catch {
+      setMessages((current) => [
+        ...current,
+        { role: 'bot', text: 'Hazırda demo bot cavab verə bilmədi. Ölkə adını yazın, uyğun eSIM səhifəsini açaq.' },
+      ]);
+    } finally {
+      setThinking(false);
+    }
+  };
+
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     const text = input.trim();
     if (!text) return;
@@ -156,12 +198,9 @@ export default function EsimDemoChatbot() {
       return;
     }
 
-    setMessages((current) => [
-      ...current,
-      { role: 'user', text },
-      { role: 'bot', text: 'Ölkə adını yazın, mən uyğun eSIM səhifəsini açım. Məsələn: Fransa paketləri lazımdır.' },
-    ]);
+    setMessages((current) => [...current, { role: 'user', text }]);
     setInput('');
+    await askAssistant(text);
   };
 
   return (
@@ -187,6 +226,14 @@ export default function EsimDemoChatbot() {
                 </div>
               </div>
             ))}
+            {thinking && (
+              <div className="text-left">
+                <div className="inline-flex items-center gap-1 rounded-2xl bg-white px-3 py-2 text-sm font-semibold text-slate-500 shadow-sm">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+                  Yazır...
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex gap-2 border-t border-slate-100 bg-white px-3 pt-3">
             {[

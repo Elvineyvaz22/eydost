@@ -21,17 +21,17 @@ export default function ChatbotDemo() {
             <div>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-bold text-blue-100">
                 <Bot className="h-4 w-4" />
-                Test rejimi
+                Gizli demo
               </div>
               <h1 className="max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
                 eSIM chatbot demo
               </h1>
               <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-                Chatbot ölkəni başa düşür, uyğun eSIM səhifəsinə keçir, paket təklif edir və sifarişi WhatsApp-da tamamlayır.
+                Demo bot yazışmanı aparır, ölkəni başa düşəndə uyğun eSIM səhifəsinə keçirir. Paket seçimi yenə real səhifədə qalır.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link to="/turkey-esim" className="rounded-2xl bg-blue-600 px-5 py-3 font-black text-white hover:bg-blue-700">
-                  Türkiyə ilə test et
+                  Türkiyə səhifəsinə bax
                 </Link>
                 <Link to="/esim" className="rounded-2xl bg-white/10 px-5 py-3 font-black text-white ring-1 ring-white/15 hover:bg-white/15">
                   Ölkələrə bax
@@ -41,9 +41,9 @@ export default function ChatbotDemo() {
             <div className="rounded-3xl bg-white p-5 text-slate-950 shadow-2xl">
               <div className="grid gap-4">
                 {[
-                  { icon: MessageCircle, title: 'Chatla başlayır', text: 'Müştəri “Türkiyə üçün internet” yazır.' },
-                  { icon: Smartphone, title: 'Səhifəyə keçir', text: 'Arxa planda uyğun ölkə səhifəsi açılır.' },
-                  { icon: ShieldCheck, title: 'WhatsApp final', text: 'Paket seçilir və sifariş WhatsApp-a göndərilir.' },
+                  { icon: MessageCircle, title: 'AI yazışma', text: 'Müştəri sual verir, bot eSIM almağa yönləndirir.' },
+                  { icon: Smartphone, title: 'Səhifəyə keçir', text: 'Ölkə tanınan kimi uyğun eSIM səhifəsi açılır.' },
+                  { icon: ShieldCheck, title: 'WhatsApp final', text: 'Paket səhifədən seçilir və sifariş WhatsApp-da tamamlanır.' },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
@@ -66,7 +66,7 @@ export default function ChatbotDemo() {
           <div className="rounded-3xl border border-slate-200 bg-white p-6">
             <h2 className="text-2xl font-black text-slate-950">Necə test edək?</h2>
             <p className="mt-3 max-w-3xl text-slate-600">
-              Sağ altdakı chatbot açıq qalacaq. “Türkiyə üçün 7 günlük eSIM lazımdır” yazın. Chatbot sizi Türkiyə eSIM səhifəsinə aparacaq və paket seçimini WhatsApp mesajına çevirəcək.
+              Sağ altdakı chatbot açıq qalacaq. “Fransa paketləri lazımdır” yazın. Ölkə tanınan kimi bot sizi həmin eSIM səhifəsinə aparacaq. Digər suallarda demo assistant cavab verəcək.
             </p>
           </div>
         </section>
