@@ -22,8 +22,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       method: 'POST',
       body: {
         email,
-        access_code: accessCode,
-        accessCode,
         password: accessCode,
       },
     });

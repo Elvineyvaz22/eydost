@@ -21,11 +21,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const fullName = clean(req.body?.fullName || req.body?.full_name);
   const companyName = clean(req.body?.companyName || req.body?.company_name);
   const email = clean(req.body?.email).toLowerCase();
+  const phoneNumber = clean(req.body?.phoneNumber || req.body?.phone_number, 50);
   const accessCode = clean(req.body?.accessCode || req.body?.password, 80);
   const partnerType = clean(req.body?.partnerType || req.body?.partner_type || 'agency', 40) || 'agency';
 
-  if (!fullName || !companyName || !email || !accessCode) {
-    return res.status(400).json({ error: 'Ad, sirket adi, email ve giris kodu teleb olunur' });
+  if (!fullName || !companyName || !email || !phoneNumber || !accessCode) {
+    return res.status(400).json({ error: 'Ad, sirket adi, telefon, email ve giris kodu teleb olunur' });
   }
 
   if (!isStrongAccessCode(accessCode)) {
@@ -41,8 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         company_name: companyName,
         companyName,
         email,
-        access_code: accessCode,
-        accessCode,
+        phone_number: phoneNumber,
         password: accessCode,
         partner_type: partnerType,
         partnerType,
@@ -57,8 +57,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         method: 'POST',
         body: {
           email,
-          access_code: accessCode,
-          accessCode,
           password: accessCode,
         },
       });

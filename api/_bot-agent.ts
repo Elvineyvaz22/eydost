@@ -88,15 +88,24 @@ export function pickAgentToken(payload: any) {
 }
 
 export function normalizeAgent(raw: any, fallback: Record<string, unknown> = {}) {
-  const agent = unwrapData(raw) || {};
+  const container = unwrapData(raw) || {};
+  const agent = container.agent || container;
+  const firstCode = Array.isArray(container.codes) ? container.codes[0] : null;
   return {
     id: clean(agent.id ?? agent.agent_id ?? fallback.agentId ?? fallback.email),
     full_name: clean(agent.full_name ?? agent.fullName ?? agent.name ?? fallback.fullName ?? fallback.email),
     company_name: clean(agent.company_name ?? agent.companyName ?? agent.company ?? fallback.companyName ?? 'Agent'),
     email: clean(agent.email ?? fallback.email).toLowerCase(),
-    referral_code: clean(agent.referral_code ?? agent.referralCode ?? agent.promo_code ?? agent.promoCode) || null,
+    referral_code: clean(
+      agent.referral_code ??
+      agent.referralCode ??
+      agent.promo_code ??
+      agent.promoCode ??
+      firstCode?.referral_code ??
+      firstCode?.code
+    ) || null,
     commission_rate: Number(agent.commission_rate ?? agent.commissionRate ?? 10),
-    status: clean(agent.status ?? (agent.approved === false ? 'pending' : 'active')) || 'active',
+    status: clean(agent.status ?? (agent.is_active === false || agent.approved === false ? 'pending' : 'active')) || 'active',
   };
 }
 

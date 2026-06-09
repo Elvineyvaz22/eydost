@@ -15,6 +15,7 @@ export default function AgentLogin() {
   const [showAccessCode, setShowAccessCode] = useState(false);
   const [fullName, setFullName] = useState('');
   const [companyName, setCompanyName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -79,7 +80,7 @@ export default function AgentLogin() {
       const response = await fetch('/api/agent-register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, companyName, email, accessCode }),
+        body: JSON.stringify({ fullName, companyName, phoneNumber, email, accessCode }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Qeydiyyat alinmadi');
@@ -144,6 +145,16 @@ export default function AgentLogin() {
                 required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
+                className="mt-2 w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
+              />
+            </label>
+            <label className="block mb-4">
+              <span className="text-sm font-bold text-gray-700">Telefon</span>
+              <input
+                required
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+994..."
                 className="mt-2 w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
               />
             </label>
