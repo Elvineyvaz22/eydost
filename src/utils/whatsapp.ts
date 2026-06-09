@@ -288,56 +288,21 @@ export const trackAgentLead = async (data: {
 };
 
 export const createOrder = async (data: {
-  wa_id?: string;
+  wa_id: string;
   type: 'esim' | 'taxi';
   code?: string;
   id?: string;
   details?: string;
-  countryCode?: string;
-  packageName?: string;
-  periodNum?: number;
-  dataType?: number;
 }) => {
   try {
-    let trackedOrder: any = null;
-    const referralCode = getReferralCode();
-
-    if (data.type === 'esim' && referralCode && data.code && data.countryCode) {
-      const response = await fetch('/api/agent-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          referralCode,
-          packageCode: data.code,
-          packageSlug: data.id || data.code,
-          packageName: data.packageName,
-          countryCode: data.countryCode,
-          periodNum: data.periodNum || 1,
-          dataType: data.dataType || 1,
-          viewedPackage: data.details,
-        }),
-      });
-      trackedOrder = await response.json();
-    }
-
-    const orderId = trackedOrder?.orderId || trackedOrder?.order?.id;
-    const details = orderId
-      ? `${data.details || ''}\nOrder ID: ${orderId}`
-      : data.details;
-
-    if (!data.wa_id) {
-      return { status: 'tracked', trackedOrder, details };
-    }
-
     const response = await fetch('/api/whatsapp/order', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ ...data, details }),
+      body: JSON.stringify(data),
     });
-    const whatsappOrder = await response.json();
-    return { ...whatsappOrder, trackedOrder, details };
+    return await response.json();
   } catch (error) {
     console.error('Failed to create order:', error);
     return { status: 'error', message: 'Connection failed' };

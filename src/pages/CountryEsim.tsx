@@ -243,17 +243,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
       setIsOrdering(true);
       try {
         // Include localized message so the backend/bot doesn't default to English.
-        await createOrder({
-          wa_id: waId,
-          type: 'esim',
-          code: plan.code,
-          id: plan.id,
-          countryCode: plan.countryCode,
-          packageName: countryName,
-          periodNum: 1,
-          dataType: plan.isUnlimited ? 2 : 1,
-          details: textMsg,
-        });
+        await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
         showToast(
           language === 'az'
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
@@ -273,17 +263,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
         setIsOrdering(false);
       }
     } else {
-      const order = await createOrder({
-        type: 'esim',
-        code: plan.code,
-        id: plan.id,
-        countryCode: plan.countryCode,
-        packageName: countryName,
-        periodNum: 1,
-        dataType: plan.isUnlimited ? 2 : 1,
-        details: textMsg,
-      });
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(order.details || textMsg);
+      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
     }
   };
 
@@ -375,17 +355,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
     if (waId) {
       setIsOrdering(true);
       try {
-        await createOrder({
-          wa_id: waId,
-          type: 'esim',
-          code: plan.code,
-          id: plan.id,
-          countryCode: plan.countryCode,
-          packageName: countryName,
-          periodNum: plan.days,
-          dataType: 2,
-          details: textMsg,
-        });
+        await createOrder({ wa_id: waId, type: 'esim', code: plan.code, details: textMsg });
         showToast(
           language === 'az'
             ? 'Sifarişiniz WhatsApp-a göndərildi! Zəhmət olmasa çat bölməsinə qayıdın.'
@@ -397,17 +367,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
         setIsOrdering(false);
       }
     } else {
-      const order = await createOrder({
-        type: 'esim',
-        code: plan.code,
-        id: plan.id,
-        countryCode: plan.countryCode,
-        packageName: countryName,
-        periodNum: plan.days,
-        dataType: 2,
-        details: textMsg,
-      });
-      window.location.href = WA_LINK + "?text=" + encodeURIComponent(order.details || textMsg);
+      window.location.href = WA_LINK + "?text=" + encodeURIComponent(textMsg);
     }
   };
 
