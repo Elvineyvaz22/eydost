@@ -159,7 +159,7 @@ function normalizeReferral(row: any, index: number) {
 }
 
 function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeReferral>[]) {
-  const data = unwrapData(mePayload) || {};
+  const data = mePayload?.data ?? mePayload ?? {};
   const totals = data.totals || data.stats || data;
 
   const fallback = referrals.reduce(
@@ -176,7 +176,8 @@ function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeR
   );
 
   return {
-    leads: firstNumber(totals.leads, totals.lead_count, totals.clicks, totals.searches_count) || fallback.leads,
+    leads: firstNumber(totals.search_count, totals.searches_count, totals.leads, totals.lead_count, totals.clicks) || fallback.leads,
+    conversions: firstNumber(totals.conversion_count, totals.conversions, totals.sale_count, totals.sales_count),
     sales: firstNumber(totals.sales, totals.sales_amount, totals.total_sales) || fallback.sales,
     commission: firstNumber(totals.commission, totals.commission_amount, totals.total_commission) || fallback.commission,
     paid: firstNumber(totals.paid, totals.paid_commission, totals.paid_amount) || fallback.paid,

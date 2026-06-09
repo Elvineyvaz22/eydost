@@ -28,6 +28,7 @@ type Referral = {
 
 type Totals = {
   leads: number;
+  conversions?: number;
   sales: number;
   commission: number;
   paid: number;
@@ -308,9 +309,9 @@ export default function AgentDashboard() {
             <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Lead', value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700' },
+                { label: 'Satış sayı', value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
                 { label: 'Satış məbləği', value: money(totals.sales), icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
                 { label: 'Komissiya', value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700' },
-                { label: 'Ödənilib', value: money(totals.paid), icon: Wallet, tone: 'bg-slate-100 text-slate-700' },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
