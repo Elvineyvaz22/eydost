@@ -157,6 +157,44 @@ interface PublicApiPackage {
   duration?: number;
 }
 
+const COUNTRY_PACKAGES_CACHE_PREFIX = 'eydost_esim_country_packages_';
+const COUNTRY_PACKAGES_CACHE_TTL_MS = 10 * 60 * 1000;
+
+type CachedCountryPackages = {
+  savedAt: number;
+  packages: ESIMPackageRaw[];
+};
+
+function getCountryPackagesCacheKey(countryCode: string) {
+  return COUNTRY_PACKAGES_CACHE_PREFIX + countryCode.toUpperCase();
+}
+
+export function getCachedPackagesForCountry(countryCode: string): ESIMPackageRaw[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(getCountryPackagesCacheKey(countryCode));
+    if (!raw) return null;
+    const cached = JSON.parse(raw) as CachedCountryPackages;
+    if (!cached?.savedAt || !Array.isArray(cached.packages)) return null;
+    if (Date.now() - cached.savedAt > COUNTRY_PACKAGES_CACHE_TTL_MS) return null;
+    return cached.packages;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedPackagesForCountry(countryCode: string, packages: ESIMPackageRaw[]) {
+  if (typeof window === 'undefined' || packages.length === 0) return;
+  try {
+    sessionStorage.setItem(
+      getCountryPackagesCacheKey(countryCode),
+      JSON.stringify({ savedAt: Date.now(), packages } satisfies CachedCountryPackages)
+    );
+  } catch {
+    /* ignore cache quota/private mode */
+  }
+}
+
 function dbToRaw(p: DbPackage): ESIMPackageRaw {
   return {
     packageCode: p.package_code,
@@ -222,11 +260,16 @@ async function fetchPackagesFromSupabase(countryCode: string): Promise<ESIMPacka
 export async function fetchPublicPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
   try {
     const live = await fetchPackagesFromPublicApi(countryCode);
-    if (live.length > 0) return live;
+    if (live.length > 0) {
+      setCachedPackagesForCountry(countryCode, live);
+      return live;
+    }
   } catch {
     // Keep the country page usable if the upstream API or proxy is unavailable.
   }
-  return fetchPackagesFromSupabase(countryCode);
+  const fallback = await fetchPackagesFromSupabase(countryCode);
+  setCachedPackagesForCountry(countryCode, fallback);
+  return fallback;
 }
 
 /**

@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
 import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
-import { fetchPublicPackagesForCountry, countryCodeToFlag, getCountryNameLocalized, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
+import { fetchPublicPackagesForCountry, getCachedPackagesForCountry, countryCodeToFlag, getCountryNameLocalized, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
 
 const WA_LINK = 'https://wa.me/994992010117';
 const UNLIMITED_DAY_ORDER = [3, 5, 7, 10, 15, 30];
@@ -445,7 +445,13 @@ export default function CountryEsim() {
 
   useEffect(() => {
     if (!activeCountryCode) return;
-    setLiveLoading(true);
+    const cached = getCachedPackagesForCountry(activeCountryCode);
+    if (cached?.length) {
+      setLivePkgs(cached);
+      setLiveLoading(false);
+    } else {
+      setLiveLoading(true);
+    }
     setLiveError(null);
     fetchPublicPackagesForCountry(activeCountryCode)
       .then(pkgs => { setLivePkgs(pkgs); setLiveLoading(false); })
@@ -535,7 +541,7 @@ export default function CountryEsim() {
   const selectedPlanType = activePlanType === 'unlimited' && unlimitedPlans.length > 0 ? 'unlimited' : 'standard';
   const visiblePlans = selectedPlanType === 'unlimited' ? displayUnlimitedPlans : displayLimitedPlans;
 
-  if (liveLoading) {
+  if (liveLoading && staticPlans.length === 0 && livePkgs.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />

@@ -141,7 +141,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.setHeader('Vary', 'Origin');
     }
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Cache-Control', 'no-store');
+    if (req.method === 'GET' && proxyPath === '/api/public/packages') {
+      res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=300');
+    } else {
+      res.setHeader('Cache-Control', 'no-store');
+    }
     return res.status(upstream.status).send(text);
   } catch (error: any) {
     console.error('[public-api-proxy] upstream error:', error);
