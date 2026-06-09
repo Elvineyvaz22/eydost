@@ -78,7 +78,7 @@ export default function Header() {
             {showChatbotLink && (
               <a
                 href="/chatbot-demo"
-                className="hidden lg:flex items-center gap-1.5 bg-slate-950 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-800 transition-all shadow-sm"
+                className="hidden lg:flex items-center gap-1.5 bg-blue-50 text-blue-700 ring-1 ring-blue-100 px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all shadow-sm"
               >
                 <Bot className="w-3.5 h-3.5" />
                 AI eSIM
@@ -176,7 +176,7 @@ export default function Header() {
             {showChatbotLink && (
               <a
                 href="/chatbot-demo"
-                className="lg:hidden flex items-center gap-1.5 bg-slate-950 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-800 transition-all shadow-md active:scale-95"
+                className="lg:hidden flex items-center gap-1.5 bg-blue-50 text-blue-700 ring-1 ring-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all shadow-sm active:scale-95"
               >
                 <Bot className="w-3 h-3" />
                 AI
