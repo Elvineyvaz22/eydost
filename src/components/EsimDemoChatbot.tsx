@@ -86,6 +86,7 @@ export function activateEsimDemoChatbot() {
     sessionStorage.removeItem(DEMO_MESSAGES_KEY);
     sessionStorage.removeItem(DEMO_COUNTRY_KEY);
   }
+  window.dispatchEvent(new Event('eydost-esim-chatbot-activate'));
 }
 
 export default function EsimDemoChatbot() {
@@ -98,6 +99,16 @@ export default function EsimDemoChatbot() {
   const autoNavigatedCountry = useRef('');
 
   useEffect(() => {
+    const handleActivate = () => {
+      setActive(true);
+      setOpen(true);
+      setMessages(loadMessages());
+    };
+    window.addEventListener('eydost-esim-chatbot-activate', handleActivate);
+    return () => window.removeEventListener('eydost-esim-chatbot-activate', handleActivate);
+  }, []);
+
+  useEffect(() => {
     const enabled = sessionStorage.getItem(DEMO_ACTIVE_KEY) === '1';
     setActive(enabled);
     if (enabled) setOpen(true);
@@ -108,6 +119,14 @@ export default function EsimDemoChatbot() {
   }, [messages]);
 
   if (!active || location.pathname.startsWith('/admin') || location.pathname.startsWith('/agent')) return null;
+
+  const closeChatbot = () => {
+    sessionStorage.removeItem(DEMO_ACTIVE_KEY);
+    sessionStorage.removeItem(DEMO_COUNTRY_KEY);
+    setActive(false);
+    setOpen(false);
+    autoNavigatedCountry.current = '';
+  };
 
   const chooseCountry = (code: string, userText?: string) => {
     const country = COUNTRY_MATCHES.find((item) => item.code === code);
@@ -154,7 +173,7 @@ export default function EsimDemoChatbot() {
               <div className="text-sm font-black">Ey Dost eSIM Demo</div>
               <div className="text-xs text-slate-300">Ölkəni yazın, səhifəni açaq</div>
             </div>
-            <button onClick={() => setOpen(false)} className="rounded-lg p-2 hover:bg-white/10" aria-label="Bağla">
+            <button onClick={closeChatbot} className="rounded-lg p-2 hover:bg-white/10" aria-label="Bağla">
               <X className="h-4 w-4" />
             </button>
           </div>

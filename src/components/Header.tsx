@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Globe2, MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
+import { Bot, Globe2, MessageCircle, Menu, X, Car, Smartphone } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { isEsimRoute } from '../utils/routes';
@@ -37,6 +37,7 @@ export default function Header() {
   const isTaxiPage = location.pathname === '/taxi';
   const isPackagesPage = location.pathname === '/esim';
   const isEsimPage = isEsimRoute(location.pathname);
+  const showChatbotLink = location.pathname === '/' || (isEsimPage && !isPackagesPage);
 
   const blogLabel = (t.nav as Record<string, string>).blog ?? 'Blog';
 
@@ -74,6 +75,16 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {showChatbotLink && (
+              <a
+                href="/chatbot-demo"
+                className="hidden lg:flex items-center gap-1.5 bg-slate-950 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-800 transition-all shadow-sm"
+              >
+                <Bot className="w-3.5 h-3.5" />
+                AI eSIM
+              </a>
+            )}
+
             {isTaxiPage && (
               <a
                 href="/esim"
@@ -159,6 +170,16 @@ export default function Header() {
               >
                 <MessageCircle className="w-4 h-4" />
                 WhatsApp
+              </a>
+            )}
+
+            {showChatbotLink && (
+              <a
+                href="/chatbot-demo"
+                className="lg:hidden flex items-center gap-1.5 bg-slate-950 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-800 transition-all shadow-md active:scale-95"
+              >
+                <Bot className="w-3 h-3" />
+                AI
               </a>
             )}
 
