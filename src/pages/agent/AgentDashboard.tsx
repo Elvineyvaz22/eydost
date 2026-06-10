@@ -73,6 +73,13 @@ const dashboardCopy = {
     campaign: 'Campaign',
     sale: 'Sale',
     order: 'Order',
+    topCountries: 'Top countries',
+    topPackages: 'Top packages',
+    lastSevenDays: 'Last 7 days',
+    country: 'Country',
+    packageCode: 'Package',
+    orders: 'Orders',
+    noAnalytics: 'No analytics yet',
     dateLocale: 'en-US',
   },
   az: {
@@ -110,6 +117,13 @@ const dashboardCopy = {
     campaign: 'Campaign',
     sale: 'Satış',
     order: 'Order',
+    topCountries: 'Ən yaxşı ölkələr',
+    topPackages: 'Ən yaxşı paketlər',
+    lastSevenDays: 'Son 7 gündə sifarişlər',
+    country: 'Ölkə',
+    packageCode: 'Paket',
+    orders: 'Sifarişlər',
+    noAnalytics: 'Hələ analitika yoxdur',
     dateLocale: 'az-AZ',
   },
   tr: {
@@ -147,6 +161,13 @@ const dashboardCopy = {
     campaign: 'Campaign',
     sale: 'Satış',
     order: 'Order',
+    topCountries: 'En iyi ülkeler',
+    topPackages: 'En iyi paketler',
+    lastSevenDays: 'Son 7 gün',
+    country: 'Ülke',
+    packageCode: 'Paket',
+    orders: 'Siparişler',
+    noAnalytics: 'Henüz analitik yok',
     dateLocale: 'tr-TR',
   },
   ru: {
@@ -184,6 +205,13 @@ const dashboardCopy = {
     campaign: 'Campaign',
     sale: 'Продажа',
     order: 'Order',
+    topCountries: 'Топ стран',
+    topPackages: 'Топ пакетов',
+    lastSevenDays: 'Последние 7 дней',
+    country: 'Страна',
+    packageCode: 'Пакет',
+    orders: 'Заказы',
+    noAnalytics: 'Пока нет аналитики',
     dateLocale: 'ru-RU',
   },
   ar: {
@@ -221,6 +249,13 @@ const dashboardCopy = {
     campaign: 'Campaign',
     sale: 'بيع',
     order: 'Order',
+    topCountries: 'أفضل الدول',
+    topPackages: 'أفضل الباقات',
+    lastSevenDays: 'آخر 7 أيام',
+    country: 'الدولة',
+    packageCode: 'الباقة',
+    orders: 'الطلبات',
+    noAnalytics: 'لا توجد تحليلات بعد',
     dateLocale: 'ar',
   },
   es: {
@@ -258,6 +293,13 @@ const dashboardCopy = {
     campaign: 'Campaign',
     sale: 'Venta',
     order: 'Order',
+    topCountries: 'Top países',
+    topPackages: 'Top paquetes',
+    lastSevenDays: 'Últimos 7 días',
+    country: 'País',
+    packageCode: 'Paquete',
+    orders: 'Pedidos',
+    noAnalytics: 'Aún no hay analítica',
     dateLocale: 'es-ES',
   },
   zh: {
@@ -295,6 +337,13 @@ const dashboardCopy = {
     campaign: 'Campaign',
     sale: '销售',
     order: 'Order',
+    topCountries: '热门国家',
+    topPackages: '热门套餐',
+    lastSevenDays: '最近 7 天',
+    country: '国家',
+    packageCode: '套餐',
+    orders: '订单',
+    noAnalytics: '暂无分析数据',
     dateLocale: 'zh-CN',
   },
 } satisfies Record<AgentLanguage, Record<string, string>>;
@@ -316,6 +365,118 @@ function parseLeadNotes(notes: string | null) {
   });
 
   return result;
+}
+
+function pickFromNotes(notes: string | null, keys: string[]) {
+  const data = parseLeadNotes(notes);
+  for (const key of keys) {
+    const value = data[key.toLowerCase()];
+    if (value) return value;
+  }
+  return '';
+}
+
+function countTop(items: string[], limit = 8) {
+  const counts = new Map<string, number>();
+  items
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .forEach((item) => counts.set(item, (counts.get(item) || 0) + 1));
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([label, value]) => ({ label, value }));
+}
+
+function isoDate(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function buildLastSevenDays(referrals: Referral[]) {
+  const counts = new Map<string, number>();
+  referrals.forEach((row) => {
+    const key = isoDate(new Date(row.created_at));
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - index));
+    const key = isoDate(date);
+    return { label: key, value: counts.get(key) || 0 };
+  });
+}
+
+function AnalyticsCard({
+  title,
+  leftLabel,
+  rightLabel,
+  items,
+}: {
+  title: string;
+  leftLabel: string;
+  rightLabel: string;
+  items: Array<{ label: string; value: number }>;
+}) {
+  const max = Math.max(...items.map((item) => item.value), 1);
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-black text-slate-950">{title}</h3>
+      </div>
+      <div className="mb-2 grid grid-cols-[1fr_80px] gap-3 text-xs font-black uppercase text-slate-400">
+        <span>{leftLabel}</span>
+        <span className="text-right">{rightLabel}</span>
+      </div>
+      <div className="space-y-2">
+        {items.length === 0 ? (
+          <div className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">-</div>
+        ) : (
+          items.map((item) => (
+            <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <span className="truncate text-sm font-bold text-slate-800">{item.label}</span>
+                <span className="shrink-0 text-sm font-black text-slate-950">{item.value}</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-teal-600 to-orange-400"
+                  style={{ width: `${Math.max(8, (item.value / max) * 100)}%` }}
+                />
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LastSevenDaysCard({ title, items }: { title: string; items: Array<{ label: string; value: number }> }) {
+  const max = Math.max(...items.map((item) => item.value), 1);
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="mb-5 text-lg font-black text-slate-950">{title}</h3>
+      <div className="space-y-4">
+        {items.map((item) => (
+          <div key={item.label}>
+            <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-500">
+              <span>{item.label}</span>
+              <span className="font-black text-slate-900">{item.value}</span>
+            </div>
+            <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-teal-700 via-emerald-600 to-orange-400"
+                style={{ width: item.value === 0 ? '0%' : `${Math.max(8, (item.value / max) * 100)}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function LeadDetails({ notes, t }: { notes: string | null; t: typeof dashboardCopy.en }) {
@@ -495,6 +656,20 @@ export default function AgentDashboard() {
 
   const referralLink = agent?.referral_code ? `https://eydost.com/esim?ref=${agent.referral_code}` : '';
   const conversionRate = totals.leads > 0 ? Math.round((referrals.filter((item) => item.status === 'paid').length / totals.leads) * 100) : 0;
+  const topCountries = countTop(
+    referrals.map((row) =>
+      pickFromNotes(row.notes, ['country', 'country code', 'olkə', 'olke', 'ölkə', 'geo'])
+        .split('/')
+        .map((part) => part.trim())
+        .find(Boolean) || ''
+    ),
+    7
+  );
+  const topPackages = countTop(
+    referrals.map((row) => pickFromNotes(row.notes, ['package code', 'package', 'viewed package', 'paket kodu', 'paket'])),
+    10
+  );
+  const lastSevenDays = buildLastSevenDays(referrals);
 
   return (
     <div className="min-h-screen bg-[#f7f8fb]">
@@ -646,71 +821,100 @@ export default function AgentDashboard() {
                 </div>
               </section>
 
+              <section className="grid gap-4 xl:grid-cols-2">
+                <AnalyticsCard title={t.topCountries} leftLabel={t.country} rightLabel={t.orders} items={topCountries} />
+                <AnalyticsCard title={t.topPackages} leftLabel={t.packageCode} rightLabel={t.orders} items={topPackages} />
+              </section>
+
+              <LastSevenDaysCard title={t.lastSevenDays} items={lastSevenDays} />
+
               <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex flex-col gap-2 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-black text-slate-950">{t.recentTitle}</h2>
-                  <p className="text-sm text-slate-500">{t.recentSubtitle}</p>
+                <div className="flex flex-col gap-2 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-xl font-black text-slate-950">{t.recentTitle}</h2>
+                    <p className="text-sm text-slate-500">{t.recentSubtitle}</p>
+                  </div>
+                  <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                    {referrals.length} {t.records}
+                  </span>
                 </div>
-                <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
-                  {referrals.length} {t.records}
-                </span>
-              </div>
-              {referrals.length === 0 ? (
-                <div className="p-10 text-center text-slate-500">
-                  {t.empty}
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {referrals.map((row) => (
-                    <div key={row.id} className="grid gap-4 p-4 transition hover:bg-slate-50/80 lg:grid-cols-[120px_1fr_130px_130px] lg:items-center">
-                      <div>
-                        <div className="text-sm font-black text-slate-950">{new Date(row.created_at).toLocaleDateString(t.dateLocale)}</div>
-                        <div className="mt-1 text-xs font-semibold uppercase text-slate-400">{row.product_type}</div>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-black ring-1 ${statusStyle(row.status)}`}>
-                            {row.status}
-                          </span>
-                          <span className="text-sm font-semibold text-slate-500">{row.customer_name || row.customer_contact || t.noCustomer}</span>
+                {referrals.length === 0 ? (
+                  <div className="p-10 text-center text-slate-500">
+                    {t.empty}
+                  </div>
+                ) : (
+                  <div className="grid gap-3 p-4">
+                    {referrals.map((row) => {
+                      const notes = parseLeadNotes(row.notes);
+                      const packageName =
+                        notes['viewed package'] ||
+                        notes['package'] ||
+                        notes['package code'] ||
+                        t.noPackage;
+                      const country = pickFromNotes(row.notes, ['country', 'geo']);
+                      return (
+                        <div key={row.id} className="rounded-3xl border border-slate-100 bg-slate-50/70 p-4 transition hover:border-blue-100 hover:bg-blue-50/30">
+                          <div className="grid gap-4 lg:grid-cols-[120px_minmax(0,1fr)_220px] lg:items-center">
+                            <div>
+                              <div className="text-sm font-black text-slate-950">{new Date(row.created_at).toLocaleDateString(t.dateLocale)}</div>
+                              <div className="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-xs font-black uppercase text-slate-500 ring-1 ring-slate-200">
+                                {row.product_type}
+                              </div>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="mb-3 flex flex-wrap items-center gap-2">
+                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-black ring-1 ${statusStyle(row.status)}`}>
+                                  {row.status}
+                                </span>
+                                <span className="text-sm font-semibold text-slate-500">{row.customer_name || row.customer_contact || t.noCustomer}</span>
+                              </div>
+                              <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                                <div className="text-xs font-black uppercase text-slate-400">{t.viewedPackage}</div>
+                                <div className="mt-1 break-words text-base font-black text-slate-950">{packageName}</div>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {country && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
+                                      <MapPin className="h-3.5 w-3.5" />
+                                      {country}
+                                    </span>
+                                  )}
+                                  {notes['source'] && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-200">
+                                      {t.source}: {notes['source']}
+                                    </span>
+                                  )}
+                                  {notes['medium'] && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 ring-1 ring-indigo-200">
+                                      {t.medium}: {notes['medium']}
+                                    </span>
+                                  )}
+                                  {notes['campaign'] && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
+                                      {t.campaign}: {notes['campaign']}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="rounded-2xl bg-white p-3 text-right ring-1 ring-slate-200">
+                                <div className="text-xs font-bold uppercase text-slate-400">{t.sale}</div>
+                                <div className="text-xl font-black text-slate-950">{money(row.sale_amount)}</div>
+                                {row.order_reference && (
+                                  <div className="mt-1 truncate text-xs font-semibold text-slate-400">{t.order}: {row.order_reference}</div>
+                                )}
+                              </div>
+                              <div className="rounded-2xl bg-emerald-50 p-3 text-right ring-1 ring-emerald-100">
+                                <div className="text-xs font-bold uppercase text-emerald-600">{t.commission}</div>
+                                <div className="text-xl font-black text-emerald-700">{money(row.commission_amount)}</div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="mb-2 flex flex-wrap gap-2">
-                          {parseLeadNotes(row.notes)['source'] && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-200">
-                              {t.source}: {parseLeadNotes(row.notes)['source']}
-                            </span>
-                          )}
-                          {parseLeadNotes(row.notes)['medium'] && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 ring-1 ring-indigo-200">
-                              {t.medium}: {parseLeadNotes(row.notes)['medium']}
-                            </span>
-                          )}
-                          {parseLeadNotes(row.notes)['campaign'] && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
-                              {t.campaign}: {parseLeadNotes(row.notes)['campaign']}
-                            </span>
-                          )}
-                        </div>
-                        <div className="max-w-3xl">
-                          <LeadDetails notes={row.notes} t={t} />
-                        </div>
-                      </div>
-                      <div className="rounded-2xl bg-slate-50 p-3 lg:text-right">
-                        <div className="text-xs font-bold uppercase text-slate-400">{t.sale}</div>
-                        <div className="text-lg font-black text-slate-950">{money(row.sale_amount)}</div>
-                        {row.order_reference && (
-                          <div className="mt-1 text-xs font-semibold text-slate-400">{t.order}: {row.order_reference}</div>
-                        )}
-                      </div>
-                      <div className="rounded-2xl bg-emerald-50 p-3 lg:text-right">
-                        <div className="text-xs font-bold uppercase text-emerald-600">{t.commission}</div>
-                        <div className="text-lg font-black text-emerald-700">{money(row.commission_amount)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             </div>
           </div>
