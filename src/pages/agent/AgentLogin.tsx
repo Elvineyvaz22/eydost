@@ -21,19 +21,19 @@ export default function AgentLogin() {
 
   const accessCodeChecks = useMemo(
     () => [
-      { label: 'Minimum 8 simvol', ok: accessCode.length >= 8 },
-      { label: 'En azi 1 boyuk herf', ok: /[A-Z]/.test(accessCode) },
-      { label: 'En azi 1 reqem', ok: /\d/.test(accessCode) },
+      { label: 'Minimum 8 characters', ok: accessCode.length >= 8 },
+      { label: 'At least 1 uppercase letter', ok: /[A-Z]/.test(accessCode) },
+      { label: 'At least 1 number', ok: /\d/.test(accessCode) },
     ],
     [accessCode]
   );
 
   const saveSession = (agent: { id?: string; email?: string } | null | undefined, code: string, agentToken?: string) => {
     if (!agent?.id || !agent?.email) {
-      throw new Error('Agent melumati qayitmadi. Sehifeni yenileyib tekrar yoxlayin.');
+      throw new Error('Agent details were not returned. Refresh the page and try again.');
     }
     if (!agentToken) {
-      throw new Error('Agent token qayitmadi. Qeydiyyatdan sonra giris bolmesinden tekrar daxil olun.');
+      throw new Error('Agent token was not returned. Please log in again after registration.');
     }
 
     localStorage.setItem(
@@ -59,13 +59,13 @@ export default function AgentLogin() {
       try {
         payload = responseText ? JSON.parse(responseText) : {};
       } catch {
-        payload = { error: responseText || 'Giris server xetasi' };
+        payload = { error: responseText || 'Login server error' };
       }
-      if (!response.ok) throw new Error(payload.error || 'Giris alinmadi');
+      if (!response.ok) throw new Error(payload.error || 'Login failed');
 
       saveSession(payload.agent, accessCode, payload.agentToken);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Giris alinmadi');
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export default function AgentLogin() {
     setError('');
 
     if (!isStrongAccessCode(accessCode)) {
-      setError('Giris kodu minimum 8 simvol, 1 boyuk herf ve 1 reqem olmalidir');
+      setError('Access code must be at least 8 characters and include 1 uppercase letter and 1 number');
       return;
     }
 
@@ -93,13 +93,13 @@ export default function AgentLogin() {
       try {
         payload = responseText ? JSON.parse(responseText) : {};
       } catch {
-        payload = { error: responseText || 'Qeydiyyat server xetasi' };
+        payload = { error: responseText || 'Registration server error' };
       }
-      if (!response.ok) throw new Error(payload.error || 'Qeydiyyat alinmadi');
+      if (!response.ok) throw new Error(payload.error || 'Registration failed');
 
       saveSession(payload.agent, accessCode, payload.agentToken);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Qeydiyyat alinmadi');
+      setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -113,12 +113,12 @@ export default function AgentLogin() {
           {mode === 'login' ? <LockKeyhole className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
         </div>
         <h1 className="text-2xl font-bold text-gray-900">
-          {mode === 'login' ? 'Agent panele giris' : 'Agent qeydiyyati'}
+          {mode === 'login' ? 'Agent dashboard login' : 'Agent registration'}
         </h1>
         <p className="text-gray-600 mt-2 mb-6">
           {mode === 'login'
-            ? 'Email ve giris kodu ile daxil olun.'
-            : 'Melumatlarinizi yazin ve guclu giris kodu yaradin. Referral kodu admin icazesinden sonra panelde yaradacaqsiniz.'}
+            ? 'Sign in with your email and access code.'
+            : 'Enter your details and create a strong access code. Your referral code becomes available after admin approval.'}
         </p>
 
         <div className="grid grid-cols-2 gap-2 mb-5 rounded-xl bg-gray-100 p-1">
@@ -127,14 +127,14 @@ export default function AgentLogin() {
             onClick={() => setMode('login')}
             className={`rounded-lg py-2 text-sm font-bold ${mode === 'login' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
           >
-            Giris
+            Login
           </button>
           <button
             type="button"
             onClick={() => setMode('register')}
             className={`rounded-lg py-2 text-sm font-bold ${mode === 'register' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
           >
-            Qeydiyyat
+            Register
           </button>
         </div>
 
@@ -143,7 +143,7 @@ export default function AgentLogin() {
         {mode === 'register' && (
           <>
             <label className="block mb-4">
-              <span className="text-sm font-bold text-gray-700">Ad Soyad</span>
+              <span className="text-sm font-bold text-gray-700">Full name</span>
               <input
                 required
                 value={fullName}
@@ -152,7 +152,7 @@ export default function AgentLogin() {
               />
             </label>
             <label className="block mb-4">
-              <span className="text-sm font-bold text-gray-700">Sirket adi</span>
+              <span className="text-sm font-bold text-gray-700">Company name</span>
               <input
                 required
                 value={companyName}
@@ -161,7 +161,7 @@ export default function AgentLogin() {
               />
             </label>
             <label className="block mb-4">
-              <span className="text-sm font-bold text-gray-700">Telefon</span>
+              <span className="text-sm font-bold text-gray-700">Phone</span>
               <input
                 required
                 value={phoneNumber}
@@ -186,7 +186,7 @@ export default function AgentLogin() {
 
         <label className="block mb-3">
           <span className="text-sm font-bold text-gray-700">
-            {mode === 'login' ? 'Giris kodu' : 'Giris kodu yarat'}
+            {mode === 'login' ? 'Access code' : 'Create access code'}
           </span>
           <div className="relative mt-2">
             <input
@@ -196,15 +196,15 @@ export default function AgentLogin() {
               onChange={(e) => setAccessCode(e.target.value)}
               minLength={mode === 'register' ? 8 : 1}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              placeholder={mode === 'register' ? 'Minimum 8 simvol' : undefined}
+              placeholder={mode === 'register' ? 'Minimum 8 characters' : undefined}
               className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
             />
             <button
               type="button"
               onClick={() => setShowAccessCode((value) => !value)}
               className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
-              aria-label={showAccessCode ? 'Gizlet' : 'Goster'}
-              title={showAccessCode ? 'Gizlet' : 'Goster'}
+              aria-label={showAccessCode ? 'Hide' : 'Show'}
+              title={showAccessCode ? 'Hide' : 'Show'}
             >
               {showAccessCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -227,7 +227,7 @@ export default function AgentLogin() {
           className="w-full inline-flex items-center justify-center gap-2 bg-orange-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-orange-700 disabled:opacity-60"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-          {mode === 'login' ? 'Daxil ol' : 'Qeydiyyatdan kec'}
+          {mode === 'login' ? 'Sign in' : 'Create account'}
         </button>
       </form>
     </div>
