@@ -7,8 +7,72 @@ function isStrongAccessCode(value: string) {
   return value.length >= 8 && /[A-Z]/.test(value) && /\d/.test(value);
 }
 
+type AgentLanguage = 'en' | 'az';
+
+const loginCopy = {
+  en: {
+    minimum: 'Minimum 8 characters',
+    uppercase: 'At least 1 uppercase letter',
+    number: 'At least 1 number',
+    missingAgent: 'Agent details were not returned. Refresh the page and try again.',
+    missingToken: 'Agent token was not returned. Please log in again after registration.',
+    loginServerError: 'Login server error',
+    loginFailed: 'Login failed',
+    weakCode: 'Access code must be at least 8 characters and include 1 uppercase letter and 1 number',
+    registrationServerError: 'Registration server error',
+    registrationFailed: 'Registration failed',
+    loginTitle: 'Agent dashboard login',
+    registerTitle: 'Agent registration',
+    loginSubtitle: 'Sign in with your email and access code.',
+    registerSubtitle: 'Enter your details and create a strong access code. Your referral code becomes available after admin approval.',
+    loginTab: 'Login',
+    registerTab: 'Register',
+    fullName: 'Full name',
+    companyName: 'Company name',
+    phone: 'Phone',
+    email: 'Email',
+    accessCode: 'Access code',
+    createAccessCode: 'Create access code',
+    hide: 'Hide',
+    show: 'Show',
+    signIn: 'Sign in',
+    createAccount: 'Create account',
+  },
+  az: {
+    minimum: 'Minimum 8 simvol',
+    uppercase: 'Ən azı 1 böyük hərf',
+    number: 'Ən azı 1 rəqəm',
+    missingAgent: 'Agent məlumatı qayıtmadı. Səhifəni yeniləyib təkrar yoxlayın.',
+    missingToken: 'Agent token qayıtmadı. Qeydiyyatdan sonra giriş bölməsindən təkrar daxil olun.',
+    loginServerError: 'Giriş server xətası',
+    loginFailed: 'Giriş alınmadı',
+    weakCode: 'Giriş kodu minimum 8 simvol, 1 böyük hərf və 1 rəqəm olmalıdır',
+    registrationServerError: 'Qeydiyyat server xətası',
+    registrationFailed: 'Qeydiyyat alınmadı',
+    loginTitle: 'Agent panelə giriş',
+    registerTitle: 'Agent qeydiyyatı',
+    loginSubtitle: 'Email və giriş kodu ilə daxil olun.',
+    registerSubtitle: 'Məlumatlarınızı yazın və güclü giriş kodu yaradın. Referral kod admin təsdiqindən sonra aktiv olacaq.',
+    loginTab: 'Giriş',
+    registerTab: 'Qeydiyyat',
+    fullName: 'Ad Soyad',
+    companyName: 'Şirkət adı',
+    phone: 'Telefon',
+    email: 'Email',
+    accessCode: 'Giriş kodu',
+    createAccessCode: 'Giriş kodu yarat',
+    hide: 'Gizlət',
+    show: 'Göstər',
+    signIn: 'Daxil ol',
+    createAccount: 'Qeydiyyatdan keç',
+  },
+} satisfies Record<AgentLanguage, Record<string, string>>;
+
 export default function AgentLogin() {
   const navigate = useNavigate();
+  const [language, setLanguage] = useState<AgentLanguage>(() =>
+    localStorage.getItem('eydost_agent_language') === 'az' ? 'az' : 'en'
+  );
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [accessCode, setAccessCode] = useState('');
@@ -18,22 +82,28 @@ export default function AgentLogin() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const t = loginCopy[language];
+
+  const changeLanguage = (nextLanguage: AgentLanguage) => {
+    setLanguage(nextLanguage);
+    localStorage.setItem('eydost_agent_language', nextLanguage);
+  };
 
   const accessCodeChecks = useMemo(
     () => [
-      { label: 'Minimum 8 characters', ok: accessCode.length >= 8 },
-      { label: 'At least 1 uppercase letter', ok: /[A-Z]/.test(accessCode) },
-      { label: 'At least 1 number', ok: /\d/.test(accessCode) },
+      { label: t.minimum, ok: accessCode.length >= 8 },
+      { label: t.uppercase, ok: /[A-Z]/.test(accessCode) },
+      { label: t.number, ok: /\d/.test(accessCode) },
     ],
-    [accessCode]
+    [accessCode, t.minimum, t.uppercase, t.number]
   );
 
   const saveSession = (agent: { id?: string; email?: string } | null | undefined, code: string, agentToken?: string) => {
     if (!agent?.id || !agent?.email) {
-      throw new Error('Agent details were not returned. Refresh the page and try again.');
+      throw new Error(t.missingAgent);
     }
     if (!agentToken) {
-      throw new Error('Agent token was not returned. Please log in again after registration.');
+      throw new Error(t.missingToken);
     }
 
     localStorage.setItem(
@@ -59,13 +129,13 @@ export default function AgentLogin() {
       try {
         payload = responseText ? JSON.parse(responseText) : {};
       } catch {
-        payload = { error: responseText || 'Login server error' };
+        payload = { error: responseText || t.loginServerError };
       }
-      if (!response.ok) throw new Error(payload.error || 'Login failed');
+      if (!response.ok) throw new Error(payload.error || t.loginFailed);
 
       saveSession(payload.agent, accessCode, payload.agentToken);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : t.loginFailed);
     } finally {
       setLoading(false);
     }
@@ -76,7 +146,7 @@ export default function AgentLogin() {
     setError('');
 
     if (!isStrongAccessCode(accessCode)) {
-      setError('Access code must be at least 8 characters and include 1 uppercase letter and 1 number');
+      setError(t.weakCode);
       return;
     }
 
@@ -93,13 +163,13 @@ export default function AgentLogin() {
       try {
         payload = responseText ? JSON.parse(responseText) : {};
       } catch {
-        payload = { error: responseText || 'Registration server error' };
+        payload = { error: responseText || t.registrationServerError };
       }
-      if (!response.ok) throw new Error(payload.error || 'Registration failed');
+      if (!response.ok) throw new Error(payload.error || t.registrationFailed);
 
       saveSession(payload.agent, accessCode, payload.agentToken);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err.message : t.registrationFailed);
     } finally {
       setLoading(false);
     }
@@ -109,16 +179,30 @@ export default function AgentLogin() {
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-10">
       <Seo title="Agent Login" noIndex canonicalPath="/agent/login" />
       <form onSubmit={mode === 'login' ? submit : register} className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl">
-        <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center mb-5">
-          {mode === 'login' ? <LockKeyhole className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+            {mode === 'login' ? <LockKeyhole className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
+          </div>
+          <div className="grid grid-cols-2 rounded-xl bg-gray-100 p-1 text-xs font-black text-gray-500">
+            {(['en', 'az'] as AgentLanguage[]).map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => changeLanguage(item)}
+                className={`rounded-lg px-3 py-2 uppercase transition ${language === item ? 'bg-white text-gray-900 shadow-sm' : 'hover:text-gray-900'}`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
         </div>
         <h1 className="text-2xl font-bold text-gray-900">
-          {mode === 'login' ? 'Agent dashboard login' : 'Agent registration'}
+          {mode === 'login' ? t.loginTitle : t.registerTitle}
         </h1>
         <p className="text-gray-600 mt-2 mb-6">
           {mode === 'login'
-            ? 'Sign in with your email and access code.'
-            : 'Enter your details and create a strong access code. Your referral code becomes available after admin approval.'}
+            ? t.loginSubtitle
+            : t.registerSubtitle}
         </p>
 
         <div className="grid grid-cols-2 gap-2 mb-5 rounded-xl bg-gray-100 p-1">
@@ -127,14 +211,14 @@ export default function AgentLogin() {
             onClick={() => setMode('login')}
             className={`rounded-lg py-2 text-sm font-bold ${mode === 'login' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
           >
-            Login
+            {t.loginTab}
           </button>
           <button
             type="button"
             onClick={() => setMode('register')}
             className={`rounded-lg py-2 text-sm font-bold ${mode === 'register' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
           >
-            Register
+            {t.registerTab}
           </button>
         </div>
 
@@ -143,7 +227,7 @@ export default function AgentLogin() {
         {mode === 'register' && (
           <>
             <label className="block mb-4">
-              <span className="text-sm font-bold text-gray-700">Full name</span>
+              <span className="text-sm font-bold text-gray-700">{t.fullName}</span>
               <input
                 required
                 value={fullName}
@@ -152,7 +236,7 @@ export default function AgentLogin() {
               />
             </label>
             <label className="block mb-4">
-              <span className="text-sm font-bold text-gray-700">Company name</span>
+              <span className="text-sm font-bold text-gray-700">{t.companyName}</span>
               <input
                 required
                 value={companyName}
@@ -161,7 +245,7 @@ export default function AgentLogin() {
               />
             </label>
             <label className="block mb-4">
-              <span className="text-sm font-bold text-gray-700">Phone</span>
+              <span className="text-sm font-bold text-gray-700">{t.phone}</span>
               <input
                 required
                 value={phoneNumber}
@@ -174,7 +258,7 @@ export default function AgentLogin() {
         )}
 
         <label className="block mb-4">
-          <span className="text-sm font-bold text-gray-700">Email</span>
+          <span className="text-sm font-bold text-gray-700">{t.email}</span>
           <input
             required
             type="email"
@@ -186,7 +270,7 @@ export default function AgentLogin() {
 
         <label className="block mb-3">
           <span className="text-sm font-bold text-gray-700">
-            {mode === 'login' ? 'Access code' : 'Create access code'}
+            {mode === 'login' ? t.accessCode : t.createAccessCode}
           </span>
           <div className="relative mt-2">
             <input
@@ -196,15 +280,15 @@ export default function AgentLogin() {
               onChange={(e) => setAccessCode(e.target.value)}
               minLength={mode === 'register' ? 8 : 1}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              placeholder={mode === 'register' ? 'Minimum 8 characters' : undefined}
+              placeholder={mode === 'register' ? t.minimum : undefined}
               className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
             />
             <button
               type="button"
               onClick={() => setShowAccessCode((value) => !value)}
               className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
-              aria-label={showAccessCode ? 'Hide' : 'Show'}
-              title={showAccessCode ? 'Hide' : 'Show'}
+              aria-label={showAccessCode ? t.hide : t.show}
+              title={showAccessCode ? t.hide : t.show}
             >
               {showAccessCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -227,7 +311,7 @@ export default function AgentLogin() {
           className="w-full inline-flex items-center justify-center gap-2 bg-orange-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-orange-700 disabled:opacity-60"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-          {mode === 'login' ? 'Sign in' : 'Create account'}
+          {mode === 'login' ? t.signIn : t.createAccount}
         </button>
       </form>
     </div>

@@ -34,6 +34,85 @@ type Totals = {
   paid: number;
 };
 
+type AgentLanguage = 'en' | 'az';
+
+const dashboardCopy = {
+  en: {
+    agentPanel: 'Agent panel',
+    logout: 'Log out',
+    loading: 'Loading...',
+    dashboardError: 'Dashboard could not be loaded',
+    panelServerError: 'Panel server error',
+    activeAgent: 'Active agent',
+    awaitingApproval: 'Awaiting approval',
+    welcome: 'Welcome',
+    intro: 'Share your referral link and track WhatsApp clicks, conversions, and commission from this dashboard.',
+    commissionRate: 'Commission rate',
+    conversionRate: 'Conversion rate',
+    code: 'Code',
+    notCreated: 'Not created yet',
+    linkActive: 'Link is active',
+    referralLink: 'Referral link',
+    copy: 'Copy',
+    open: 'Open',
+    approvalNotice: 'Your referral code will appear here after it is approved in the backend/admin panel.',
+    lead: 'Lead',
+    conversions: 'Conversions',
+    salesAmount: 'Sales amount',
+    commission: 'Commission',
+    recentTitle: 'Recent leads and sales',
+    recentSubtitle: 'Clicks, viewed packages, and payment status.',
+    records: 'records',
+    empty: 'No leads or sales yet. WhatsApp clicks and sales will appear here after your referral code becomes active.',
+    noCustomer: 'No customer details',
+    viewedPackage: 'Viewed package',
+    noPackage: 'No package details',
+    source: 'Source',
+    medium: 'Medium',
+    campaign: 'Campaign',
+    sale: 'Sale',
+    order: 'Order',
+    dateLocale: 'en-US',
+  },
+  az: {
+    agentPanel: 'Agent panel',
+    logout: 'Çıxış',
+    loading: 'Yüklənir...',
+    dashboardError: 'Panel yüklənmədi',
+    panelServerError: 'Panel server xətası',
+    activeAgent: 'Aktiv agent',
+    awaitingApproval: 'Təsdiq gözləyir',
+    welcome: 'Salam',
+    intro: 'Referral linkinizi paylaşın, WhatsApp kliklərini, satışları və komissiyanı bu paneldən izləyin.',
+    commissionRate: 'Komissiya faizi',
+    conversionRate: 'Konversiya',
+    code: 'Kod',
+    notCreated: 'Hələ yaradılmayıb',
+    linkActive: 'Link aktivdir',
+    referralLink: 'Referral link',
+    copy: 'Kopyala',
+    open: 'Aç',
+    approvalNotice: 'Referral kodunuz backend/admin paneldə təsdiqlənəndən sonra burada görünəcək.',
+    lead: 'Lead',
+    conversions: 'Satış sayı',
+    salesAmount: 'Satış məbləği',
+    commission: 'Komissiya',
+    recentTitle: 'Son lead və satışlar',
+    recentSubtitle: 'Kliklər, baxılan paketlər və ödəniş statusları.',
+    records: 'qeyd',
+    empty: 'Hələ lead və satış yoxdur. Referral kod aktiv olandan sonra WhatsApp klikləri və satışlar burada görünəcək.',
+    noCustomer: 'Müştəri məlumatı yoxdur',
+    viewedPackage: 'Baxdığı paket',
+    noPackage: 'Paket məlumatı yoxdur',
+    source: 'Mənbə',
+    medium: 'Medium',
+    campaign: 'Campaign',
+    sale: 'Satış',
+    order: 'Order',
+    dateLocale: 'az-AZ',
+  },
+} satisfies Record<AgentLanguage, Record<string, string>>;
+
 function money(value: number): string {
   return `$${Number(value || 0).toFixed(2)}`;
 }
@@ -53,7 +132,7 @@ function parseLeadNotes(notes: string | null) {
   return result;
 }
 
-function LeadDetails({ notes }: { notes: string | null }) {
+function LeadDetails({ notes, t }: { notes: string | null; t: typeof dashboardCopy.en }) {
   const data = parseLeadNotes(notes);
   const packageText =
     data['viewed package'] ||
@@ -63,7 +142,7 @@ function LeadDetails({ notes }: { notes: string | null }) {
     data['baxdigi paket'] ||
     data['paket'] ||
     data['paket kodu'] ||
-    'No package details';
+    t.noPackage;
   const device = data['device'] || data['cihaz'];
   const geo = data['geo'] || data['təxmini ölkə/şəhər'] || data['texmini olke/seher'];
   const page = data['page'] || data['səhifə'] || data['sehife'];
@@ -81,7 +160,7 @@ function LeadDetails({ notes }: { notes: string | null }) {
             <Package className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold uppercase text-slate-400">Viewed package</div>
+            <div className="text-xs font-bold uppercase text-slate-400">{t.viewedPackage}</div>
             <div className="break-words text-sm font-bold leading-snug text-slate-900">{packageText}</div>
           </div>
         </div>
@@ -119,19 +198,19 @@ function LeadDetails({ notes }: { notes: string | null }) {
           {source && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               <Globe2 className="w-3.5 h-3.5" />
-              Source: {source}
+              {t.source}: {source}
             </span>
           )}
           {medium && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               <Globe2 className="w-3.5 h-3.5" />
-              Medium: {medium}
+              {t.medium}: {medium}
             </span>
           )}
           {campaign && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               <Globe2 className="w-3.5 h-3.5" />
-              Campaign: {campaign}
+              {t.campaign}: {campaign}
             </span>
           )}
         </div>
@@ -155,6 +234,9 @@ function statusStyle(status: string) {
 
 export default function AgentDashboard() {
   const navigate = useNavigate();
+  const [language, setLanguage] = useState<AgentLanguage>(() =>
+    localStorage.getItem('eydost_agent_language') === 'az' ? 'az' : 'en'
+  );
   const [agent, setAgent] = useState<Agent | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [totals, setTotals] = useState<Totals>({ leads: 0, sales: 0, commission: 0, paid: 0 });
@@ -162,6 +244,12 @@ export default function AgentDashboard() {
   const [error, setError] = useState('');
 
   const rawSession = localStorage.getItem('eydost_agent_session');
+  const t = dashboardCopy[language];
+
+  const changeLanguage = (nextLanguage: AgentLanguage) => {
+    setLanguage(nextLanguage);
+    localStorage.setItem('eydost_agent_language', nextLanguage);
+  };
 
   const load = async () => {
     if (!rawSession) {
@@ -187,15 +275,15 @@ export default function AgentDashboard() {
       try {
         payload = responseText ? JSON.parse(responseText) : {};
       } catch {
-        payload = { error: responseText || 'Panel server error' };
+        payload = { error: responseText || t.panelServerError };
       }
-      if (!response.ok) throw new Error(payload.error || 'Dashboard could not be loaded');
+      if (!response.ok) throw new Error(payload.error || t.dashboardError);
 
       setAgent(payload.agent);
       setReferrals(payload.referrals || []);
       setTotals(payload.totals || { leads: 0, sales: 0, commission: 0, paid: 0 });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Dashboard could not be loaded');
+      setError(err instanceof Error ? err.message : t.dashboardError);
     } finally {
       setLoading(false);
     }
@@ -227,12 +315,26 @@ export default function AgentDashboard() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="min-w-0">
             <div className="text-lg font-black text-slate-950">Ey Dost Agent</div>
-            <div className="truncate text-sm text-slate-500">{agent?.company_name || 'Agent panel'}</div>
+            <div className="truncate text-sm text-slate-500">{agent?.company_name || t.agentPanel}</div>
           </div>
-          <button onClick={logout} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-100 px-4 font-bold text-slate-700 transition hover:bg-slate-200">
-            <LogOut className="w-4 h-4" />
-            Log out
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-xs font-black text-slate-600">
+              {(['en', 'az'] as AgentLanguage[]).map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => changeLanguage(item)}
+                  className={`rounded-xl px-3 py-2 uppercase transition ${language === item ? 'bg-white text-slate-950 shadow-sm' : 'hover:text-slate-950'}`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+            <button onClick={logout} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-100 px-4 font-bold text-slate-700 transition hover:bg-slate-200">
+              <LogOut className="w-4 h-4" />
+              {t.logout}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -240,7 +342,7 @@ export default function AgentDashboard() {
         {loading ? (
           <div className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white p-8 text-slate-600 shadow-sm">
             <Loader2 className="w-5 h-5 animate-spin" />
-            Loading...
+            {t.loading}
           </div>
         ) : error ? (
           <div className="rounded-3xl border border-red-100 bg-red-50 p-5 font-semibold text-red-700">{error}</div>
@@ -251,24 +353,24 @@ export default function AgentDashboard() {
                 <div className="min-w-0">
                   <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/80 ring-1 ring-white/10">
                     <span className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                    {agent.status === 'active' ? 'Active agent' : 'Awaiting approval'}
+                    {agent.status === 'active' ? t.activeAgent : t.awaitingApproval}
                   </div>
-                  <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Welcome, {agent.full_name}</h1>
+                  <h1 className="text-3xl font-black tracking-tight sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-                    Share your referral link and track WhatsApp clicks, conversions, and commission from this dashboard.
+                    {t.intro}
                   </p>
                   <div className="mt-6 grid gap-3 md:grid-cols-3">
                     <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
-                      <div className="text-xs font-bold uppercase text-slate-400">Commission rate</div>
+                      <div className="text-xs font-bold uppercase text-slate-400">{t.commissionRate}</div>
                       <div className="mt-1 text-2xl font-black">{Number(agent.commission_rate || 0).toFixed(0)}%</div>
                     </div>
                     <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
-                      <div className="text-xs font-bold uppercase text-slate-400">Conversion rate</div>
+                      <div className="text-xs font-bold uppercase text-slate-400">{t.conversionRate}</div>
                       <div className="mt-1 text-2xl font-black">{conversionRate}%</div>
                     </div>
                     <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
-                      <div className="text-xs font-bold uppercase text-slate-400">Code</div>
-                      <div className="mt-1 truncate text-xl font-black">{agent.referral_code || 'Not created yet'}</div>
+                      <div className="text-xs font-bold uppercase text-slate-400">{t.code}</div>
+                      <div className="mt-1 truncate text-xl font-black">{agent.referral_code || t.notCreated}</div>
                     </div>
                   </div>
                 </div>
@@ -279,27 +381,27 @@ export default function AgentDashboard() {
                       <div>
                         <div className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700">
                           <CheckCircle2 className="h-5 w-5" />
-                          Link is active
+                          {t.linkActive}
                         </div>
                         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                          <div className="text-xs font-bold uppercase text-slate-400">Referral link</div>
+                          <div className="text-xs font-bold uppercase text-slate-400">{t.referralLink}</div>
                           <div className="mt-2 break-all text-sm font-bold text-slate-900">{referralLink}</div>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <button onClick={copyReferral} className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 font-black text-white transition hover:bg-blue-700">
                           <Copy className="w-4 h-4" />
-                          Copy
+                          {t.copy}
                         </button>
                         <a href={referralLink} target="_blank" rel="noopener noreferrer" className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 font-black text-white transition hover:bg-slate-800">
-                          Open
+                          {t.open}
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       </div>
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
-                      Your referral code will appear here after it is approved in the backend/admin panel.
+                      {t.approvalNotice}
                     </div>
                   )}
                 </div>
@@ -308,10 +410,10 @@ export default function AgentDashboard() {
 
             <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: 'Lead', value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700' },
-                { label: 'Conversions', value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
-                { label: 'Sales amount', value: money(totals.sales), icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
-                { label: 'Commission', value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700' },
+                { label: t.lead, value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700' },
+                { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
+                { label: t.salesAmount, value: money(totals.sales), icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
+                { label: t.commission, value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700' },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -329,23 +431,23 @@ export default function AgentDashboard() {
             <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
               <div className="flex flex-col gap-2 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-black text-slate-950">Recent leads and sales</h2>
-                  <p className="text-sm text-slate-500">Clicks, viewed packages, and payment status.</p>
+                  <h2 className="text-xl font-black text-slate-950">{t.recentTitle}</h2>
+                  <p className="text-sm text-slate-500">{t.recentSubtitle}</p>
                 </div>
                 <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
-                  {referrals.length} records
+                  {referrals.length} {t.records}
                 </span>
               </div>
               {referrals.length === 0 ? (
                 <div className="p-10 text-center text-slate-500">
-                  No leads or sales yet. WhatsApp clicks and sales will appear here after your referral code becomes active.
+                  {t.empty}
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
                   {referrals.map((row) => (
                     <div key={row.id} className="grid gap-4 p-4 transition hover:bg-slate-50/80 lg:grid-cols-[140px_1fr_140px_140px] lg:items-center">
                       <div>
-                        <div className="text-sm font-black text-slate-950">{new Date(row.created_at).toLocaleDateString('en-US')}</div>
+                        <div className="text-sm font-black text-slate-950">{new Date(row.created_at).toLocaleDateString(t.dateLocale)}</div>
                         <div className="mt-1 text-xs font-semibold uppercase text-slate-400">{row.product_type}</div>
                       </div>
                       <div className="min-w-0">
@@ -353,38 +455,38 @@ export default function AgentDashboard() {
                           <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-black ring-1 ${statusStyle(row.status)}`}>
                             {row.status}
                           </span>
-                          <span className="text-sm font-semibold text-slate-500">{row.customer_name || row.customer_contact || 'No customer details'}</span>
+                          <span className="text-sm font-semibold text-slate-500">{row.customer_name || row.customer_contact || t.noCustomer}</span>
                         </div>
                         <div className="mb-2 flex flex-wrap gap-2">
                           {parseLeadNotes(row.notes)['source'] && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-200">
-                              Source: {parseLeadNotes(row.notes)['source']}
+                              {t.source}: {parseLeadNotes(row.notes)['source']}
                             </span>
                           )}
                           {parseLeadNotes(row.notes)['medium'] && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 ring-1 ring-indigo-200">
-                              Medium: {parseLeadNotes(row.notes)['medium']}
+                              {t.medium}: {parseLeadNotes(row.notes)['medium']}
                             </span>
                           )}
                           {parseLeadNotes(row.notes)['campaign'] && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700 ring-1 ring-violet-200">
-                              Campaign: {parseLeadNotes(row.notes)['campaign']}
+                              {t.campaign}: {parseLeadNotes(row.notes)['campaign']}
                             </span>
                           )}
                         </div>
                         <div className="max-w-2xl">
-                            <LeadDetails notes={row.notes} />
+                            <LeadDetails notes={row.notes} t={t} />
                         </div>
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3 lg:text-right">
-                        <div className="text-xs font-bold uppercase text-slate-400">Sale</div>
+                        <div className="text-xs font-bold uppercase text-slate-400">{t.sale}</div>
                         <div className="text-lg font-black text-slate-950">{money(row.sale_amount)}</div>
                         {row.order_reference && (
-                          <div className="mt-1 text-xs font-semibold text-slate-400">Order: {row.order_reference}</div>
+                          <div className="mt-1 text-xs font-semibold text-slate-400">{t.order}: {row.order_reference}</div>
                         )}
                       </div>
                       <div className="rounded-2xl bg-emerald-50 p-3 lg:text-right">
-                        <div className="text-xs font-bold uppercase text-emerald-600">Commission</div>
+                        <div className="text-xs font-bold uppercase text-emerald-600">{t.commission}</div>
                         <div className="text-lg font-black text-emerald-700">{money(row.commission_amount)}</div>
                       </div>
                     </div>
