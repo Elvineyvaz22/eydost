@@ -109,6 +109,7 @@
     { "src": "/api/sync-esim-packages", "dest": "/api/sync-esim-packages.ts" },
     { "src": "/api/esim-proxy", "dest": "/api/esim-proxy.ts" },
     { "src": "/api/esim-packages", "dest": "/api/esim-packages.ts" },
+    { "src": "/api/chatgpt-actions-openapi", "dest": "/api/chatgpt-actions-openapi.ts" },
     { "src": "/api/chatgpt-esim-packages", "dest": "/api/chatgpt-esim-packages.ts" },
     { "src": "/api/worldcup-packages", "dest": "/api/worldcup-packages.ts" },
     { "src": "/api/chatbot-assistant", "dest": "/api/chatbot-assistant.ts" },

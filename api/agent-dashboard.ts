@@ -93,6 +93,7 @@ function normalizeRows(payload: any) {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.items)) return data.items;
   if (Array.isArray(data?.searches)) return data.searches;
+  if (Array.isArray(data?.conversions)) return data.conversions;
   if (Array.isArray(data?.referrals)) return data.referrals;
   if (Array.isArray(data?.orders)) return data.orders;
   return [];
@@ -158,6 +159,42 @@ function normalizeReferral(row: any, index: number) {
   };
 }
 
+function normalizeSearch(row: any, index: number) {
+  return normalizeReferral(
+    {
+      ...row,
+      id: firstString(row.id, row.package_code, row.package_slug, index),
+      status: firstString(row.event_type, row.status) || 'lead',
+      product_type: 'esim',
+      notes: [
+        firstString(row.package_name) ? `Package: ${firstString(row.package_name)}` : '',
+        firstString(row.package_code) ? `Package code: ${firstString(row.package_code)}` : '',
+        firstString(row.country_code) ? `Country: ${firstString(row.country_code)}` : '',
+        firstString(row.package_slug) ? `Page: ${firstString(row.package_slug)}` : '',
+      ].filter(Boolean).join('\n'),
+    },
+    index
+  );
+}
+
+function normalizeConversion(row: any, index: number) {
+  return normalizeReferral(
+    {
+      ...row,
+      status: firstString(row.status) || 'paid',
+      product_type: 'esim',
+      notes: [
+        firstString(row.package_name) ? `Package: ${firstString(row.package_name)}` : '',
+        firstString(row.package_code) ? `Package code: ${firstString(row.package_code)}` : '',
+        firstString(row.country_code) ? `Country: ${firstString(row.country_code)}` : '',
+        firstString(row.order_id) ? `Order reference: ${firstString(row.order_id)}` : '',
+        firstString(row.transaction_id) ? `Transaction id: ${firstString(row.transaction_id)}` : '',
+      ].filter(Boolean).join('\n') || row.notes,
+    },
+    index
+  );
+}
+
 function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeReferral>[]) {
   const data = mePayload?.data ?? mePayload ?? {};
   const totals = data.totals || data.stats || data;
@@ -199,16 +236,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const [mePayload, searchesPayload] = await Promise.all([
+    const [mePayload, searchesPayload, conversionsResult] = await Promise.all([
       callBotAgentApi('/api/agents/me', agentToken),
       callBotAgentApi('/api/agents/searches', agentToken, { limit: 100 }),
+      callBotAgentApi('/api/agents/conversions', agentToken, { limit: 100 }).catch((error) => ({
+        __error: error?.message || 'Conversions endpoint unavailable',
+      })),
     ]);
 
     const agent = normalizeAgent(mePayload);
-    const referrals = normalizeRows(searchesPayload).map(normalizeReferral);
+    const searches = normalizeRows(searchesPayload).map(normalizeSearch);
+    const conversions = (conversionsResult as any)?.__error
+      ? []
+      : normalizeRows(conversionsResult).map(normalizeConversion);
+    const referrals = [...conversions, ...searches].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
     const totals = normalizeTotals(mePayload, referrals);
 
-    return res.status(200).json({ agent, referrals, totals, raw: { me: mePayload, searches: searchesPayload } });
+    return res.status(200).json({
+      agent,
+      referrals,
+      totals,
+      raw: { me: mePayload, searches: searchesPayload, conversions: conversionsResult },
+    });
   } catch (error: any) {
     return res.status(502).json({ error: error?.message || 'Panel yuklenmedi' });
   }
