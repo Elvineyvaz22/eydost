@@ -195,9 +195,10 @@ function normalizeConversion(row: any, index: number) {
   );
 }
 
-function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeReferral>[]) {
+function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeReferral>[], commissionRate = 10) {
   const data = mePayload?.data ?? mePayload ?? {};
   const totals = data.totals || data.stats || data;
+  const soldEsimPrice = firstNumber(totals.sold_esim_price, totals.soldEsimPrice);
 
   const fallback = referrals.reduce(
     (acc, row) => {
@@ -215,9 +216,15 @@ function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeR
   return {
     leads: firstNumber(totals.search_count, totals.searches_count, totals.leads, totals.lead_count, totals.clicks) || fallback.leads,
     conversions: firstNumber(totals.conversion_count, totals.conversions, totals.sale_count, totals.sales_count),
-    sales: firstNumber(totals.sales, totals.sales_amount, totals.total_sales) || fallback.sales,
-    commission: firstNumber(totals.commission, totals.commission_amount, totals.total_commission) || fallback.commission,
-    paid: firstNumber(totals.paid, totals.paid_commission, totals.paid_amount) || fallback.paid,
+    sales: firstNumber(totals.sales, totals.sales_amount, totals.total_sales) || soldEsimPrice || fallback.sales,
+    commission:
+      firstNumber(totals.commission, totals.commission_amount, totals.total_commission) ||
+      fallback.commission ||
+      Number(((soldEsimPrice || 0) * (commissionRate / 100)).toFixed(2)),
+    paid:
+      firstNumber(totals.paid, totals.paid_commission, totals.paid_amount) ||
+      fallback.paid ||
+      Number(((soldEsimPrice || 0) * (commissionRate / 100)).toFixed(2)),
   };
 }
 
@@ -252,7 +259,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const referrals = [...conversions, ...searches].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-    const totals = normalizeTotals(mePayload, referrals);
+    const totals = normalizeTotals(mePayload, referrals, agent.commission_rate);
 
     return res.status(200).json({
       agent,
