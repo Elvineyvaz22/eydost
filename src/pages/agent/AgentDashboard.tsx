@@ -535,88 +535,118 @@ export default function AgentDashboard() {
         ) : error ? (
           <div className="rounded-3xl border border-red-100 bg-red-50 p-5 font-semibold text-red-700">{error}</div>
         ) : agent ? (
-          <div className="space-y-5">
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <div className="grid gap-5 xl:grid-cols-[1fr_420px] xl:items-stretch">
-                <div className="min-w-0">
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
-                    <span className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                    {agent.status === 'active' ? t.activeAgent : t.awaitingApproval}
+          <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+            <aside className="space-y-4">
+              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white">
+                    {(agent.full_name || agent.company_name || 'A').slice(0, 1).toUpperCase()}
                   </div>
-                  <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-                    {t.intro}
-                  </p>
-                  <div className="mt-6 grid gap-3 md:grid-cols-3">
-                    <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                      <div className="text-xs font-bold uppercase text-slate-400">{t.commissionRate}</div>
-                      <div className="mt-1 text-2xl font-black text-slate-950">{Number(agent.commission_rate || 0).toFixed(0)}%</div>
+                  <div className="min-w-0">
+                    <div className="truncate text-base font-black text-slate-950">{agent.full_name}</div>
+                    <div className="truncate text-sm font-semibold text-slate-500">{agent.company_name || agent.email}</div>
+                  </div>
+                </div>
+                <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-700">
+                  <span className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  {agent.status === 'active' ? t.activeAgent : t.awaitingApproval}
+                </div>
+                <div className="mt-5 space-y-3 border-t border-slate-100 pt-5">
+                  {[
+                    ['Overview', t.lead],
+                    ['Activity', t.recentTitle],
+                    ['Payouts', t.commission],
+                    ['Assets', t.referralLink],
+                  ].map(([label, value], index) => (
+                    <div
+                      key={label}
+                      className={`flex items-center justify-between rounded-2xl px-3 py-2 text-sm font-bold ${
+                        index === 0 ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>{label}</span>
+                      <span className="text-xs text-slate-400">{value}</span>
                     </div>
-                    <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                      <div className="text-xs font-bold uppercase text-slate-400">{t.conversionRate}</div>
-                      <div className="mt-1 text-2xl font-black text-slate-950">{conversionRate}%</div>
-                    </div>
-                    <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                      <div className="text-xs font-bold uppercase text-slate-400">{t.code}</div>
-                      <div className="mt-1 truncate text-xl font-black text-slate-950">{agent.referral_code || t.notCreated}</div>
-                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="text-xs font-black uppercase text-slate-400">{t.commission}</div>
+                <div className="mt-2 text-3xl font-black text-slate-950">{money(totals.commission)}</div>
+                <div className="mt-1 text-sm font-semibold text-slate-500">{Number(agent.commission_rate || 0).toFixed(0)}% {t.commissionRate.toLowerCase()}</div>
+                <div className="mt-4 rounded-2xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">
+                  {t.conversions}: {totals.conversions || 0}
+                </div>
+              </section>
+            </aside>
+
+            <div className="space-y-5">
+              <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                  <div className="text-xs font-black uppercase tracking-wide text-blue-600">Partner dashboard</div>
+                  <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">{t.intro}</p>
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {[
+                      { label: t.lead, value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
+                      { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
+                      { label: t.salesAmount, value: money(totals.sales), icon: TrendingUp, tone: 'bg-slate-50 text-slate-700 ring-slate-100' },
+                      { label: t.commission, value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+                          <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl ring-1 ${item.tone}`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div className="text-xs font-black uppercase text-slate-400">{item.label}</div>
+                          <div className="mt-1 text-2xl font-black tracking-tight text-slate-950">{item.value}</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 text-slate-950 sm:p-5">
+                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-xs font-black uppercase text-slate-400">{t.code}</div>
+                      <div className="mt-1 max-w-[220px] truncate text-2xl font-black text-slate-950">{agent.referral_code || t.notCreated}</div>
+                    </div>
+                    {agent.referral_code && (
+                      <div className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {t.linkActive}
+                      </div>
+                    )}
+                  </div>
                   {agent.referral_code ? (
-                    <div className="flex h-full flex-col justify-between gap-5">
-                      <div>
-                        <div className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700">
-                          <CheckCircle2 className="h-5 w-5" />
-                          {t.linkActive}
-                        </div>
-                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                          <div className="text-xs font-bold uppercase text-slate-400">{t.referralLink}</div>
-                          <div className="mt-2 break-all text-sm font-bold text-slate-900">{referralLink}</div>
-                        </div>
+                    <div className="mt-5 flex h-[calc(100%-72px)] flex-col justify-between gap-4">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-bold uppercase text-slate-400">{t.referralLink}</div>
+                        <div className="mt-2 break-all text-sm font-bold text-slate-900">{referralLink}</div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <button onClick={copyReferral} className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 font-black text-white transition hover:bg-blue-700">
+                        <button onClick={copyReferral} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 font-black text-white transition hover:bg-blue-700">
                           <Copy className="w-4 h-4" />
                           {t.copy}
                         </button>
-                        <a href={referralLink} target="_blank" rel="noopener noreferrer" className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 font-black text-white transition hover:bg-slate-800">
+                        <a href={referralLink} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 font-black text-white transition hover:bg-slate-800">
                           {t.open}
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
+                    <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
                       {t.approvalNotice}
                     </div>
                   )}
                 </div>
-              </div>
-            </section>
+              </section>
 
-            <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { label: t.lead, value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
-                { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
-                { label: t.salesAmount, value: money(totals.sales), icon: TrendingUp, tone: 'bg-slate-50 text-slate-700 ring-slate-100' },
-                { label: t.commission, value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                    <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ring-1 ${item.tone}`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div className="text-xs font-black uppercase text-slate-400">{item.label}</div>
-                    <div className="mt-1 text-3xl font-black tracking-tight text-slate-950">{item.value}</div>
-                  </div>
-                );
-              })}
-            </section>
-
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="flex flex-col gap-2 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-xl font-black text-slate-950">{t.recentTitle}</h2>
@@ -681,7 +711,8 @@ export default function AgentDashboard() {
                   ))}
                 </div>
               )}
-            </section>
+              </section>
+            </div>
           </div>
         ) : null}
       </main>
