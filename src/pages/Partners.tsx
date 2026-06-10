@@ -4,7 +4,6 @@ import {
   BadgeCheck,
   BarChart3,
   Building2,
-  Car,
   CheckCircle2,
   ClipboardList,
   Copy,
@@ -32,128 +31,132 @@ import { supabase } from '../lib/supabase';
 
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error';
 
+const CUSTOMER_DISCOUNT_PERCENT = 10;
+const AGENT_COMMISSION_PERCENT = 15;
+
 const partnerTypes = [
   { value: 'agency', label: 'Tur agentliyi' },
-  { value: 'umrah', label: 'Həcc / Ümrə qrupu' },
-  { value: 'education', label: 'Təhsil / viza şirkəti' },
+  { value: 'umrah', label: 'Hacc / Umre qrupu' },
+  { value: 'education', label: 'Tehsil / viza sirketi' },
   { value: 'creator', label: 'Travel blogger' },
   { value: 'corporate', label: 'Korporativ travel' },
-  { value: 'other', label: 'Digər' },
+  { value: 'other', label: 'Diger' },
 ];
 
 const gettingStarted = [
   {
     icon: ClipboardList,
-    title: 'Qeydiyyatdan keçin',
-    text: 'Formu doldurun, komanda müraciətinizi yoxlasın və sizə uyğun əməkdaşlıq modelini təsdiqləsin.',
+    title: 'Qeydiyyatdan kecin',
+    text: 'Formu doldurun, komanda muracietinizi yoxlayir ve uygun emekdasliq modelini tesdiqleyir.',
   },
   {
     icon: Megaphone,
-    title: 'Tövsiyə edin',
-    text: 'Sizə verilən şəxsi linki və endirim kodunu müştərilərinizə, izləyicilərinizə və satış kanallarınıza paylaşın.',
+    title: 'eSIM teklif edin',
+    text: 'Sexsi linki ve endirim kodunu musterilerinize, izləyicilerinize ve satis kanallariniza paylasin.',
   },
   {
     icon: Wallet,
-    title: 'Komissiya qazanın',
-    text: 'Müştəri alış etdikdə satış agent kodunuza yazılır, komissiya paneldə görünür və hesabata düşür.',
+    title: 'Komissiya qazanin',
+    text: 'Musteri eSIM aldıqda satis agent kodunuza yazilir, komissiya panelde gorunur ve hesabata dusur.',
   },
 ];
 
 const partnerSegments = [
   {
     icon: Plane,
-    title: 'Tur agentlikləri',
-    text: 'Xaricə gedən müştərilərə eSIM internet və transferi əlavə xidmət kimi təklif edin.',
+    title: 'Tur agentlikleri',
+    text: 'Xarice geden musterilere eSIM internet paketlerini elave xidmet kimi teklif edin.',
   },
   {
     icon: Users,
-    title: 'Qrup rəhbərləri',
-    text: 'Ümrə, Həcc, təhsil və qrup turlarında iştirakçılar üçün internet bağlantısını əvvəlcədən həll edin.',
+    title: 'Qrup rehberleri',
+    text: 'Umre, Hacc, tehsil ve qrup turlarinda istirakcilarin internet baglantisini evvelceden hell edin.',
   },
   {
     icon: GraduationCap,
-    title: 'Təhsil və viza şirkətləri',
-    text: 'Xaricə gedən tələbələrə ilk gündən internet və hava limanı transfer dəstəyi təqdim edin.',
+    title: 'Tehsil ve viza sirketleri',
+    text: 'Xarice geden telebelere ilk gunden internet baglantisini evvelceden teqdim edin.',
   },
   {
     icon: Building2,
     title: 'Korporativ travel',
-    text: 'Ezamiyyətə gedən əməkdaşlar üçün eSIM, transfer və WhatsApp dəstəyini bir yerdə təqdim edin.',
+    text: 'Ezamiyyete geden emekdaslar ucun eSIM internet ve WhatsApp desteyini bir yerde teqdim edin.',
   },
 ];
 
 const trackingPoints = [
-  'Agent linkinə daxil olan müştərinin kodu 30 gün yadda saxlanılır.',
-  'WhatsApp mesajında endirim kodu avtomatik görünür.',
-  'Ödəniş təsdiqlənəndə satış agent panelinə yazılır.',
-  'Eyni sifariş nömrəsi təkrar gəlsə, sistem köhnə sətri yeniləyir.',
+  'Agent linkine daxil olan musterinin kodu 30 gun yadda saxlanilir.',
+  'WhatsApp mesajinda endirim kodu avtomatik gorunur.',
+  'Odenis tesdiqlenende eSIM satisi agent paneline yazilir.',
+  'Eyni sifaris nomresi tekrar gelse, sistem kohne setri yenileyir.',
 ];
 
 const benefits = [
   {
     icon: BarChart3,
     title: 'Agent paneli',
-    text: 'Satışlar, lead-lər, təsdiqlənmiş sifarişlər və komissiya məbləği ayrıca paneldə görünür.',
+    text: 'Leadler, tesdiqlenmis eSIM satislari ve komissiya meblegi ayrica panelde gorunur.',
   },
   {
     icon: Gift,
-    title: 'Endirim kodu',
-    text: 'Hər agent üçün yadda qalan xüsusi kod yaradırıq. Müştəri WhatsApp-da həmin kodla gəlir.',
+    title: '10% musteri endirimi',
+    text: 'Musteri agent kodu ile eSIM alanda 10% endirim alir. Bu endirim satisi daha rahat baglamaq ucundur.',
+  },
+  {
+    icon: Wallet,
+    title: '15% agent komissiyasi',
+    text: 'Agent komissiyasi endirim olunmus yekun eSIM satis qiymetinin 15%-i kimi hesablanir.',
   },
   {
     icon: Headphones,
-    title: 'Müştəri dəstəyi',
-    text: 'eSIM aktivasiya, QR, paket seçimi və transfer suallarında müştəri ilə Ey Dost komandası işləyir.',
+    title: 'Musteri desteyi',
+    text: 'eSIM aktivasiya, QR ve paket secimi suallarinda musteri ile Ey Dost komandasi isleyir.',
   },
   {
     icon: Link2,
-    title: 'Şəxsi link',
-    text: 'Agent linki kampaniya, sosial media, email və WhatsApp paylaşımı üçün istifadə oluna bilər.',
+    title: 'Sexsi link',
+    text: 'Agent linki kampaniya, sosial media, email ve WhatsApp paylasimi ucun istifade oluna biler.',
   },
   {
     icon: Copy,
-    title: 'Hazır satış mətnləri',
-    text: 'Agentlər üçün qısa təqdimat, WhatsApp mesajı və paylaşım mətni hazırlamaq mümkündür.',
+    title: 'Hazir satis metnleri',
+    text: 'Agentler ucun qisa teqdimat, WhatsApp mesaji ve paylasim metni hazirlamaq mumkundur.',
   },
   {
     icon: ShieldCheck,
-    title: 'Şəffaf izləmə',
-    text: 'Satışlar referral kod və ödəniş təsdiqi əsasında yazılır, komissiya ayrıca hesablanır.',
+    title: 'Seffaf izleme',
+    text: 'Satislar referral kod ve odenis tesdiqi esasinda yazilir, komissiya ayrica hesablanir.',
   },
 ];
 
 const faqs = [
   {
-    q: 'Ey Dost affiliate proqramı necə işləyir?',
-    a: 'Agentə xüsusi link və endirim kodu verilir. Müştəri həmin link və ya kodla eSIM aldıqda satış agent hesabına yazılır və komissiya hesablanır.',
+    q: 'Ey Dost affiliate proqrami nece isleyir?',
+    a: 'Agente xususi link ve endirim kodu verilir. Musteri hemin link ve ya kodla eSIM aldıqda satis agent hesabina yazilir ve komissiya hesablanir.',
   },
   {
-    q: 'Kimlər qoşula bilər?',
-    a: 'Tur agentlikləri, travel bloggerlər, qrup rəhbərləri, viza və təhsil şirkətləri, korporativ travel komandaları və səyahət auditoriyası olan partnyorlar qoşula bilər.',
+    q: 'Kimler qosula biler?',
+    a: 'Tur agentlikleri, travel bloggerler, qrup rehberleri, viza ve tehsil sirketleri, korporativ travel komandaları ve seyahet auditoriyasi olan partnyorlar qosula biler.',
   },
   {
-    q: 'Satışlar necə izlənir?',
-    a: 'Agent linki brauzerdə 30 gün saxlanılır. Müştəri WhatsApp-a keçəndə mesajda endirim kodu görünür. Ödəniş təsdiqindən sonra satış agent panelində qeyd olunur.',
+    q: 'Satislar nece izlenir?',
+    a: 'Agent linki brauzerde 30 gun saxlanilir. Musteri WhatsApp-a kecende mesajda endirim kodu gorunur. Odenis tesdiqinden sonra satis agent panelinde qeyd olunur.',
   },
   {
-    q: 'Komissiya nə qədərdir?',
-    a: 'Başlanğıc komissiya agent tipinə və satış modelinə görə razılaşdırılır. Test mərhələsində sadə faiz modeli ilə başlamaq, satış həcmi artdıqca şərtləri yeniləmək daha düzgündür.',
+    q: 'Komissiya ne qederdir?',
+    a: `Musteri ${CUSTOMER_DISCOUNT_PERCENT}% endirim alir. Agent komissiyasi endirim olunmus yekun eSIM satis qiymetinin ${AGENT_COMMISSION_PERCENT}%-i kimi hesablanir.`,
   },
   {
-    q: 'Qeydiyyat və aylıq ödəniş varmı?',
-    a: 'Xeyr. Partner olmaq üçün setup fee və aylıq ödəniş yoxdur. Komissiya yalnız tamamlanmış satışlara görə hesablanır.',
+    q: 'Qeydiyyat ve ayliq odenis varmi?',
+    a: 'Xeyr. Partner olmaq ucun setup fee ve ayliq odenis yoxdur. Komissiya yalniz tamamlanmis eSIM satislarina gore hesablanir.',
   },
   {
-    q: 'Müştəri dəstəyini kim verir?',
-    a: 'Müştəriyə eSIM, aktivasiya, paket seçimi və transfer üzrə əsas dəstəyi Ey Dost komandası verir. Agent sadəcə müştərini düzgün link və kodla yönləndirir.',
+    q: 'Musteri desteyini kim verir?',
+    a: 'Musteriye eSIM aktivasiya, QR, paket secimi ve istifade uzre esas desteyi Ey Dost komandasi verir. Agent musterini duzgun link ve kodla yonlendirir.',
   },
   {
-    q: 'Promo kod yalnız yeni müştəri üçün olacaq?',
-    a: 'İlk mərhələdə promo kodu əsasən yeni müştərilər üçün istifadə etmək daha düzgündür. Bu qayda kampaniyaya görə dəyişdirilə bilər.',
-  },
-  {
-    q: 'Qadağan olunan trafik varmı?',
-    a: 'Saxta klik, bot trafik, spam, aldadıcı reklam və brend adına icazəsiz reklam qəbul edilmir. Şəffaf və real satış kanalları ilə işləyirik.',
+    q: 'Qadagan olunan trafik varmi?',
+    a: 'Saxta klik, bot trafik, spam, aldadici reklam ve brend adina icazesiz reklam qebul edilmir. Seffaf ve real satis kanallari ile isleyirik.',
   },
 ];
 
@@ -206,95 +209,94 @@ export default function Partners() {
       });
     } catch (err) {
       setStatus('error');
-      setErrorMessage(err instanceof Error ? err.message : 'Müraciət göndərilmədi');
+      setErrorMessage(err instanceof Error ? err.message : 'Muraciet gonderilmedi');
     }
   };
 
   return (
     <div className="min-h-screen bg-white">
       <Seo
-        title="Affiliate və Partner Proqramı"
-        description="Ey Dost affiliate proqramına qoşulun. Müştərilərinizə eSIM və transfer təklif edin, şəxsi link və endirim kodu ilə təsdiqlənmiş satışlardan komissiya qazanın."
+        title="Affiliate ve Partner Proqrami"
+        description="Ey Dost affiliate proqramina qosulun. Musterilerinize eSIM paketleri teklif edin, sexsi link ve endirim kodu ile tesdiqlenmis satislardan komissiya qazanin."
         canonicalPath="/partners"
       />
       <Header />
 
       <main className="pt-20">
         <section className="bg-slate-950 text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-center">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
             <div>
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-4 py-2 text-sm font-semibold text-cyan-100 mb-6">
-                <Handshake className="w-4 h-4" />
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-cyan-100">
+                <Handshake className="h-4 w-4" />
                 Ey Dost Affiliate Program
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
-                Səyahət müştərilərinizdən əlavə gəlir qazanın
+              <h1 className="mb-6 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
+                eSIM satislarindan elave gelir qazanin
               </h1>
-              <p className="text-lg text-slate-300 leading-relaxed max-w-2xl mb-8">
-                eSIM internet paketləri və transfer sifarişlərini auditoriyanıza tövsiyə edin. Ey Dost sizə
-                şəxsi link, endirim kodu və agent paneli verir, təsdiqlənmiş satışlardan komissiya hesablayır.
+              <p className="mb-8 max-w-2xl text-lg leading-relaxed text-slate-300">
+                eSIM internet paketlerini auditoriyaniza teklif edin. Ey Dost size sexsi link, endirim kodu ve agent paneli verir,
+                tesdiqlenmis eSIM satislarindan komissiya hesablayir.
               </p>
               <div className="flex flex-wrap gap-3">
                 <a
                   href="#apply"
-                  className="inline-flex items-center gap-2 bg-orange-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-bold text-white transition-colors hover:bg-orange-600"
                 >
-                  Partner olmaq istəyirəm <ArrowRight className="w-4 h-4" />
+                  Partner olmaq isteyirem <ArrowRight className="h-4 w-4" />
                 </a>
                 <a
                   href="/agent/login"
-                  className="inline-flex items-center gap-2 bg-white text-slate-950 px-6 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-slate-950 transition-colors hover:bg-slate-100"
                 >
-                  Agent panelinə giriş
+                  Agent paneline giris
                 </a>
               </div>
             </div>
 
-            <div className="bg-white text-slate-900 rounded-3xl p-6 lg:p-8 shadow-2xl">
-              <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="rounded-3xl bg-white p-6 text-slate-900 shadow-2xl lg:p-8">
+              <div className="mb-6 grid grid-cols-2 gap-4">
                 {[
-                  { icon: Globe2, value: '150+', label: 'eSIM istiqaməti' },
-                  { icon: Car, value: '50+', label: 'transfer ölkəsi' },
-                  { icon: Smartphone, value: '30 gün', label: 'referral yaddaşı' },
-                  { icon: TrendingUp, value: '0 AZN', label: 'qoşulma haqqı' },
+                  { icon: Globe2, value: '150+', label: 'eSIM istiqameti' },
+                  { icon: Gift, value: '10%', label: 'musteri endirimi' },
+                  { icon: Wallet, value: '15%', label: 'agent komissiyasi' },
+                  { icon: Smartphone, value: '30 gun', label: 'referral yaddasi' },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.label} className="rounded-2xl bg-slate-50 border border-slate-100 p-4">
-                      <Icon className="w-5 h-5 text-orange-500 mb-3" />
+                    <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                      <Icon className="mb-3 h-5 w-5 text-orange-500" />
                       <div className="text-2xl font-extrabold">{item.value}</div>
-                      <div className="text-xs text-slate-500 font-semibold">{item.label}</div>
+                      <div className="text-xs font-semibold text-slate-500">{item.label}</div>
                     </div>
                   );
                 })}
               </div>
-              <div className="rounded-2xl bg-orange-50 border border-orange-100 p-5">
-                <p className="text-sm text-orange-900 font-semibold leading-relaxed">
-                  Hər agentə xüsusi referral link və endirim kodu verilir. Müştəri həmin kodla gəldikdə satış
-                  panelə yazılır və komissiya hesablanır.
+              <div className="rounded-2xl border border-orange-100 bg-orange-50 p-5">
+                <p className="text-sm font-semibold leading-relaxed text-orange-900">
+                  Musteri 10% endirim alir. Agent ise endirim olunmus yekun eSIM satis qiymetinden 15% komissiya qazanir.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mb-10">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-3">Auditoriyanızı necə gəlirə çevirirsiniz?</h2>
-              <p className="text-slate-600 leading-relaxed">
-                Səyahət edən müştərinin internetə və transferə real ehtiyacı var. Siz tövsiyə edirsiniz, Ey Dost
-                xidmət və dəstəyi idarə edir, satış təsdiqlənəndə komissiya sizə yazılır.
+        <section className="bg-white py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10 max-w-3xl">
+              <h2 className="mb-3 text-3xl font-extrabold text-slate-900">Auditoriyanizi nece gelire cevirirsiniz?</h2>
+              <p className="leading-relaxed text-slate-600">
+                Seyahet eden musterinin internete real ehtiyaci var. Siz tovsiye edirsiniz, Ey Dost xidmeti ve desteyi idare edir,
+                satis tesdiqlenende komissiya size yazilir.
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-5">
+            <div className="grid gap-5 md:grid-cols-3">
               {gettingStarted.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.title} className="border border-slate-100 rounded-2xl p-6 bg-slate-50">
-                    <Icon className="w-9 h-9 text-blue-600 mb-4" />
-                    <h3 className="font-extrabold text-slate-900 mb-2">{item.title}</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{item.text}</p>
+                  <div key={item.title} className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                    <Icon className="mb-4 h-9 w-9 text-blue-600" />
+                    <h3 className="mb-2 font-extrabold text-slate-900">{item.title}</h3>
+                    <p className="text-sm leading-relaxed text-slate-600">{item.text}</p>
                   </div>
                 );
               })}
@@ -302,54 +304,54 @@ export default function Partners() {
           </div>
         </section>
 
-        <section className="py-16 bg-slate-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-start">
+        <section className="bg-slate-50 py-16">
+          <div className="mx-auto grid max-w-7xl items-start gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
             <div>
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-4">Satışlar necə izlənir?</h2>
-              <p className="text-slate-600 leading-relaxed mb-6">
-                Sistem agent linkini və endirim kodunu birlikdə istifadə edir. Müştəri bir dəfə agent linkindən
-                gəlibsə, kod 30 gün ərzində WhatsApp mesajına əlavə olunur.
+              <h2 className="mb-4 text-3xl font-extrabold text-slate-900">Satislar nece izlenir?</h2>
+              <p className="mb-6 leading-relaxed text-slate-600">
+                Sistem agent linkini ve endirim kodunu birlikde istifade edir. Musteri bir defe agent linkinden gelibse,
+                kod 30 gun erzinde WhatsApp mesajina elave olunur.
               </p>
               <div className="space-y-3">
                 {trackingPoints.map((item) => (
-                  <div key={item} className="flex gap-3 bg-white border border-slate-100 rounded-2xl p-4">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                  <div key={item} className="flex gap-3 rounded-2xl border border-slate-100 bg-white p-4">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
                     <p className="text-sm font-semibold text-slate-800">{item}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-slate-950 text-white rounded-3xl p-6 lg:p-8">
-              <BadgeCheck className="w-9 h-9 text-orange-400 mb-5" />
-              <h3 className="text-2xl font-extrabold mb-3">Şəffaf komissiya modeli</h3>
-              <p className="text-slate-300 leading-relaxed mb-6">
-                Komissiya yalnız təsdiqlənmiş sifarişlərdən hesablanır. Hər satışda sifariş nömrəsi, məbləğ,
-                status və komissiya agent panelində görünür.
+            <div className="rounded-3xl bg-slate-950 p-6 text-white lg:p-8">
+              <BadgeCheck className="mb-5 h-9 w-9 text-orange-400" />
+              <h3 className="mb-3 text-2xl font-extrabold">Seffaf komissiya modeli</h3>
+              <p className="mb-6 leading-relaxed text-slate-300">
+                Komissiya yalniz tesdiqlenmis eSIM satislarindan hesablanir. Musteri 10% endirim alir, agent komissiyasi
+                endirimli satis mebleginin 15%-i kimi panelde gorunur.
               </p>
-              <a href="/agent/login" className="inline-flex items-center gap-2 bg-white text-slate-950 px-5 py-3 rounded-xl font-bold">
-                Agent panelinə bax <ArrowRight className="w-4 h-4" />
+              <a href="/agent/login" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-slate-950">
+                Agent paneline bax <ArrowRight className="h-4 w-4" />
               </a>
             </div>
           </div>
         </section>
 
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-10">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-3">Kimlər üçün uyğundur?</h2>
+        <section className="bg-white py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10 max-w-2xl">
+              <h2 className="mb-3 text-3xl font-extrabold text-slate-900">Kimler ucun uygundur?</h2>
               <p className="text-slate-600">
-                Xaricə müştəri göndərən və ya səyahət auditoriyası olan hər komanda Ey Dost xidmətlərini əlavə dəyər kimi təqdim edə bilər.
+                Xarice musteri gonderen ve ya seyahet auditoriyasi olan her komanda eSIM paketlerini elave deyer kimi teqdim ede biler.
               </p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
               {partnerSegments.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.title} className="border border-slate-100 rounded-2xl p-6 bg-slate-50">
-                    <Icon className="w-8 h-8 text-blue-600 mb-4" />
-                    <h3 className="font-extrabold text-slate-900 mb-2">{item.title}</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{item.text}</p>
+                  <div key={item.title} className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                    <Icon className="mb-4 h-8 w-8 text-blue-600" />
+                    <h3 className="mb-2 font-extrabold text-slate-900">{item.title}</h3>
+                    <p className="text-sm leading-relaxed text-slate-600">{item.text}</p>
                   </div>
                 );
               })}
@@ -357,22 +359,22 @@ export default function Partners() {
           </div>
         </section>
 
-        <section className="py-16 bg-slate-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-10">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-3">Partnerlərə nə veririk?</h2>
+        <section className="bg-slate-50 py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10 max-w-2xl">
+              <h2 className="mb-3 text-3xl font-extrabold text-slate-900">Partnerlere ne veririk?</h2>
               <p className="text-slate-600">
-                Məqsəd agentin texniki işini azaltmaqdır: siz müştərini gətirirsiniz, izləmə və xidmət tərəfini sistem idarə edir.
+                Meqsed agentin texniki isini azaltmaqdir: siz musterini getirirsiniz, izleme ve eSIM xidmetini sistem idare edir.
               </p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {benefits.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.title} className="bg-white border border-slate-100 rounded-2xl p-6">
-                    <Icon className="w-8 h-8 text-orange-500 mb-4" />
-                    <h3 className="font-extrabold text-slate-900 mb-2">{item.title}</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{item.text}</p>
+                  <div key={item.title} className="rounded-2xl border border-slate-100 bg-white p-6">
+                    <Icon className="mb-4 h-8 w-8 text-orange-500" />
+                    <h3 className="mb-2 font-extrabold text-slate-900">{item.title}</h3>
+                    <p className="text-sm leading-relaxed text-slate-600">{item.text}</p>
                   </div>
                 );
               })}
@@ -380,46 +382,44 @@ export default function Partners() {
           </div>
         </section>
 
-        <section id="apply" className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[0.8fr_1.2fr] gap-10">
+        <section id="apply" className="bg-white py-16">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
             <div>
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-4">Partner olmaq istəyirsiniz?</h2>
-              <p className="text-slate-600 leading-relaxed mb-6">
-                Formu göndərin, komanda sizinlə əlaqə saxlayıb uyğun komissiya, kod və satış modelini müzakirə edəcək.
+              <h2 className="mb-4 text-3xl font-extrabold text-slate-900">Partner olmaq isteyirsiniz?</h2>
+              <p className="mb-6 leading-relaxed text-slate-600">
+                Formu gonderin, komanda sizinle elaqe saxlayib kod, panel ve eSIM satis modelini aktivlesdirecek.
               </p>
-              <div className="rounded-2xl bg-slate-50 border border-slate-100 p-5">
-                <p className="text-sm text-slate-600">
-                  Daha sürətli cavab üçün WhatsApp-la da yaza bilərsiniz:
-                </p>
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                <p className="text-sm text-slate-600">Daha suretli cavab ucun WhatsApp-la da yaza bilersiniz:</p>
                 <a href="https://wa.me/994992000444" className="mt-2 inline-flex font-bold text-blue-600">
                   +994 99 200 04 44
                 </a>
               </div>
             </div>
 
-            <form onSubmit={submit} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+            <form onSubmit={submit} className="space-y-4 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+              <div className="grid gap-4 md:grid-cols-2">
                 <label className="block">
                   <span className="text-sm font-bold text-slate-700">Ad Soyad</span>
                   <input
                     required
                     value={form.fullName}
                     onChange={(e) => update('fullName', e.target.value)}
-                    className="mt-2 w-full px-4 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-sm font-bold text-slate-700">Şirkət adı</span>
+                  <span className="text-sm font-bold text-slate-700">Sirket adi</span>
                   <input
                     required
                     value={form.companyName}
                     onChange={(e) => update('companyName', e.target.value)}
-                    className="mt-2 w-full px-4 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                   />
                 </label>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <label className="block">
                   <span className="text-sm font-bold text-slate-700">Email</span>
                   <input
@@ -427,7 +427,7 @@ export default function Partners() {
                     type="email"
                     value={form.email}
                     onChange={(e) => update('email', e.target.value)}
-                    className="mt-2 w-full px-4 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                   />
                 </label>
                 <label className="block">
@@ -436,18 +436,18 @@ export default function Partners() {
                     value={form.whatsapp}
                     onChange={(e) => update('whatsapp', e.target.value)}
                     placeholder="+994..."
-                    className="mt-2 w-full px-4 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                   />
                 </label>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <label className="block">
                   <span className="text-sm font-bold text-slate-700">Partner tipi</span>
                   <select
                     value={form.partnerType}
                     onChange={(e) => update('partnerType', e.target.value)}
-                    className="mt-2 w-full px-4 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400 bg-white"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                   >
                     {partnerTypes.map((item) => (
                       <option key={item.value} value={item.value}>
@@ -457,12 +457,12 @@ export default function Partners() {
                   </select>
                 </label>
                 <label className="block">
-                  <span className="text-sm font-bold text-slate-700">Aylıq təxmini müştəri sayı</span>
+                  <span className="text-sm font-bold text-slate-700">Ayliq texmini musteri sayi</span>
                   <input
                     value={form.monthlyClients}
                     onChange={(e) => update('monthlyClients', e.target.value)}
-                    placeholder="Məs: 20-50"
-                    className="mt-2 w-full px-4 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400"
+                    placeholder="Mes: 20-50"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                   />
                 </label>
               </div>
@@ -473,42 +473,42 @@ export default function Partners() {
                   rows={4}
                   value={form.message}
                   onChange={(e) => update('message', e.target.value)}
-                  placeholder="Hansı istiqamətlərə müştəri göndərirsiniz?"
-                  className="mt-2 w-full px-4 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-400 resize-y"
+                  placeholder="Hansi istiqametlere musteri gonderirsiniz?"
+                  className="mt-2 w-full resize-y rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
                 />
               </label>
 
               {status === 'success' && (
-                <div className="rounded-2xl bg-green-50 text-green-700 p-4 text-sm font-semibold">
-                  Müraciət göndərildi. Tezliklə sizinlə əlaqə saxlayacağıq.
+                <div className="rounded-2xl bg-green-50 p-4 text-sm font-semibold text-green-700">
+                  Muraciet gonderildi. Tezlikle sizinle elaqe saxlayacagiq.
                 </div>
               )}
               {status === 'error' && (
-                <div className="rounded-2xl bg-red-50 text-red-700 p-4 text-sm font-semibold">
-                  {errorMessage || 'Müraciət göndərilmədi. Bir az sonra yenidən yoxlayın.'}
+                <div className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
+                  {errorMessage || 'Muraciet gonderilmedi. Bir az sonra yeniden yoxlayin.'}
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={status === 'submitting'}
-                className="w-full inline-flex items-center justify-center gap-2 bg-orange-600 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-orange-700 disabled:opacity-60 transition-colors"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 px-6 py-3.5 font-bold text-white transition-colors hover:bg-orange-700 disabled:opacity-60"
               >
-                {status === 'submitting' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                Müraciəti göndər
+                {status === 'submitting' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Muracieti gonder
               </button>
             </form>
           </div>
         </section>
 
-        <section className="py-16 bg-slate-50">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-extrabold text-slate-900 text-center mb-10">Tez-tez verilən suallar</h2>
-            <div className="grid md:grid-cols-2 gap-4">
+        <section className="bg-slate-50 py-16">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <h2 className="mb-10 text-center text-3xl font-extrabold text-slate-900">Tez-tez verilen suallar</h2>
+            <div className="grid gap-4 md:grid-cols-2">
               {faqs.map((item) => (
-                <div key={item.q} className="border border-slate-100 bg-white rounded-2xl p-5">
-                  <h3 className="font-extrabold text-slate-900 mb-2">{item.q}</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">{item.a}</p>
+                <div key={item.q} className="rounded-2xl border border-slate-100 bg-white p-5">
+                  <h3 className="mb-2 font-extrabold text-slate-900">{item.q}</h3>
+                  <p className="text-sm leading-relaxed text-slate-600">{item.a}</p>
                 </div>
               ))}
             </div>

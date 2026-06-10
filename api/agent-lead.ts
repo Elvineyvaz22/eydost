@@ -69,7 +69,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ok: false, ignored: true });
   }
 
-  const productType = clean(req.body?.productType || 'esim', 20);
   const packageCode = clean(req.body?.packageCode || req.body?.code, 80);
   const packageName = clean(req.body?.packageName, 120);
   const viewedPackage = clean(req.body?.viewedPackage, 160);
@@ -104,7 +103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       agent_id: agent.id,
       customer_name: null,
       customer_contact: null,
-      product_type: ['esim', 'taxi', 'other'].includes(productType) ? productType : 'esim',
+      product_type: 'esim',
       order_reference: null,
       sale_amount: 0,
       commission_amount: 0,

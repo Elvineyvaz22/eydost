@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const WEBHOOK_SECRET = process.env.AGENT_WEBHOOK_SECRET;
+const CUSTOMER_DISCOUNT_PERCENT = 10;
+const AGENT_COMMISSION_PERCENT = 15;
 
 function getSupabase() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
@@ -38,6 +40,35 @@ function moneyToUsd(value: unknown, currency: unknown) {
   return firstString(currency).toUpperCase() === 'AZN'
     ? Number((amount / 1.7).toFixed(2))
     : Number(amount.toFixed(2));
+}
+
+function discountedAmount(amount: number) {
+  return Number((amount * (1 - CUSTOMER_DISCOUNT_PERCENT / 100)).toFixed(2));
+}
+
+function resolveSaleAmount(body: Record<string, unknown>) {
+  const explicitFinal = firstNumber(
+    body.sale_amount,
+    body.sell_price,
+    body.paid_amount,
+    body.payment_amount,
+    body.charged_amount,
+    body.final_amount,
+    body.discounted_price,
+    body.checkout_amount,
+    body.total_paid
+  );
+  if (explicitFinal) return explicitFinal;
+
+  const original = firstNumber(
+    body.original_sell_price,
+    body.original_price,
+    body.base_price,
+    body.price_before_discount
+  );
+  if (original) return discountedAmount(original);
+
+  return firstNumber(body.amount, body.total);
 }
 
 function normalizeStatus(value: unknown) {
@@ -138,19 +169,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     body.invoice_id,
     body.provider_order_no
   );
-  const saleAmount = firstNumber(
-    body.sale_amount,
-    body.sell_price,
-    body.amount,
-    body.paid_amount,
-    body.payment_amount,
-    body.charged_amount,
-    body.final_amount,
-    body.discounted_price,
-    body.checkout_amount,
-    body.total_paid,
-    body.total
-  );
+  const saleAmount = resolveSaleAmount(body);
   const saleAmountUsd = moneyToUsd(saleAmount, body.currency);
   const productType = firstString(body.product_type, body.type) || 'esim';
   const status = normalizeStatus(
@@ -188,12 +207,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .map((row) => pickMetadataFromNotes(row.notes))
       .find((meta) => meta['source'] || meta['utm source'] || meta['medium'] || meta['campaign']) || {};
 
-  const commissionAmount = Number(((saleAmountUsd * Number(agent.commission_rate || 0)) / 100).toFixed(2));
+  const commissionAmount = Number((saleAmountUsd * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2));
   const payload = {
     agent_id: agent.id,
     customer_name: firstString(body.customer_name, body.name) || null,
     customer_contact: firstString(body.customer_contact, body.phone, body.email, body.whatsapp) || null,
-    product_type: ['esim', 'taxi', 'other'].includes(productType) ? productType : 'esim',
+    product_type: 'esim',
     order_reference: orderReference || null,
     sale_amount: saleAmountUsd,
     commission_amount: commissionAmount,

@@ -6,6 +6,7 @@ const BOT_API_BASE_URL =
   'https://bot.eydost.az';
 const PUBLIC_API_KEY = process.env.PUBLIC_API_KEY;
 const PUBLIC_API_AUTH_TOKEN = process.env.PUBLIC_API_AUTH_TOKEN;
+const AGENT_COMMISSION_PERCENT = 15;
 
 function firstString(...values: unknown[]) {
   for (const value of values) {
@@ -40,7 +41,7 @@ function normalizeAgent(raw: any) {
     company_name: firstString(agent?.company_name, agent?.company, 'Agent'),
     email: firstString(agent?.email).toLowerCase(),
     referral_code: firstString(agent?.referral_code, firstCode?.referral_code, firstCode?.code) || null,
-    commission_rate: firstNumber(agent?.commission_rate, 10) || 10,
+    commission_rate: AGENT_COMMISSION_PERCENT,
     status: firstString(agent?.status, agent?.is_active === false ? 'pending' : 'active') || 'active',
   };
 }
@@ -143,7 +144,7 @@ function normalizeReferral(row: any, index: number) {
     row.total,
     currency
   );
-  const commissionAmount = moneyToUsd(row.commission_amount ?? row.commission, currency);
+  const commissionAmount = Number((saleAmount * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2));
 
   return {
     id: firstString(row.id, row.order_id, row.payment_id, row.transaction_id, index),
@@ -152,7 +153,7 @@ function normalizeReferral(row: any, index: number) {
     product_type: firstString(row.product_type, row.order_type, row.type) || 'esim',
     order_reference: firstString(row.order_reference, row.order_id, row.payment_id, row.transaction_id, row.provider_order_no) || null,
     sale_amount: saleAmount,
-    commission_amount: commissionAmount || Number((saleAmount * 0.1).toFixed(2)),
+    commission_amount: commissionAmount,
     status: normalizeStatus(row),
     notes: buildNotes(row),
     created_at: firstString(row.created_at, row.createdAt, row.updated_at, row.date) || new Date().toISOString(),
@@ -195,7 +196,7 @@ function normalizeConversion(row: any, index: number) {
   );
 }
 
-function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeReferral>[], commissionRate = 10) {
+function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeReferral>[]) {
   const data = mePayload?.data ?? mePayload ?? {};
   const totals = data.totals || data.stats || data;
   const soldEsimPrice = firstNumber(totals.sold_esim_price, totals.soldEsimPrice);
@@ -217,14 +218,8 @@ function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeR
     leads: firstNumber(totals.search_count, totals.searches_count, totals.leads, totals.lead_count, totals.clicks) || fallback.leads,
     conversions: firstNumber(totals.conversion_count, totals.conversions, totals.sale_count, totals.sales_count),
     sales: firstNumber(totals.sales, totals.sales_amount, totals.total_sales) || soldEsimPrice || fallback.sales,
-    commission:
-      firstNumber(totals.commission, totals.commission_amount, totals.total_commission) ||
-      fallback.commission ||
-      Number(((soldEsimPrice || 0) * (commissionRate / 100)).toFixed(2)),
-    paid:
-      firstNumber(totals.paid, totals.paid_commission, totals.paid_amount) ||
-      fallback.paid ||
-      Number(((soldEsimPrice || 0) * (commissionRate / 100)).toFixed(2)),
+    commission: Number(((soldEsimPrice || fallback.sales || 0) * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2)),
+    paid: Number(((soldEsimPrice || fallback.sales || 0) * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2)),
   };
 }
 
@@ -259,7 +254,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const referrals = [...conversions, ...searches].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-    const totals = normalizeTotals(mePayload, referrals, agent.commission_rate);
+    const totals = normalizeTotals(mePayload, referrals);
 
     return res.status(200).json({
       agent,
