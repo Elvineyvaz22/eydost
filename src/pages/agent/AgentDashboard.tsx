@@ -497,7 +497,7 @@ export default function AgentDashboard() {
   const conversionRate = totals.leads > 0 ? Math.round((referrals.filter((item) => item.status === 'paid').length / totals.leads) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#f6f7fb]">
+    <div className="min-h-screen bg-[#f7f8fb]">
       <Seo title="Agent Dashboard" noIndex canonicalPath="/agent/dashboard" />
       <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -536,34 +536,34 @@ export default function AgentDashboard() {
           <div className="rounded-3xl border border-red-100 bg-red-50 p-5 font-semibold text-red-700">{error}</div>
         ) : agent ? (
           <div className="space-y-5">
-            <section className="rounded-[2rem] bg-slate-950 p-5 text-white shadow-sm sm:p-7">
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="grid gap-5 xl:grid-cols-[1fr_420px] xl:items-stretch">
                 <div className="min-w-0">
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white/80 ring-1 ring-white/10">
-                    <span className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                    <span className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                     {agent.status === 'active' ? t.activeAgent : t.awaitingApproval}
                   </div>
-                  <h1 className="text-3xl font-black tracking-tight sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+                  <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
                     {t.intro}
                   </p>
                   <div className="mt-6 grid gap-3 md:grid-cols-3">
-                    <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+                    <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
                       <div className="text-xs font-bold uppercase text-slate-400">{t.commissionRate}</div>
-                      <div className="mt-1 text-2xl font-black">{Number(agent.commission_rate || 0).toFixed(0)}%</div>
+                      <div className="mt-1 text-2xl font-black text-slate-950">{Number(agent.commission_rate || 0).toFixed(0)}%</div>
                     </div>
-                    <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+                    <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
                       <div className="text-xs font-bold uppercase text-slate-400">{t.conversionRate}</div>
-                      <div className="mt-1 text-2xl font-black">{conversionRate}%</div>
+                      <div className="mt-1 text-2xl font-black text-slate-950">{conversionRate}%</div>
                     </div>
-                    <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+                    <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
                       <div className="text-xs font-bold uppercase text-slate-400">{t.code}</div>
-                      <div className="mt-1 truncate text-xl font-black">{agent.referral_code || t.notCreated}</div>
+                      <div className="mt-1 truncate text-xl font-black text-slate-950">{agent.referral_code || t.notCreated}</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-[1.5rem] bg-white p-4 text-slate-950 shadow-sm sm:p-5">
+                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 text-slate-950 sm:p-5">
                   {agent.referral_code ? (
                     <div className="flex h-full flex-col justify-between gap-5">
                       <div>
@@ -571,7 +571,7 @@ export default function AgentDashboard() {
                           <CheckCircle2 className="h-5 w-5" />
                           {t.linkActive}
                         </div>
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
                           <div className="text-xs font-bold uppercase text-slate-400">{t.referralLink}</div>
                           <div className="mt-2 break-all text-sm font-bold text-slate-900">{referralLink}</div>
                         </div>
@@ -598,25 +598,25 @@ export default function AgentDashboard() {
 
             <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: t.lead, value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700' },
-                { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
-                { label: t.salesAmount, value: money(totals.sales), icon: TrendingUp, tone: 'bg-blue-50 text-blue-700' },
-                { label: t.commission, value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700' },
+                { label: t.lead, value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
+                { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
+                { label: t.salesAmount, value: money(totals.sales), icon: TrendingUp, tone: 'bg-slate-50 text-slate-700 ring-slate-100' },
+                { label: t.commission, value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${item.tone}`}>
+                  <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ring-1 ${item.tone}`}>
                       <Icon className="w-5 h-5" />
                     </div>
-                    <div className="text-sm font-semibold text-slate-500">{item.label}</div>
-                    <div className="mt-1 text-3xl font-black text-slate-950">{item.value}</div>
+                    <div className="text-xs font-black uppercase text-slate-400">{item.label}</div>
+                    <div className="mt-1 text-3xl font-black tracking-tight text-slate-950">{item.value}</div>
                   </div>
                 );
               })}
             </section>
 
-            <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="flex flex-col gap-2 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-xl font-black text-slate-950">{t.recentTitle}</h2>
@@ -633,7 +633,7 @@ export default function AgentDashboard() {
               ) : (
                 <div className="divide-y divide-slate-100">
                   {referrals.map((row) => (
-                    <div key={row.id} className="grid gap-4 p-4 transition hover:bg-slate-50/80 lg:grid-cols-[140px_1fr_140px_140px] lg:items-center">
+                    <div key={row.id} className="grid gap-4 p-4 transition hover:bg-slate-50/80 lg:grid-cols-[120px_1fr_130px_130px] lg:items-center">
                       <div>
                         <div className="text-sm font-black text-slate-950">{new Date(row.created_at).toLocaleDateString(t.dateLocale)}</div>
                         <div className="mt-1 text-xs font-semibold uppercase text-slate-400">{row.product_type}</div>
@@ -662,8 +662,8 @@ export default function AgentDashboard() {
                             </span>
                           )}
                         </div>
-                        <div className="max-w-2xl">
-                            <LeadDetails notes={row.notes} t={t} />
+                        <div className="max-w-3xl">
+                          <LeadDetails notes={row.notes} t={t} />
                         </div>
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3 lg:text-right">
