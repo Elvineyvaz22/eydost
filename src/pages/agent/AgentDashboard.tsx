@@ -34,7 +34,8 @@ type Totals = {
   paid: number;
 };
 
-type AgentLanguage = 'en' | 'az';
+const agentLanguages = ['en', 'az', 'tr', 'ru', 'ar', 'es', 'zh'] as const;
+type AgentLanguage = (typeof agentLanguages)[number];
 
 const dashboardCopy = {
   en: {
@@ -110,6 +111,191 @@ const dashboardCopy = {
     sale: 'Satış',
     order: 'Order',
     dateLocale: 'az-AZ',
+  },
+  tr: {
+    agentPanel: 'Agent paneli',
+    logout: 'Çıkış',
+    loading: 'Yükleniyor...',
+    dashboardError: 'Panel yüklenemedi',
+    panelServerError: 'Panel sunucu hatası',
+    activeAgent: 'Aktif agent',
+    awaitingApproval: 'Onay bekliyor',
+    welcome: 'Merhaba',
+    intro: 'Referral linkinizi paylaşın; WhatsApp tıklamalarını, satışları ve komisyonu bu panelden takip edin.',
+    commissionRate: 'Komisyon oranı',
+    conversionRate: 'Dönüşüm oranı',
+    code: 'Kod',
+    notCreated: 'Henüz oluşturulmadı',
+    linkActive: 'Link aktif',
+    referralLink: 'Referral link',
+    copy: 'Kopyala',
+    open: 'Aç',
+    approvalNotice: 'Referral kodunuz backend/admin panelde onaylandıktan sonra burada görünecek.',
+    lead: 'Lead',
+    conversions: 'Satış sayısı',
+    salesAmount: 'Satış tutarı',
+    commission: 'Komisyon',
+    recentTitle: 'Son lead ve satışlar',
+    recentSubtitle: 'Tıklamalar, görüntülenen paketler ve ödeme durumu.',
+    records: 'kayıt',
+    empty: 'Henüz lead veya satış yok. Referral kod aktif olduktan sonra WhatsApp tıklamaları ve satışlar burada görünecek.',
+    noCustomer: 'Müşteri bilgisi yok',
+    viewedPackage: 'Görüntülenen paket',
+    noPackage: 'Paket bilgisi yok',
+    source: 'Kaynak',
+    medium: 'Medium',
+    campaign: 'Campaign',
+    sale: 'Satış',
+    order: 'Order',
+    dateLocale: 'tr-TR',
+  },
+  ru: {
+    agentPanel: 'Панель агента',
+    logout: 'Выйти',
+    loading: 'Загрузка...',
+    dashboardError: 'Не удалось загрузить панель',
+    panelServerError: 'Ошибка сервера панели',
+    activeAgent: 'Активный агент',
+    awaitingApproval: 'Ожидает подтверждения',
+    welcome: 'Здравствуйте',
+    intro: 'Делитесь реферальной ссылкой и отслеживайте WhatsApp-клики, продажи и комиссию в этой панели.',
+    commissionRate: 'Ставка комиссии',
+    conversionRate: 'Конверсия',
+    code: 'Код',
+    notCreated: 'Еще не создан',
+    linkActive: 'Ссылка активна',
+    referralLink: 'Реферальная ссылка',
+    copy: 'Копировать',
+    open: 'Открыть',
+    approvalNotice: 'Ваш реферальный код появится здесь после подтверждения в backend/admin панели.',
+    lead: 'Лиды',
+    conversions: 'Продажи',
+    salesAmount: 'Сумма продаж',
+    commission: 'Комиссия',
+    recentTitle: 'Последние лиды и продажи',
+    recentSubtitle: 'Клики, просмотренные пакеты и статус оплаты.',
+    records: 'записей',
+    empty: 'Лидов и продаж пока нет. WhatsApp-клики и продажи появятся здесь после активации реферального кода.',
+    noCustomer: 'Нет данных клиента',
+    viewedPackage: 'Просмотренный пакет',
+    noPackage: 'Нет данных пакета',
+    source: 'Источник',
+    medium: 'Medium',
+    campaign: 'Campaign',
+    sale: 'Продажа',
+    order: 'Order',
+    dateLocale: 'ru-RU',
+  },
+  ar: {
+    agentPanel: 'لوحة الوكيل',
+    logout: 'تسجيل الخروج',
+    loading: 'جار التحميل...',
+    dashboardError: 'تعذر تحميل اللوحة',
+    panelServerError: 'خطأ في خادم اللوحة',
+    activeAgent: 'وكيل نشط',
+    awaitingApproval: 'بانتظار الموافقة',
+    welcome: 'مرحبا',
+    intro: 'شارك رابط الإحالة وتابع نقرات WhatsApp والمبيعات والعمولة من هذه اللوحة.',
+    commissionRate: 'نسبة العمولة',
+    conversionRate: 'معدل التحويل',
+    code: 'الكود',
+    notCreated: 'لم يتم إنشاؤه بعد',
+    linkActive: 'الرابط نشط',
+    referralLink: 'رابط الإحالة',
+    copy: 'نسخ',
+    open: 'فتح',
+    approvalNotice: 'سيظهر كود الإحالة هنا بعد اعتماده في لوحة الإدارة.',
+    lead: 'Lead',
+    conversions: 'عدد المبيعات',
+    salesAmount: 'قيمة المبيعات',
+    commission: 'العمولة',
+    recentTitle: 'أحدث العملاء والمبيعات',
+    recentSubtitle: 'النقرات، الباقات التي تمت مشاهدتها، وحالة الدفع.',
+    records: 'سجل',
+    empty: 'لا توجد عملاء أو مبيعات بعد. ستظهر نقرات WhatsApp والمبيعات هنا بعد تفعيل كود الإحالة.',
+    noCustomer: 'لا توجد بيانات للعميل',
+    viewedPackage: 'الباقة المعروضة',
+    noPackage: 'لا توجد بيانات للباقة',
+    source: 'المصدر',
+    medium: 'Medium',
+    campaign: 'Campaign',
+    sale: 'بيع',
+    order: 'Order',
+    dateLocale: 'ar',
+  },
+  es: {
+    agentPanel: 'Panel de agente',
+    logout: 'Salir',
+    loading: 'Cargando...',
+    dashboardError: 'No se pudo cargar el panel',
+    panelServerError: 'Error del servidor del panel',
+    activeAgent: 'Agente activo',
+    awaitingApproval: 'Pendiente de aprobación',
+    welcome: 'Bienvenido',
+    intro: 'Comparte tu enlace de referido y sigue los clics de WhatsApp, ventas y comisión desde este panel.',
+    commissionRate: 'Tasa de comisión',
+    conversionRate: 'Conversión',
+    code: 'Código',
+    notCreated: 'Aún no creado',
+    linkActive: 'El enlace está activo',
+    referralLink: 'Enlace de referido',
+    copy: 'Copiar',
+    open: 'Abrir',
+    approvalNotice: 'Tu código de referido aparecerá aquí después de ser aprobado en el panel admin/backend.',
+    lead: 'Lead',
+    conversions: 'Ventas',
+    salesAmount: 'Importe de ventas',
+    commission: 'Comisión',
+    recentTitle: 'Leads y ventas recientes',
+    recentSubtitle: 'Clics, paquetes vistos y estado de pago.',
+    records: 'registros',
+    empty: 'Aún no hay leads ni ventas. Los clics de WhatsApp y las ventas aparecerán aquí cuando tu código esté activo.',
+    noCustomer: 'Sin datos del cliente',
+    viewedPackage: 'Paquete visto',
+    noPackage: 'Sin datos del paquete',
+    source: 'Fuente',
+    medium: 'Medium',
+    campaign: 'Campaign',
+    sale: 'Venta',
+    order: 'Order',
+    dateLocale: 'es-ES',
+  },
+  zh: {
+    agentPanel: '代理面板',
+    logout: '退出',
+    loading: '加载中...',
+    dashboardError: '无法加载面板',
+    panelServerError: '面板服务器错误',
+    activeAgent: '代理已启用',
+    awaitingApproval: '等待审核',
+    welcome: '欢迎',
+    intro: '分享您的推荐链接，并在此面板跟踪 WhatsApp 点击、销售和佣金。',
+    commissionRate: '佣金比例',
+    conversionRate: '转化率',
+    code: '代码',
+    notCreated: '尚未创建',
+    linkActive: '链接已启用',
+    referralLink: '推荐链接',
+    copy: '复制',
+    open: '打开',
+    approvalNotice: '推荐代码在后台/admin 面板审核后会显示在这里。',
+    lead: '线索',
+    conversions: '销售数',
+    salesAmount: '销售金额',
+    commission: '佣金',
+    recentTitle: '最新线索和销售',
+    recentSubtitle: '点击、查看的套餐和付款状态。',
+    records: '条记录',
+    empty: '暂无线索或销售。推荐代码启用后，WhatsApp 点击和销售会显示在这里。',
+    noCustomer: '无客户信息',
+    viewedPackage: '查看的套餐',
+    noPackage: '无套餐信息',
+    source: '来源',
+    medium: 'Medium',
+    campaign: 'Campaign',
+    sale: '销售',
+    order: 'Order',
+    dateLocale: 'zh-CN',
   },
 } satisfies Record<AgentLanguage, Record<string, string>>;
 
@@ -235,7 +421,9 @@ function statusStyle(status: string) {
 export default function AgentDashboard() {
   const navigate = useNavigate();
   const [language, setLanguage] = useState<AgentLanguage>(() =>
-    localStorage.getItem('eydost_agent_language') === 'az' ? 'az' : 'en'
+    agentLanguages.includes(localStorage.getItem('eydost_agent_language') as AgentLanguage)
+      ? (localStorage.getItem('eydost_agent_language') as AgentLanguage)
+      : 'en'
   );
   const [agent, setAgent] = useState<Agent | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
@@ -318,13 +506,13 @@ export default function AgentDashboard() {
             <div className="truncate text-sm text-slate-500">{agent?.company_name || t.agentPanel}</div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-xs font-black text-slate-600">
-              {(['en', 'az'] as AgentLanguage[]).map((item) => (
+            <div className="flex flex-wrap rounded-2xl bg-slate-100 p-1 text-xs font-black text-slate-600">
+              {agentLanguages.map((item) => (
                 <button
                   key={item}
                   type="button"
                   onClick={() => changeLanguage(item)}
-                  className={`rounded-xl px-3 py-2 uppercase transition ${language === item ? 'bg-white text-slate-950 shadow-sm' : 'hover:text-slate-950'}`}
+                  className={`rounded-xl px-2.5 py-2 uppercase transition ${language === item ? 'bg-white text-slate-950 shadow-sm' : 'hover:text-slate-950'}`}
                 >
                   {item}
                 </button>

@@ -7,7 +7,8 @@ function isStrongAccessCode(value: string) {
   return value.length >= 8 && /[A-Z]/.test(value) && /\d/.test(value);
 }
 
-type AgentLanguage = 'en' | 'az';
+const agentLanguages = ['en', 'az', 'tr', 'ru', 'ar', 'es', 'zh'] as const;
+type AgentLanguage = (typeof agentLanguages)[number];
 
 const loginCopy = {
   en: {
@@ -66,12 +67,154 @@ const loginCopy = {
     signIn: 'Daxil ol',
     createAccount: 'Qeydiyyatdan keç',
   },
+  tr: {
+    minimum: 'Minimum 8 karakter',
+    uppercase: 'En az 1 büyük harf',
+    number: 'En az 1 rakam',
+    missingAgent: 'Agent bilgisi dönmedi. Sayfayı yenileyip tekrar deneyin.',
+    missingToken: 'Agent token dönmedi. Kayıttan sonra tekrar giriş yapın.',
+    loginServerError: 'Giriş sunucu hatası',
+    loginFailed: 'Giriş başarısız',
+    weakCode: 'Giriş kodu en az 8 karakter, 1 büyük harf ve 1 rakam içermelidir',
+    registrationServerError: 'Kayıt sunucu hatası',
+    registrationFailed: 'Kayıt başarısız',
+    loginTitle: 'Agent panel girişi',
+    registerTitle: 'Agent kaydı',
+    loginSubtitle: 'Email ve giriş kodu ile giriş yapın.',
+    registerSubtitle: 'Bilgilerinizi girin ve güçlü bir giriş kodu oluşturun. Referral kod admin onayından sonra aktif olur.',
+    loginTab: 'Giriş',
+    registerTab: 'Kayıt',
+    fullName: 'Ad Soyad',
+    companyName: 'Şirket adı',
+    phone: 'Telefon',
+    email: 'Email',
+    accessCode: 'Giriş kodu',
+    createAccessCode: 'Giriş kodu oluştur',
+    hide: 'Gizle',
+    show: 'Göster',
+    signIn: 'Giriş yap',
+    createAccount: 'Hesap oluştur',
+  },
+  ru: {
+    minimum: 'Минимум 8 символов',
+    uppercase: 'Минимум 1 заглавная буква',
+    number: 'Минимум 1 цифра',
+    missingAgent: 'Данные агента не вернулись. Обновите страницу и попробуйте снова.',
+    missingToken: 'Токен агента не вернулся. После регистрации войдите снова.',
+    loginServerError: 'Ошибка сервера входа',
+    loginFailed: 'Вход не выполнен',
+    weakCode: 'Код доступа должен быть минимум 8 символов и содержать 1 заглавную букву и 1 цифру',
+    registrationServerError: 'Ошибка сервера регистрации',
+    registrationFailed: 'Регистрация не выполнена',
+    loginTitle: 'Вход в панель агента',
+    registerTitle: 'Регистрация агента',
+    loginSubtitle: 'Войдите с email и кодом доступа.',
+    registerSubtitle: 'Введите данные и создайте надежный код доступа. Реферальный код активируется после подтверждения администратором.',
+    loginTab: 'Вход',
+    registerTab: 'Регистрация',
+    fullName: 'Имя и фамилия',
+    companyName: 'Название компании',
+    phone: 'Телефон',
+    email: 'Email',
+    accessCode: 'Код доступа',
+    createAccessCode: 'Создать код доступа',
+    hide: 'Скрыть',
+    show: 'Показать',
+    signIn: 'Войти',
+    createAccount: 'Создать аккаунт',
+  },
+  ar: {
+    minimum: '8 أحرف على الأقل',
+    uppercase: 'حرف كبير واحد على الأقل',
+    number: 'رقم واحد على الأقل',
+    missingAgent: 'لم يتم إرجاع بيانات الوكيل. حدّث الصفحة وحاول مرة أخرى.',
+    missingToken: 'لم يتم إرجاع رمز الوكيل. يرجى تسجيل الدخول مرة أخرى بعد التسجيل.',
+    loginServerError: 'خطأ في خادم تسجيل الدخول',
+    loginFailed: 'فشل تسجيل الدخول',
+    weakCode: 'يجب أن يتكون كود الدخول من 8 أحرف على الأقل ويحتوي على حرف كبير ورقم واحد',
+    registrationServerError: 'خطأ في خادم التسجيل',
+    registrationFailed: 'فشل التسجيل',
+    loginTitle: 'تسجيل الدخول إلى لوحة الوكيل',
+    registerTitle: 'تسجيل وكيل',
+    loginSubtitle: 'سجّل الدخول باستخدام البريد الإلكتروني وكود الدخول.',
+    registerSubtitle: 'أدخل بياناتك وأنشئ كود دخول قوي. سيتم تفعيل كود الإحالة بعد موافقة الإدارة.',
+    loginTab: 'دخول',
+    registerTab: 'تسجيل',
+    fullName: 'الاسم الكامل',
+    companyName: 'اسم الشركة',
+    phone: 'الهاتف',
+    email: 'Email',
+    accessCode: 'كود الدخول',
+    createAccessCode: 'إنشاء كود الدخول',
+    hide: 'إخفاء',
+    show: 'إظهار',
+    signIn: 'تسجيل الدخول',
+    createAccount: 'إنشاء حساب',
+  },
+  es: {
+    minimum: 'Mínimo 8 caracteres',
+    uppercase: 'Al menos 1 letra mayúscula',
+    number: 'Al menos 1 número',
+    missingAgent: 'No se recibieron los datos del agente. Actualiza la página e inténtalo de nuevo.',
+    missingToken: 'No se recibió el token del agente. Inicia sesión de nuevo después del registro.',
+    loginServerError: 'Error del servidor de login',
+    loginFailed: 'No se pudo iniciar sesión',
+    weakCode: 'El código debe tener al menos 8 caracteres e incluir 1 letra mayúscula y 1 número',
+    registrationServerError: 'Error del servidor de registro',
+    registrationFailed: 'No se pudo completar el registro',
+    loginTitle: 'Login del panel de agente',
+    registerTitle: 'Registro de agente',
+    loginSubtitle: 'Inicia sesión con tu email y código de acceso.',
+    registerSubtitle: 'Introduce tus datos y crea un código seguro. El código de referido se activa después de la aprobación del administrador.',
+    loginTab: 'Login',
+    registerTab: 'Registro',
+    fullName: 'Nombre completo',
+    companyName: 'Empresa',
+    phone: 'Teléfono',
+    email: 'Email',
+    accessCode: 'Código de acceso',
+    createAccessCode: 'Crear código de acceso',
+    hide: 'Ocultar',
+    show: 'Mostrar',
+    signIn: 'Entrar',
+    createAccount: 'Crear cuenta',
+  },
+  zh: {
+    minimum: '至少 8 个字符',
+    uppercase: '至少 1 个大写字母',
+    number: '至少 1 个数字',
+    missingAgent: '未返回代理信息。请刷新页面后重试。',
+    missingToken: '未返回代理 token。注册后请重新登录。',
+    loginServerError: '登录服务器错误',
+    loginFailed: '登录失败',
+    weakCode: '访问代码至少需要 8 个字符，并包含 1 个大写字母和 1 个数字',
+    registrationServerError: '注册服务器错误',
+    registrationFailed: '注册失败',
+    loginTitle: '代理面板登录',
+    registerTitle: '代理注册',
+    loginSubtitle: '使用邮箱和访问代码登录。',
+    registerSubtitle: '填写信息并创建安全访问代码。推荐代码将在管理员审核后启用。',
+    loginTab: '登录',
+    registerTab: '注册',
+    fullName: '姓名',
+    companyName: '公司名称',
+    phone: '电话',
+    email: 'Email',
+    accessCode: '访问代码',
+    createAccessCode: '创建访问代码',
+    hide: '隐藏',
+    show: '显示',
+    signIn: '登录',
+    createAccount: '创建账号',
+  },
 } satisfies Record<AgentLanguage, Record<string, string>>;
 
 export default function AgentLogin() {
   const navigate = useNavigate();
   const [language, setLanguage] = useState<AgentLanguage>(() =>
-    localStorage.getItem('eydost_agent_language') === 'az' ? 'az' : 'en'
+    agentLanguages.includes(localStorage.getItem('eydost_agent_language') as AgentLanguage)
+      ? (localStorage.getItem('eydost_agent_language') as AgentLanguage)
+      : 'en'
   );
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -183,13 +326,13 @@ export default function AgentLogin() {
           <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
             {mode === 'login' ? <LockKeyhole className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
           </div>
-          <div className="grid grid-cols-2 rounded-xl bg-gray-100 p-1 text-xs font-black text-gray-500">
-            {(['en', 'az'] as AgentLanguage[]).map((item) => (
+          <div className="flex flex-wrap justify-end rounded-xl bg-gray-100 p-1 text-xs font-black text-gray-500">
+            {agentLanguages.map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => changeLanguage(item)}
-                className={`rounded-lg px-3 py-2 uppercase transition ${language === item ? 'bg-white text-gray-900 shadow-sm' : 'hover:text-gray-900'}`}
+                className={`rounded-lg px-2.5 py-2 uppercase transition ${language === item ? 'bg-white text-gray-900 shadow-sm' : 'hover:text-gray-900'}`}
               >
                 {item}
               </button>
