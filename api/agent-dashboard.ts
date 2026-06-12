@@ -110,7 +110,7 @@ function moneyToUsd(value: unknown, currency: unknown) {
 
 function normalizeStatus(row: any) {
   const status = firstString(row.status, row.payment_status, row.order_status, row.event).toLowerCase();
-  if (['paid', 'success', 'succeeded', 'completed', 'done'].includes(status)) return 'paid';
+  if (['paid', 'success', 'succeeded', 'completed', 'done', 'delivered', 'fulfilled'].includes(status)) return 'paid';
   if (['confirmed', 'created', 'pending_payment'].includes(status)) return 'confirmed';
   if (['cancelled', 'canceled', 'declined', 'failed', 'error'].includes(status)) return 'cancelled';
   return 'lead';
@@ -216,12 +216,18 @@ function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeR
     { leads: 0, sales: 0, commission: 0, paid: 0 }
   );
 
+  const fallbackSales = Number(fallback.sales.toFixed(2));
+  const fallbackCommission = Number(fallback.commission.toFixed(2));
+  const normalizedSoldEsimPrice = moneyToUsd(soldEsimPrice, totals.currency || 'AZN');
+  const sales = fallbackSales || normalizedSoldEsimPrice;
+  const commission = fallbackCommission || Number((sales * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2));
+
   return {
     leads: firstNumber(totals.search_count, totals.searches_count, totals.leads, totals.lead_count, totals.clicks) || fallback.leads,
-    conversions: firstNumber(totals.conversion_count, totals.conversions, totals.sale_count, totals.sales_count),
-    sales: firstNumber(totals.sales, totals.sales_amount, totals.total_sales) || soldEsimPrice || fallback.sales,
-    commission: Number(((soldEsimPrice || fallback.sales || 0) * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2)),
-    paid: Number(((soldEsimPrice || fallback.sales || 0) * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2)),
+    conversions: firstNumber(totals.conversion_count, totals.conversions, totals.sale_count, totals.sales_count) || referrals.filter((row) => row.status === 'paid').length,
+    sales,
+    commission,
+    paid: commission,
   };
 }
 
