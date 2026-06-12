@@ -145,10 +145,41 @@ function buildOrderMessage(opts: {
   language: string;
   unlimited?: boolean;
 }): string {
-  // WhatsApp message rule: if UI is Arabic, still send EN message text.
-  const rawLang = opts.language;
-  const language = rawLang === 'ar' ? 'en' : rawLang;
+  const language = opts.language;
   const { countryName, plan, unlimited } = opts;
+  {
+    const copy = {
+      az: { greeting: 'Salam! eSIM almaq istəyirəm.', country: 'Ölkə', plan: 'Paket', price: 'Qiymət', day: 'gün', days: 'gün', unlimited: 'Limitsiz' },
+      en: { greeting: 'Hi! I want to buy an eSIM.', country: 'Country', plan: 'Plan', price: 'Price', day: 'day', days: 'days', unlimited: 'Unlimited' },
+      tr: { greeting: 'Merhaba! eSIM satın almak istiyorum.', country: 'Ülke', plan: 'Paket', price: 'Fiyat', day: 'gün', days: 'gün', unlimited: 'Sınırsız' },
+      ru: { greeting: 'Здравствуйте! Я хочу купить eSIM.', country: 'Страна', plan: 'Тариф', price: 'Цена', day: 'день', days: 'дн.', unlimited: 'Безлимит' },
+      ar: { greeting: 'مرحبا! أريد شراء eSIM.', country: 'الدولة', plan: 'الباقة', price: 'السعر', day: 'يوم', days: 'أيام', unlimited: 'غير محدود' },
+      es: { greeting: '¡Hola! Quiero comprar una eSIM.', country: 'País', plan: 'Plan', price: 'Precio', day: 'día', days: 'días', unlimited: 'Ilimitado' },
+      zh: { greeting: '你好！我想购买 eSIM。', country: '国家', plan: '套餐', price: '价格', day: '天', days: '天', unlimited: '无限' },
+    } as const;
+    const text = copy[language as keyof typeof copy] || copy.en;
+    const daysWord = plan.days === 1 ? text.day : text.days;
+    let localizedPlanText: string;
+
+    if (unlimited) {
+      const dailyLimit = plan.dailyLimit ? ` ${plan.dailyLimit}` : '';
+      localizedPlanText = `${text.unlimited}${dailyLimit} · ${plan.days} ${daysWord}`;
+    } else {
+      const gbBytes = plan.gb;
+      const gb = gbBytes / (1024 * 1024 * 1024);
+      const volStr = gb >= 1 ? `${Number.isInteger(gb) ? gb : gb.toFixed(1)} GB` : `${Math.round(gbBytes / (1024 * 1024))} MB`;
+      localizedPlanText = `${volStr} · ${plan.days} ${daysWord}`;
+    }
+
+    return [
+      text.greeting,
+      `${text.country}: ${countryName}`,
+      `${text.plan}: ${localizedPlanText}`,
+      `${text.price}: ${plan.price}`,
+      `Code: ${plan.code}`,
+      `ID: ${plan.id}`,
+    ].join('\n');
+  }
   const az = language === 'az';
   const ru = language === 'ru';
   const tr = language === 'tr';

@@ -238,14 +238,16 @@ export const appendReferralToMessage = (message: string, language = 'az'): strin
   const ref = getReferralCode();
   if (!ref) return message;
 
-  const label =
-    language === 'az'
-      ? 'Endirim kodu'
-      : language === 'tr'
-        ? 'Indirim kodu'
-        : language === 'ru'
-          ? 'Promo code'
-          : 'Promo code';
+  const labels: Record<string, string> = {
+    az: 'Endirim kodu',
+    en: 'Promo code',
+    tr: 'İndirim kodu',
+    ru: 'Промокод',
+    ar: 'كود الخصم',
+    es: 'Código promocional',
+    zh: '优惠码',
+  };
+  const label = labels[language] || labels.en;
 
   return `${message}\n${label}: ${ref}`;
 };
