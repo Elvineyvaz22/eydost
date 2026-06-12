@@ -117,9 +117,10 @@ function normalizeStatus(row: any) {
 }
 
 function buildNotes(row: any) {
+  const packageDetails = row.package_details || row.packageDetails || {};
   const lines = [
-    firstString(row.package_name, row.package, row.package_title, row.name)
-      ? `Package: ${firstString(row.package_name, row.package, row.package_title, row.name)}`
+    firstString(row.package_name, packageDetails.name, row.package, row.package_title, row.name)
+      ? `Package: ${firstString(row.package_name, packageDetails.name, row.package, row.package_title, row.name)}`
       : '',
     firstString(row.package_code, row.packageCode) ? `Package code: ${firstString(row.package_code, row.packageCode)}` : '',
     firstString(row.country_code, row.countryCode) ? `Country: ${firstString(row.country_code, row.countryCode)}` : '',
@@ -149,14 +150,14 @@ function normalizeReferral(row: any, index: number) {
   return {
     id: firstString(row.id, row.order_id, row.payment_id, row.transaction_id, index),
     customer_name: firstString(row.customer_name, row.full_name, row.client_name, row.name) || null,
-    customer_contact: firstString(row.customer_contact, row.phone, row.phone_number, row.email, row.whatsapp_number) || null,
+    customer_contact: firstString(row.customer_contact, row.customer_phone, row.phone, row.phone_number, row.email, row.whatsapp_number) || null,
     product_type: firstString(row.product_type, row.order_type, row.type) || 'esim',
     order_reference: firstString(row.order_reference, row.order_id, row.payment_id, row.transaction_id, row.provider_order_no) || null,
     sale_amount: saleAmount,
     commission_amount: commissionAmount,
     status: normalizeStatus(row),
     notes: buildNotes(row),
-    created_at: firstString(row.created_at, row.createdAt, row.updated_at, row.date) || new Date().toISOString(),
+    created_at: firstString(row.created_at, row.createdAt, row.purchased_at, row.updated_at, row.date) || new Date().toISOString(),
   };
 }
 
@@ -179,13 +180,14 @@ function normalizeSearch(row: any, index: number) {
 }
 
 function normalizeConversion(row: any, index: number) {
+  const packageDetails = row.package_details || row.packageDetails || {};
   return normalizeReferral(
     {
       ...row,
       status: firstString(row.status) || 'paid',
       product_type: 'esim',
       notes: [
-        firstString(row.package_name) ? `Package: ${firstString(row.package_name)}` : '',
+        firstString(row.package_name, packageDetails.name) ? `Package: ${firstString(row.package_name, packageDetails.name)}` : '',
         firstString(row.package_code) ? `Package code: ${firstString(row.package_code)}` : '',
         firstString(row.country_code) ? `Country: ${firstString(row.country_code)}` : '',
         firstString(row.order_id) ? `Order reference: ${firstString(row.order_id)}` : '',
@@ -238,19 +240,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const [mePayload, searchesPayload, conversionsResult] = await Promise.all([
+    const [mePayload, searchesPayload, purchasesResult] = await Promise.all([
       callBotAgentApi('/api/agents/me', agentToken),
       callBotAgentApi('/api/agents/searches', agentToken, { limit: 100 }),
-      callBotAgentApi('/api/agents/conversions', agentToken, { limit: 100 }).catch((error) => ({
-        __error: error?.message || 'Conversions endpoint unavailable',
+      callBotAgentApi('/api/agents/purchases', agentToken, { limit: 100 }).catch((error) => ({
+        __error: error?.message || 'Purchases endpoint unavailable',
       })),
     ]);
 
     const agent = normalizeAgent(mePayload);
     const searches = normalizeRows(searchesPayload).map(normalizeSearch);
-    const conversions = (conversionsResult as any)?.__error
+    const conversions = (purchasesResult as any)?.__error
       ? []
-      : normalizeRows(conversionsResult).map(normalizeConversion);
+      : normalizeRows(purchasesResult).map(normalizeConversion);
     const referrals = [...conversions, ...searches].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
@@ -260,7 +262,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       agent,
       referrals,
       totals,
-      raw: { me: mePayload, searches: searchesPayload, conversions: conversionsResult },
+      raw: { me: mePayload, searches: searchesPayload, purchases: purchasesResult, conversions: purchasesResult },
     });
   } catch (error: any) {
     return res.status(502).json({ error: error?.message || 'Panel yuklenmedi' });

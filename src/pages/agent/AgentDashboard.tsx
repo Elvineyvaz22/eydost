@@ -75,13 +75,15 @@ const dashboardCopy = {
     order: 'Order',
     topCountries: 'Top viewed countries',
     topPackages: 'Top viewed packages',
+    soldCountries: 'Sold countries',
+    soldPackages: 'Sold packages',
     lastSevenDays: 'Last 7 days activity',
     country: 'Country',
     packageCode: 'Package',
     orders: 'Views',
     noAnalytics: 'No analytics yet',
     dataNoticeTitle: 'What this panel shows',
-    dataNoticeText: 'Country and package cards are based on referral link clicks and viewed packages. Exact sold package details will appear after the backend exposes conversion details; total sales and commission are already shown above.',
+    dataNoticeText: 'Sales cards use completed affiliate purchases. Traffic cards use referral link clicks and viewed packages.',
     dateLocale: 'en-US',
   },
   az: {
@@ -121,13 +123,15 @@ const dashboardCopy = {
     order: 'Order',
     topCountries: 'Ən çox baxılan ölkələr',
     topPackages: 'Ən çox baxılan paketlər',
+    soldCountries: 'Satılan ölkələr',
+    soldPackages: 'Satılan paketlər',
     lastSevenDays: 'Son 7 gündə aktivlik',
     country: 'Ölkə',
     packageCode: 'Paket',
     orders: 'Baxışlar',
     noAnalytics: 'Hələ analitika yoxdur',
     dataNoticeTitle: 'Paneldə nə göstərilir',
-    dataNoticeText: 'Ölkə və paket kartları referral link klikləri və baxılan paketlər əsasında göstərilir. Satılan paketin dəqiq detalı backend conversions datası açılanda görünəcək; ümumi satış və komissiya yuxarıda göstərilir.',
+    dataNoticeText: 'Satış kartları tamamlanmış affiliate alışlarından götürülür. Trafik kartları referral link klikləri və baxılan paketlər əsasında göstərilir.',
     dateLocale: 'az-AZ',
   },
   tr: {
@@ -167,13 +171,15 @@ const dashboardCopy = {
     order: 'Order',
     topCountries: 'En çok görüntülenen ülkeler',
     topPackages: 'En çok görüntülenen paketler',
+    soldCountries: 'Satılan ülkeler',
+    soldPackages: 'Satılan paketler',
     lastSevenDays: 'Son 7 gün aktivite',
     country: 'Ülke',
     packageCode: 'Paket',
     orders: 'Görüntüleme',
     noAnalytics: 'Henüz analitik yok',
     dataNoticeTitle: 'Panel neyi gösterir',
-    dataNoticeText: 'Ülke ve paket kartları referral link tıklamaları ve görüntülenen paketlere göre gösterilir. Satılan paket detayları backend conversion verisi açıldığında görünecek; toplam satış ve komisyon yukarıda gösterilir.',
+    dataNoticeText: 'Satış kartları tamamlanan affiliate satın almalarından alınır. Trafik kartları referral link tıklamaları ve görüntülenen paketlere göre gösterilir.',
     dateLocale: 'tr-TR',
   },
   ru: {
@@ -213,13 +219,15 @@ const dashboardCopy = {
     order: 'Order',
     topCountries: 'Самые просматриваемые страны',
     topPackages: 'Самые просматриваемые пакеты',
+    soldCountries: 'Проданные страны',
+    soldPackages: 'Проданные пакеты',
     lastSevenDays: 'Активность за 7 дней',
     country: 'Страна',
     packageCode: 'Пакет',
     orders: 'Просмотры',
     noAnalytics: 'Пока нет аналитики',
     dataNoticeTitle: 'Что показывает панель',
-    dataNoticeText: 'Карточки стран и пакетов основаны на кликах по реферальной ссылке и просмотренных пакетах. Точные детали проданного пакета появятся после добавления conversion-данных на backend; общие продажи и комиссия уже показаны выше.',
+    dataNoticeText: 'Карточки продаж берутся из завершенных affiliate-покупок. Карточки трафика основаны на кликах по реферальной ссылке и просмотренных пакетах.',
     dateLocale: 'ru-RU',
   },
   ar: {
@@ -259,13 +267,15 @@ const dashboardCopy = {
     order: 'Order',
     topCountries: 'الدول الأكثر مشاهدة',
     topPackages: 'الباقات الأكثر مشاهدة',
+    soldCountries: 'الدول المباعة',
+    soldPackages: 'الباقات المباعة',
     lastSevenDays: 'نشاط آخر 7 أيام',
     country: 'الدولة',
     packageCode: 'الباقة',
     orders: 'المشاهدات',
     noAnalytics: 'لا توجد تحليلات بعد',
     dataNoticeTitle: 'ما الذي تعرضه اللوحة',
-    dataNoticeText: 'بطاقات الدول والباقات تعتمد على نقرات رابط الإحالة والباقات التي تمت مشاهدتها. ستظهر تفاصيل الباقة المباعة بدقة بعد توفير بيانات التحويل من backend؛ إجمالي المبيعات والعمولة يظهران أعلاه.',
+    dataNoticeText: 'بطاقات المبيعات تعتمد على مشتريات affiliate المكتملة. بطاقات الزيارات تعتمد على نقرات رابط الإحالة والباقات التي تمت مشاهدتها.',
     dateLocale: 'ar',
   },
   es: {
@@ -305,13 +315,15 @@ const dashboardCopy = {
     order: 'Order',
     topCountries: 'Países más vistos',
     topPackages: 'Paquetes más vistos',
+    soldCountries: 'Países vendidos',
+    soldPackages: 'Paquetes vendidos',
     lastSevenDays: 'Actividad de 7 días',
     country: 'País',
     packageCode: 'Paquete',
     orders: 'Vistas',
     noAnalytics: 'Aún no hay analítica',
     dataNoticeTitle: 'Qué muestra este panel',
-    dataNoticeText: 'Las tarjetas de países y paquetes se basan en clics del enlace de referido y paquetes vistos. Los detalles exactos del paquete vendido aparecerán cuando el backend exponga conversiones; las ventas totales y la comisión ya se muestran arriba.',
+    dataNoticeText: 'Las tarjetas de ventas usan compras affiliate completadas. Las tarjetas de tráfico usan clics del enlace de referido y paquetes vistos.',
     dateLocale: 'es-ES',
   },
   zh: {
@@ -351,13 +363,15 @@ const dashboardCopy = {
     order: 'Order',
     topCountries: '浏览最多的国家',
     topPackages: '浏览最多的套餐',
+    soldCountries: '已售国家',
+    soldPackages: '已售套餐',
     lastSevenDays: '最近 7 天活动',
     country: '国家',
     packageCode: '套餐',
     orders: '浏览',
     noAnalytics: '暂无分析数据',
     dataNoticeTitle: '此面板显示什么',
-    dataNoticeText: '国家和套餐卡片基于推荐链接点击和已浏览套餐。后端提供 conversion 明细后会显示实际售出套餐；总销售额和佣金已在上方显示。',
+    dataNoticeText: '销售卡片来自已完成的 affiliate 购买。流量卡片来自推荐链接点击和已浏览套餐。',
     dateLocale: 'zh-CN',
   },
 } satisfies Record<AgentLanguage, Record<string, string>>;
@@ -669,9 +683,10 @@ export default function AgentDashboard() {
   };
 
   const referralLink = agent?.referral_code ? `https://eydost.com/esim?ref=${agent.referral_code}` : '';
-  const conversionRate = totals.leads > 0 ? Math.round((referrals.filter((item) => item.status === 'paid').length / totals.leads) * 100) : 0;
+  const paidReferrals = referrals.filter((item) => item.status === 'paid');
+  const trafficReferrals = referrals.filter((item) => item.status !== 'paid');
   const topCountries = countTop(
-    referrals.map((row) =>
+    trafficReferrals.map((row) =>
       pickFromNotes(row.notes, ['country', 'country code', 'olkə', 'olke', 'ölkə', 'geo'])
         .split('/')
         .map((part) => part.trim())
@@ -680,7 +695,20 @@ export default function AgentDashboard() {
     7
   );
   const topPackages = countTop(
-    referrals.map((row) => pickFromNotes(row.notes, ['package code', 'package', 'viewed package', 'paket kodu', 'paket'])),
+    trafficReferrals.map((row) => pickFromNotes(row.notes, ['package code', 'package', 'viewed package', 'paket kodu', 'paket'])),
+    10
+  );
+  const topSoldCountries = countTop(
+    paidReferrals.map((row) =>
+      pickFromNotes(row.notes, ['country', 'country code', 'olkə', 'olke', 'ölkə', 'geo'])
+        .split('/')
+        .map((part) => part.trim())
+        .find(Boolean) || ''
+    ),
+    7
+  );
+  const topSoldPackages = countTop(
+    paidReferrals.map((row) => pickFromNotes(row.notes, ['package', 'package code', 'viewed package', 'paket kodu', 'paket'])),
     10
   );
   const lastSevenDays = buildLastSevenDays(referrals);
@@ -838,6 +866,11 @@ export default function AgentDashboard() {
               <section className="rounded-3xl border border-blue-100 bg-blue-50 p-5 text-blue-900 shadow-sm">
                 <div className="text-sm font-black">{t.dataNoticeTitle}</div>
                 <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-blue-800">{t.dataNoticeText}</p>
+              </section>
+
+              <section className="grid gap-4 xl:grid-cols-2">
+                <AnalyticsCard title={t.soldCountries} leftLabel={t.country} rightLabel={t.conversions} items={topSoldCountries} />
+                <AnalyticsCard title={t.soldPackages} leftLabel={t.packageCode} rightLabel={t.conversions} items={topSoldPackages} />
               </section>
 
               <section className="grid gap-4 xl:grid-cols-2">
