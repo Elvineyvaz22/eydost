@@ -222,9 +222,11 @@ function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeR
   const sales = fallbackSales || normalizedSoldEsimPrice;
   const commission = fallbackCommission || Number((sales * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2));
 
+  const paidCount = referrals.filter((row) => row.status === 'paid').length;
+
   return {
     leads: firstNumber(totals.search_count, totals.searches_count, totals.leads, totals.lead_count, totals.clicks) || fallback.leads,
-    conversions: firstNumber(totals.conversion_count, totals.conversions, totals.sale_count, totals.sales_count) || referrals.filter((row) => row.status === 'paid').length,
+    conversions: paidCount || firstNumber(totals.conversion_count, totals.conversions, totals.sale_count, totals.sales_count),
     sales,
     commission,
     paid: commission,
