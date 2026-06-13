@@ -95,13 +95,13 @@ async function mirrorAgentToSupabase(agent: ReturnType<typeof normalizeAgent>, v
   accessCode: string;
 }) {
   const supabase = getSupabase();
-  if (!supabase || !agent.email) return;
+  if (!supabase || !agent.email) return false;
 
   const referralCode =
     clean(agent.referral_code, 80).replace(/[^a-zA-Z0-9_-]/g, '') ||
     `pending-${clean(agent.id || agent.email, 40).replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
-  await supabase
+  const { error } = await supabase
     .from('agents')
     .upsert(
       {
@@ -118,6 +118,9 @@ async function mirrorAgentToSupabase(agent: ReturnType<typeof normalizeAgent>, v
       },
       { onConflict: 'email' }
     );
+
+  if (error) throw new Error(`Admin mirror failed: ${error.message}`);
+  return true;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -166,11 +169,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const agent = normalizeAgent(loginPayload || registerPayload, { fullName, companyName, email });
-    await mirrorAgentToSupabase(agent, { fullName, companyName, phoneNumber, accessCode });
+    const mirrored = await mirrorAgentToSupabase(agent, { fullName, companyName, phoneNumber, accessCode });
 
     return res.status(200).json({
       agent,
       agentToken: loginPayload ? pickAgentToken(loginPayload) : null,
+      mirrored,
     });
   } catch (error: any) {
     return res.status(400).json({ error: error?.message || 'Qeydiyyat alinmadi' });
