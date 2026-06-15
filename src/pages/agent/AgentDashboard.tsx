@@ -57,6 +57,14 @@ const dashboardCopy = {
     copy: 'Copy',
     open: 'Open',
     approvalNotice: 'Your referral code will appear here after it is approved in the backend/admin panel.',
+    chooseReferralCode: 'Choose your referral code',
+    referralPlaceholder: 'example: travel10',
+    saveReferralCode: 'OK',
+    waitingApproval: 'Awaiting approval',
+    readyToSell: 'You can start selling',
+    referralCodeHelp: 'Choose a short code. It will become active after admin approval.',
+    referralCodeSaved: 'Referral code saved. Awaiting admin approval.',
+    invalidReferralCode: 'Referral code must be at least 4 characters.',
     lead: 'Views',
     linkClicks: 'Link clicks',
     packageViews: 'Package views',
@@ -108,6 +116,14 @@ const dashboardCopy = {
     copy: 'Kopyala',
     open: 'Aç',
     approvalNotice: 'Referral kodunuz backend/admin paneldə təsdiqlənəndən sonra burada görünəcək.',
+    chooseReferralCode: 'Referral kodunuzu seçin',
+    referralPlaceholder: 'məsələn: travel10',
+    saveReferralCode: 'OK',
+    waitingApproval: 'Təsdiq gözlənilir',
+    readyToSell: 'Satışa başlaya bilərsiniz',
+    referralCodeHelp: 'Qısa kod seçin. Admin təsdiqindən sonra aktiv olacaq.',
+    referralCodeSaved: 'Referral kod saxlanıldı. Admin təsdiqi gözlənilir.',
+    invalidReferralCode: 'Referral kod ən azı 4 simvol olmalıdır.',
     lead: 'Baxışlar',
     linkClicks: 'Link klikləri',
     packageViews: 'Paket baxışları',
@@ -159,6 +175,14 @@ const dashboardCopy = {
     copy: 'Kopyala',
     open: 'Aç',
     approvalNotice: 'Referral kodunuz backend/admin panelde onaylandıktan sonra burada görünecek.',
+    chooseReferralCode: 'Referral kodunuzu seçin',
+    referralPlaceholder: 'örnek: travel10',
+    saveReferralCode: 'OK',
+    waitingApproval: 'Onay bekleniyor',
+    readyToSell: 'Satışa başlayabilirsiniz',
+    referralCodeHelp: 'Kısa bir kod seçin. Admin onayından sonra aktif olur.',
+    referralCodeSaved: 'Referral kod kaydedildi. Admin onayı bekleniyor.',
+    invalidReferralCode: 'Referral kod en az 4 karakter olmalıdır.',
     lead: 'Görüntüleme',
     linkClicks: 'Link tıklamaları',
     packageViews: 'Paket görüntüleme',
@@ -210,6 +234,14 @@ const dashboardCopy = {
     copy: 'Копировать',
     open: 'Открыть',
     approvalNotice: 'Ваш реферальный код появится здесь после подтверждения в backend/admin панели.',
+    chooseReferralCode: 'Выберите реферальный код',
+    referralPlaceholder: 'пример: travel10',
+    saveReferralCode: 'OK',
+    waitingApproval: 'Ожидает подтверждения',
+    readyToSell: 'Можно начинать продажи',
+    referralCodeHelp: 'Выберите короткий код. Он станет активным после подтверждения админом.',
+    referralCodeSaved: 'Реферальный код сохранен. Ожидает подтверждения админом.',
+    invalidReferralCode: 'Реферальный код должен содержать минимум 4 символа.',
     lead: 'Просмотры',
     linkClicks: 'Клики по ссылке',
     packageViews: 'Просмотры пакетов',
@@ -261,6 +293,14 @@ const dashboardCopy = {
     copy: 'نسخ',
     open: 'فتح',
     approvalNotice: 'سيظهر كود الإحالة هنا بعد اعتماده في لوحة الإدارة.',
+    chooseReferralCode: 'اختر كود الإحالة',
+    referralPlaceholder: 'مثال: travel10',
+    saveReferralCode: 'OK',
+    waitingApproval: 'بانتظار الموافقة',
+    readyToSell: 'يمكنك بدء البيع',
+    referralCodeHelp: 'اختر كودا قصيرا. سيصبح نشطا بعد موافقة الإدارة.',
+    referralCodeSaved: 'تم حفظ كود الإحالة. بانتظار موافقة الإدارة.',
+    invalidReferralCode: 'يجب أن يتكون كود الإحالة من 4 أحرف على الأقل.',
     lead: 'المشاهدات',
     linkClicks: 'نقرات الرابط',
     packageViews: 'مشاهدات الباقات',
@@ -312,6 +352,14 @@ const dashboardCopy = {
     copy: 'Copiar',
     open: 'Abrir',
     approvalNotice: 'Tu código de referido aparecerá aquí después de ser aprobado en el panel admin/backend.',
+    chooseReferralCode: 'Elige tu código de referido',
+    referralPlaceholder: 'ejemplo: travel10',
+    saveReferralCode: 'OK',
+    waitingApproval: 'Pendiente de aprobación',
+    readyToSell: 'Ya puedes empezar a vender',
+    referralCodeHelp: 'Elige un código corto. Se activará después de la aprobación del admin.',
+    referralCodeSaved: 'Código guardado. Pendiente de aprobación del admin.',
+    invalidReferralCode: 'El código debe tener al menos 4 caracteres.',
     lead: 'Vistas',
     linkClicks: 'Clics del enlace',
     packageViews: 'Vistas de paquetes',
@@ -363,6 +411,14 @@ const dashboardCopy = {
     copy: '复制',
     open: '打开',
     approvalNotice: '推荐代码在后台/admin 面板审核后会显示在这里。',
+    chooseReferralCode: '选择推荐代码',
+    referralPlaceholder: '例如: travel10',
+    saveReferralCode: 'OK',
+    waitingApproval: '等待审核',
+    readyToSell: '您可以开始销售',
+    referralCodeHelp: '选择一个简短代码。管理员审核后会启用。',
+    referralCodeSaved: '推荐代码已保存，等待管理员审核。',
+    invalidReferralCode: '推荐代码至少需要 4 个字符。',
     lead: '浏览',
     linkClicks: '链接点击',
     packageViews: '套餐浏览',
@@ -647,6 +703,10 @@ export default function AgentDashboard() {
   const [totals, setTotals] = useState<Totals>({ leads: 0, sales: 0, commission: 0, paid: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [referralCodeInput, setReferralCodeInput] = useState('');
+  const [referralSaving, setReferralSaving] = useState(false);
+  const [referralError, setReferralError] = useState('');
+  const [referralMessage, setReferralMessage] = useState('');
 
   const rawSession = localStorage.getItem('eydost_agent_session');
   const t = dashboardCopy[language];
@@ -698,6 +758,14 @@ export default function AgentDashboard() {
     load();
   }, [rawSession]);
 
+  useEffect(() => {
+    if (!rawSession || !agent?.referral_code || agent.status === 'active') return undefined;
+    const intervalId = window.setInterval(() => {
+      load();
+    }, 15000);
+    return () => window.clearInterval(intervalId);
+  }, [rawSession, agent?.referral_code, agent?.status]);
+
   if (!rawSession) return <Navigate to="/agent/login" replace />;
 
   const logout = () => {
@@ -710,7 +778,52 @@ export default function AgentDashboard() {
     await navigator.clipboard.writeText(`https://eydost.com/esim?ref=${agent.referral_code}`);
   };
 
+  const createReferralCode = async () => {
+    const cleanCode = referralCodeInput.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 32);
+    setReferralError('');
+    setReferralMessage('');
+
+    if (cleanCode.length < 4) {
+      setReferralError(t.invalidReferralCode);
+      return;
+    }
+
+    try {
+      const session = rawSession ? JSON.parse(rawSession) : {};
+      setReferralSaving(true);
+      const response = await fetch('/api/agent-create-referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentId: session.agentId,
+          email: session.email,
+          accessCode: session.accessCode,
+          referralCode: cleanCode,
+        }),
+      });
+      const responseText = await response.text();
+      let payload: any = {};
+      try {
+        payload = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        payload = { error: responseText || t.panelServerError };
+      }
+      if (!response.ok) throw new Error(payload.error || t.dashboardError);
+
+      setAgent((current) => (current ? { ...current, ...payload.agent } : payload.agent));
+      setReferralCodeInput('');
+      setReferralMessage(t.referralCodeSaved);
+      await load();
+    } catch (err) {
+      setReferralError(err instanceof Error ? err.message : t.dashboardError);
+    } finally {
+      setReferralSaving(false);
+    }
+  };
+
   const referralLink = agent?.referral_code ? `https://eydost.com/esim?ref=${agent.referral_code}` : '';
+  const referralIsActive = Boolean(agent?.referral_code && agent.status === 'active');
+  const referralIsPending = Boolean(agent?.referral_code && agent.status !== 'active');
   const paidReferrals = referrals.filter((item) => item.status === 'paid');
   const trafficReferrals = referrals.filter((item) => item.status !== 'paid');
   const topCountries = countTop(
@@ -871,13 +984,15 @@ export default function AgentDashboard() {
                       <div className="mt-1 max-w-[220px] truncate text-2xl font-black text-slate-950">{agent.referral_code || t.notCreated}</div>
                     </div>
                     {agent.referral_code && (
-                      <div className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">
+                      <div className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black ${
+                        referralIsActive ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                      }`}>
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        {t.linkActive}
+                        {referralIsActive ? t.readyToSell : t.waitingApproval}
                       </div>
                     )}
                   </div>
-                  {agent.referral_code ? (
+                  {referralIsActive ? (
                     <div className="mt-5 flex h-[calc(100%-72px)] flex-col justify-between gap-4">
                       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                         <div className="text-xs font-bold uppercase text-slate-400">{t.referralLink}</div>
@@ -894,9 +1009,43 @@ export default function AgentDashboard() {
                         </a>
                       </div>
                     </div>
-                  ) : (
+                  ) : referralIsPending ? (
                     <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
-                      {t.approvalNotice}
+                      <div className="text-base font-black text-amber-900">{t.waitingApproval}</div>
+                      <p className="mt-2">{t.approvalNotice}</p>
+                    </div>
+                  ) : (
+                    <div className="mt-5 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div>
+                        <div className="text-sm font-black text-slate-950">{t.chooseReferralCode}</div>
+                        <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{t.referralCodeHelp}</p>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                        <input
+                          value={referralCodeInput}
+                          onChange={(event) => {
+                            setReferralCodeInput(event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''));
+                            setReferralError('');
+                            setReferralMessage('');
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') createReferralCode();
+                          }}
+                          maxLength={32}
+                          className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-950 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                          placeholder={t.referralPlaceholder}
+                        />
+                        <button
+                          type="button"
+                          onClick={createReferralCode}
+                          disabled={referralSaving}
+                          className="inline-flex h-12 items-center justify-center rounded-2xl bg-blue-600 px-5 text-sm font-black text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {referralSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : t.saveReferralCode}
+                        </button>
+                      </div>
+                      {referralError && <div className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{referralError}</div>}
+                      {referralMessage && <div className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">{referralMessage}</div>}
                     </div>
                   )}
                 </div>

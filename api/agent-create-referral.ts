@@ -30,10 +30,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const agentId = String(req.body?.agentId || '').trim();
+  const email = String(req.body?.email || '').trim().toLowerCase();
   const accessCode = String(req.body?.accessCode || '').trim();
   const referralCode = normalizeReferralCode(req.body?.referralCode);
 
-  if (!agentId || !accessCode || !referralCode) {
+  if ((!agentId && !email) || !accessCode || !referralCode) {
     return res.status(400).json({ error: 'Agent session və referral kod tələb olunur' });
   }
 
@@ -41,19 +42,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Referral kod ən azı 4 simvol olmalıdır' });
   }
 
-  const { data: agent, error: agentError } = await supabase
+  let agentQuery = supabase
     .from('agents')
-    .select('id, referral_code, status')
-    .eq('id', agentId)
-    .eq('access_code', accessCode)
-    .maybeSingle();
+    .select('id, referral_code, status, email')
+    .eq('access_code', accessCode);
+
+  if (email) {
+    agentQuery = agentQuery.eq('email', email);
+  } else {
+    agentQuery = agentQuery.eq('id', agentId);
+  }
+
+  const { data: agent, error: agentError } = await agentQuery.maybeSingle();
 
   if (agentError) return res.status(500).json({ error: agentError.message });
   if (!agent) return res.status(401).json({ error: 'Agent session düzgün deyil' });
-  if (agent.status !== 'active') {
-    return res.status(403).json({ error: 'Referral kod yaratmaq üçün admin təsdiqi lazımdır' });
+  if (agent.status === 'blocked') {
+    return res.status(403).json({ error: 'Agent bloklanıb' });
   }
-  if (agent.referral_code) {
+  const existingAgentCode = normalizeReferralCode(agent.referral_code);
+  if (existingAgentCode && !existingAgentCode.startsWith('pending-')) {
     return res.status(409).json({ error: 'Referral kod artıq yaradılıb' });
   }
 
@@ -62,13 +70,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .select('id')
     .eq('referral_code', referralCode)
     .maybeSingle();
-  if (existingCode) {
+  if (existingCode && existingCode.id !== agent.id) {
     return res.status(409).json({ error: 'Bu referral kod artıq istifadə olunur' });
   }
 
   const { data, error } = await supabase
     .from('agents')
-    .update({ referral_code: referralCode })
+    .update({ referral_code: referralCode, status: 'pending' })
     .eq('id', agent.id)
     .select('id, full_name, company_name, email, referral_code, commission_rate, status')
     .single();
