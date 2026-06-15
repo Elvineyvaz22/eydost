@@ -290,7 +290,9 @@ async function getLocalReferrals(referralCode: string) {
     .limit(200);
 
   if (error || !Array.isArray(data)) return [];
-  return data.map(normalizeLocalReferral);
+  return data
+    .filter((row) => /^Event:/im.test(firstString(row?.notes)))
+    .map(normalizeLocalReferral);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

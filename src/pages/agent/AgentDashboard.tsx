@@ -428,6 +428,14 @@ function pickFromNotes(notes: string | null, keys: string[]) {
   return '';
 }
 
+function eventFromNotes(notes: string | null) {
+  return pickFromNotes(notes, ['event']).toLowerCase();
+}
+
+function packageFromNotes(notes: string | null) {
+  return pickFromNotes(notes, ['package', 'viewed package', 'package code', 'paket', 'paket kodu']);
+}
+
 function countTop(items: string[], limit = 8) {
   const counts = new Map<string, number>();
   items
@@ -716,8 +724,15 @@ export default function AgentDashboard() {
   const referralLink = agent?.referral_code ? `https://eydost.com/esim?ref=${agent.referral_code}` : '';
   const paidReferrals = referrals.filter((item) => item.status === 'paid');
   const trafficReferrals = referrals.filter((item) => item.status !== 'paid');
+  const viewedTrafficReferrals = trafficReferrals.filter((row) => {
+    const event = eventFromNotes(row.notes);
+    if (event === 'visit') return false;
+    const packageName = packageFromNotes(row.notes);
+    if (!packageName) return false;
+    return packageName.toLowerCase() !== (agent?.referral_code || '').toLowerCase();
+  });
   const topCountries = countTop(
-    trafficReferrals.map((row) =>
+    viewedTrafficReferrals.map((row) =>
       pickFromNotes(row.notes, ['country', 'country code', 'olkə', 'olke', 'ölkə', 'geo'])
         .split('/')
         .map((part) => part.trim())
@@ -726,7 +741,7 @@ export default function AgentDashboard() {
     7
   );
   const topPackages = countTop(
-    trafficReferrals.map((row) => pickFromNotes(row.notes, ['package code', 'package', 'viewed package', 'paket kodu', 'paket'])),
+    viewedTrafficReferrals.map((row) => packageFromNotes(row.notes)),
     10
   );
   const topSoldCountries = countTop(
@@ -742,7 +757,7 @@ export default function AgentDashboard() {
     paidReferrals.map((row) => pickFromNotes(row.notes, ['package', 'package code', 'viewed package', 'paket kodu', 'paket'])),
     10
   );
-  const lastSevenDays = buildLastSevenDays(referrals);
+  const lastSevenDays = buildLastSevenDays([...paidReferrals, ...viewedTrafficReferrals]);
 
   return (
     <div className="min-h-screen bg-[#f7f8fb]">
