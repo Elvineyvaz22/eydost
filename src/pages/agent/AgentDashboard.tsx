@@ -831,11 +831,26 @@ export default function AgentDashboard() {
 
             <div className="space-y-5">
               <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                  <div className="text-xs font-black uppercase tracking-wide text-blue-600">Partner dashboard</div>
-                  <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">{t.intro}</p>
-                  <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                  <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-orange-50/60 p-5 sm:p-6">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-wide text-blue-700 shadow-sm ring-1 ring-slate-200">
+                      <TrendingUp className="h-3.5 w-3.5" />
+                      {t.agentPanel}
+                    </div>
+                    <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">{t.intro}</p>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl bg-slate-950 p-4 text-white">
+                        <div className="text-xs font-black uppercase text-slate-400">{t.salesAmount}</div>
+                        <div className="mt-1 text-3xl font-black">{money(totals.sales)}</div>
+                      </div>
+                      <div className="rounded-2xl bg-emerald-50 p-4 text-emerald-900 ring-1 ring-emerald-100">
+                        <div className="text-xs font-black uppercase text-emerald-600">{t.commission}</div>
+                        <div className="mt-1 text-3xl font-black">{money(totals.commission)}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6 xl:grid-cols-4">
                     {[
                       { label: t.linkClicks, value: totals.linkClicks || 0, icon: ExternalLink, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
                       { label: t.packageViews, value: totals.packageViews || 0, icon: Package, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
@@ -844,12 +859,16 @@ export default function AgentDashboard() {
                     ].map((item) => {
                       const Icon = item.icon;
                       return (
-                        <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                          <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl ring-1 ${item.tone}`}>
-                            <Icon className="w-5 h-5" />
+                        <div key={item.label} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ring-1 ${item.tone}`}>
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            <div className="text-right">
+                              <div className="text-3xl font-black tracking-tight text-slate-950">{item.value}</div>
+                            </div>
                           </div>
-                          <div className="text-xs font-black uppercase text-slate-400">{item.label}</div>
-                          <div className="mt-1 text-2xl font-black tracking-tight text-slate-950">{item.value}</div>
+                          <div className="mt-4 text-sm font-black text-slate-700">{item.label}</div>
                         </div>
                       );
                     })}
