@@ -834,10 +834,10 @@ export default function AgentDashboard() {
                       <TrendingUp className="h-3.5 w-3.5" />
                       {t.agentPanel}
                     </div>
-                    <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
+                    <h1 className="mt-3 break-words text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">{t.welcome}, {agent.full_name}</h1>
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">{t.intro}</p>
                   </div>
-                  <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6 xl:grid-cols-4">
+                  <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
                     {[
                       { label: t.lead, value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
                       { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
@@ -846,12 +846,16 @@ export default function AgentDashboard() {
                     ].map((item) => {
                       const Icon = item.icon;
                       return (
-                        <div key={item.label} className="min-h-[148px] rounded-2xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm">
-                          <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ring-1 ${item.tone}`}>
-                            <Icon className="w-5 h-5" />
+                        <div key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm">
+                          <div className="mb-5 flex items-center justify-between gap-4">
+                            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ring-1 ${item.tone}`}>
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            <div className="text-right text-xs font-black uppercase tracking-wide text-slate-400">
+                              {item.label}
+                            </div>
                           </div>
-                          <div className="text-sm font-black text-slate-500">{item.label}</div>
-                          <div className="mt-2 break-words text-3xl font-black leading-none tracking-tight text-slate-950">
+                          <div className="whitespace-nowrap text-4xl font-black leading-none tracking-tight text-slate-950">
                             {item.value}
                           </div>
                         </div>
