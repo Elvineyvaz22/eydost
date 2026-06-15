@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
 
 const BOT_API_BASE_URL =
   process.env.PUBLIC_API_BASE_URL ||
@@ -7,6 +8,15 @@ const BOT_API_BASE_URL =
 const PUBLIC_API_KEY = process.env.PUBLIC_API_KEY;
 const PUBLIC_API_AUTH_TOKEN = process.env.PUBLIC_API_AUTH_TOKEN;
 const AGENT_COMMISSION_PERCENT = 15;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function getSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 
 function firstString(...values: unknown[]) {
   for (const value of values) {
@@ -43,6 +53,35 @@ function normalizeAgent(raw: any) {
     referral_code: firstString(agent?.referral_code, firstCode?.referral_code, firstCode?.code) || null,
     commission_rate: AGENT_COMMISSION_PERCENT,
     status: firstString(agent?.status, agent?.is_active === false ? 'pending' : 'active') || 'active',
+  };
+}
+
+async function getAdminAgentOverride(email: string) {
+  const supabase = getSupabase();
+  if (!supabase || !email) return null;
+
+  const { data, error } = await supabase
+    .from('agents')
+    .select('full_name, company_name, email, referral_code, commission_rate, status')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data;
+}
+
+function mergeAdminAgentStatus(agent: ReturnType<typeof normalizeAgent>, adminAgent: any) {
+  if (!adminAgent) return agent;
+  const adminReferralCode = firstString(adminAgent.referral_code);
+  const usableAdminCode = adminReferralCode && !adminReferralCode.startsWith('pending-') ? adminReferralCode : '';
+
+  return {
+    ...agent,
+    full_name: firstString(agent.full_name, adminAgent.full_name),
+    company_name: firstString(adminAgent.company_name, agent.company_name),
+    referral_code: firstString(agent.referral_code, usableAdminCode) || null,
+    commission_rate: firstNumber(adminAgent.commission_rate, agent.commission_rate) || AGENT_COMMISSION_PERCENT,
+    status: firstString(adminAgent.status, agent.status) || agent.status,
   };
 }
 
@@ -256,7 +295,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })),
     ]);
 
-    const agent = normalizeAgent(mePayload);
+    const botAgent = normalizeAgent(mePayload);
+    const adminAgent = await getAdminAgentOverride(botAgent.email);
+    const agent = mergeAdminAgentStatus(botAgent, adminAgent);
     const searches = normalizeRows(searchesPayload).map(normalizeSearch);
     const conversions = (purchasesResult as any)?.__error
       ? []
