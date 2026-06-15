@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getReferralCode, getTrafficCampaign, getTrafficMedium, getTrafficReferrerHost, getTrafficSource, trackAgentLead } from '../utils/whatsapp';
+import { getReferralCode, getTrafficCampaign, getTrafficMedium, getTrafficReferrerHost, getTrafficSource } from '../utils/whatsapp';
 
 export default function ReferralTracker() {
   const location = useLocation();
@@ -18,14 +18,6 @@ export default function ReferralTracker() {
     const source = getTrafficSource() || getTrafficReferrerHost();
     const medium = getTrafficMedium();
     const campaign = getTrafficCampaign();
-
-    trackAgentLead({
-      productType: location.pathname.includes('/taxi') ? 'taxi' : 'esim',
-      eventType: 'visit',
-      packageName: source || undefined,
-      viewedPackage: 'Referral link visit',
-      page: location.pathname,
-    }).catch(() => void 0);
 
     if (source || medium || campaign) {
       sessionStorage.setItem(

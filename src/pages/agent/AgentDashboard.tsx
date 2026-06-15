@@ -28,9 +28,6 @@ type Referral = {
 
 type Totals = {
   leads: number;
-  linkClicks?: number;
-  packageViews?: number;
-  whatsappClicks?: number;
   conversions?: number;
   sales: number;
   commission: number;
@@ -428,14 +425,6 @@ function pickFromNotes(notes: string | null, keys: string[]) {
   return '';
 }
 
-function eventFromNotes(notes: string | null) {
-  return pickFromNotes(notes, ['event']).toLowerCase();
-}
-
-function packageFromNotes(notes: string | null) {
-  return pickFromNotes(notes, ['package', 'viewed package', 'package code', 'paket', 'paket kodu']);
-}
-
 function countTop(items: string[], limit = 8) {
   const counts = new Map<string, number>();
   items
@@ -724,15 +713,8 @@ export default function AgentDashboard() {
   const referralLink = agent?.referral_code ? `https://eydost.com/esim?ref=${agent.referral_code}` : '';
   const paidReferrals = referrals.filter((item) => item.status === 'paid');
   const trafficReferrals = referrals.filter((item) => item.status !== 'paid');
-  const viewedTrafficReferrals = trafficReferrals.filter((row) => {
-    const event = eventFromNotes(row.notes);
-    if (event === 'visit') return false;
-    const packageName = packageFromNotes(row.notes);
-    if (!packageName) return false;
-    return packageName.toLowerCase() !== (agent?.referral_code || '').toLowerCase();
-  });
   const topCountries = countTop(
-    viewedTrafficReferrals.map((row) =>
+    trafficReferrals.map((row) =>
       pickFromNotes(row.notes, ['country', 'country code', 'olkə', 'olke', 'ölkə', 'geo'])
         .split('/')
         .map((part) => part.trim())
@@ -741,7 +723,7 @@ export default function AgentDashboard() {
     7
   );
   const topPackages = countTop(
-    viewedTrafficReferrals.map((row) => packageFromNotes(row.notes)),
+    trafficReferrals.map((row) => pickFromNotes(row.notes, ['package code', 'package', 'viewed package', 'paket kodu', 'paket'])),
     10
   );
   const topSoldCountries = countTop(
@@ -757,7 +739,7 @@ export default function AgentDashboard() {
     paidReferrals.map((row) => pickFromNotes(row.notes, ['package', 'package code', 'viewed package', 'paket kodu', 'paket'])),
     10
   );
-  const lastSevenDays = buildLastSevenDays([...paidReferrals, ...viewedTrafficReferrals]);
+  const lastSevenDays = buildLastSevenDays(referrals);
 
   return (
     <div className="min-h-screen bg-[#f7f8fb]">
@@ -854,23 +836,13 @@ export default function AgentDashboard() {
                     </div>
                     <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{t.welcome}, {agent.full_name}</h1>
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">{t.intro}</p>
-                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl bg-slate-950 p-4 text-white">
-                        <div className="text-xs font-black uppercase text-slate-400">{t.salesAmount}</div>
-                        <div className="mt-1 text-3xl font-black">{money(totals.sales)}</div>
-                      </div>
-                      <div className="rounded-2xl bg-emerald-50 p-4 text-emerald-900 ring-1 ring-emerald-100">
-                        <div className="text-xs font-black uppercase text-emerald-600">{t.commission}</div>
-                        <div className="mt-1 text-3xl font-black">{money(totals.commission)}</div>
-                      </div>
-                    </div>
                   </div>
                   <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6 xl:grid-cols-4">
                     {[
-                      { label: t.linkClicks, value: totals.linkClicks || 0, icon: ExternalLink, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
-                      { label: t.packageViews, value: totals.packageViews || 0, icon: Package, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
-                      { label: t.whatsappClicks, value: totals.whatsappClicks || 0, icon: Users, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
-                      { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-slate-50 text-slate-700 ring-slate-100' },
+                      { label: t.lead, value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
+                      { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
+                      { label: t.salesAmount, value: money(totals.sales), icon: TrendingUp, tone: 'bg-slate-50 text-slate-700 ring-slate-100' },
+                      { label: t.commission, value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
                     ].map((item) => {
                       const Icon = item.icon;
                       return (
