@@ -137,6 +137,7 @@ export default function RegionalEsim() {
     });
     trackAgentLead({
       productType: 'esim',
+      eventType: 'whatsapp_click',
       packageCode: plan.code || plan.id || pkg.name,
       packageName: pkg.name,
       viewedPackage: `${pkg.name} eSIM · ${plan.gb} GB · ${plan.days} gün · ${plan.price}`,

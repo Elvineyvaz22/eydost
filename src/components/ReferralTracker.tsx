@@ -21,9 +21,9 @@ export default function ReferralTracker() {
 
     trackAgentLead({
       productType: location.pathname.includes('/taxi') ? 'taxi' : 'esim',
-      packageCode: ref,
+      eventType: 'visit',
       packageName: source || undefined,
-      viewedPackage: source ? `Source: ${source}` : undefined,
+      viewedPackage: 'Referral link visit',
       page: location.pathname,
     }).catch(() => void 0);
 

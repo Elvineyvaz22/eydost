@@ -188,6 +188,7 @@ export default function WorldCupEsim() {
   const openWhatsApp = async (plan: WorldCupPlan) => {
     await trackAgentLead({
       productType: 'esim',
+      eventType: 'whatsapp_click',
       packageName: plan.name,
       packageCode: plan.packageCode,
       viewedPackage: `World Cup 2026 ${plan.country} ${plan.data} ${plan.days} days ${money(plan.price)}`,

@@ -258,6 +258,7 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
     trackAgentLead({
       productType: 'esim',
+      eventType: 'whatsapp_click',
       packageCode: plan.code || plan.id,
       packageName: countryName,
       viewedPackage: `${countryName} eSIM · ${formatGB(plan.gb)} · ${plan.days} gün · ${plan.price}`,
@@ -371,6 +372,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
     trackAgentLead({
       productType: 'esim',
+      eventType: 'whatsapp_click',
       packageCode: plan.code || plan.id,
       packageName: countryName,
       viewedPackage: `${countryName} eSIM · Limitsiz ${plan.dailyLimit || 'FUP'} · ${plan.days} gün · ${plan.price}`,

@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
 
 const BOT_API_BASE_URL =
   process.env.PUBLIC_API_BASE_URL ||
@@ -7,6 +8,15 @@ const BOT_API_BASE_URL =
 const PUBLIC_API_KEY = process.env.PUBLIC_API_KEY;
 const PUBLIC_API_AUTH_TOKEN = process.env.PUBLIC_API_AUTH_TOKEN;
 const AGENT_COMMISSION_PERCENT = 15;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function getSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 
 function firstString(...values: unknown[]) {
   for (const value of values) {
@@ -179,6 +189,21 @@ function normalizeSearch(row: any, index: number) {
   );
 }
 
+function normalizeLocalReferral(row: any, index: number) {
+  return normalizeReferral(
+    {
+      ...row,
+      id: `local-${firstString(row.id, index)}`,
+      amount: row.sale_amount,
+      status: row.status || 'lead',
+      product_type: row.product_type || 'esim',
+      order_reference: row.order_reference,
+      notes: row.notes,
+    },
+    index
+  );
+}
+
 function normalizeConversion(row: any, index: number) {
   const packageDetails = row.package_details || row.packageDetails || {};
   return normalizeReferral(
@@ -223,14 +248,49 @@ function normalizeTotals(mePayload: any, referrals: ReturnType<typeof normalizeR
   const commission = fallbackCommission || Number((sales * (AGENT_COMMISSION_PERCENT / 100)).toFixed(2));
 
   const paidCount = referrals.filter((row) => row.status === 'paid').length;
+  const trafficRows = referrals.filter((row) => row.status !== 'paid');
+  const eventOf = (row: ReturnType<typeof normalizeReferral>) =>
+    firstString(row.notes?.match(/^Event:\s*(.+)$/im)?.[1]).toLowerCase();
+  const linkClicks = trafficRows.filter((row) => eventOf(row) === 'visit').length;
+  const whatsappClicks = trafficRows.filter((row) => eventOf(row) === 'whatsapp_click').length;
+  const packageViews = trafficRows.filter((row) => {
+    const event = eventOf(row);
+    return event === 'package_view' || (!event && Boolean(firstString(row.notes?.match(/^Package:/im)?.[0], row.notes?.match(/^Viewed package:/im)?.[0])));
+  }).length;
 
   return {
     leads: firstNumber(totals.search_count, totals.searches_count, totals.leads, totals.lead_count, totals.clicks) || fallback.leads,
+    linkClicks,
+    packageViews,
+    whatsappClicks,
     conversions: paidCount || firstNumber(totals.conversion_count, totals.conversions, totals.sale_count, totals.sales_count),
     sales,
     commission,
     paid: commission,
   };
+}
+
+async function getLocalReferrals(referralCode: string) {
+  const supabase = getSupabase();
+  if (!supabase || !referralCode) return [];
+
+  const { data: agent, error: agentError } = await supabase
+    .from('agents')
+    .select('id')
+    .eq('referral_code', referralCode)
+    .maybeSingle();
+
+  if (agentError || !agent?.id) return [];
+
+  const { data, error } = await supabase
+    .from('agent_referrals')
+    .select('*')
+    .eq('agent_id', agent.id)
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error || !Array.isArray(data)) return [];
+  return data.map(normalizeLocalReferral);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -257,11 +317,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ]);
 
     const agent = normalizeAgent(mePayload);
+    const localReferrals = await getLocalReferrals(agent.referral_code || '');
     const searches = normalizeRows(searchesPayload).map(normalizeSearch);
     const conversions = (purchasesResult as any)?.__error
       ? []
       : normalizeRows(purchasesResult).map(normalizeConversion);
-    const referrals = [...conversions, ...searches].sort(
+    const referrals = [...conversions, ...localReferrals, ...searches].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
     const totals = normalizeTotals(mePayload, referrals);

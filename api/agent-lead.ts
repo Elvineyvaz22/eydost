@@ -70,6 +70,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const packageCode = clean(req.body?.packageCode || req.body?.code, 80);
+  const eventTypeRaw = clean(req.body?.eventType || req.body?.event_type || 'package_view', 40).toLowerCase();
+  const eventType = ['visit', 'package_view', 'whatsapp_click'].includes(eventTypeRaw) ? eventTypeRaw : 'package_view';
+  const productTypeRaw = clean(req.body?.productType || req.body?.product_type || 'esim', 20).toLowerCase();
+  const productType = ['esim', 'taxi', 'other'].includes(productTypeRaw) ? productTypeRaw : 'esim';
   const packageName = clean(req.body?.packageName, 120);
   const viewedPackage = clean(req.body?.viewedPackage, 160);
   const page = clean(req.body?.page, 160);
@@ -82,6 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const geo = getGeo(req);
 
   const notes = [
+    eventType ? `Event: ${eventType}` : '',
     packageCode ? `Package code: ${packageCode}` : '',
     packageName ? `Package: ${packageName}` : '',
     viewedPackage ? `Viewed package: ${viewedPackage}` : '',
@@ -103,7 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       agent_id: agent.id,
       customer_name: null,
       customer_contact: null,
-      product_type: 'esim',
+      product_type: productType,
       order_reference: null,
       sale_amount: 0,
       commission_amount: 0,

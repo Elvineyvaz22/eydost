@@ -28,6 +28,9 @@ type Referral = {
 
 type Totals = {
   leads: number;
+  linkClicks?: number;
+  packageViews?: number;
+  whatsappClicks?: number;
   conversions?: number;
   sales: number;
   commission: number;
@@ -58,6 +61,9 @@ const dashboardCopy = {
     open: 'Open',
     approvalNotice: 'Your referral code will appear here after it is approved in the backend/admin panel.',
     lead: 'Views',
+    linkClicks: 'Link clicks',
+    packageViews: 'Package views',
+    whatsappClicks: 'WhatsApp clicks',
     conversions: 'Conversions',
     salesAmount: 'Sales amount',
     commission: 'Commission',
@@ -106,6 +112,9 @@ const dashboardCopy = {
     open: 'Aç',
     approvalNotice: 'Referral kodunuz backend/admin paneldə təsdiqlənəndən sonra burada görünəcək.',
     lead: 'Baxışlar',
+    linkClicks: 'Link klikləri',
+    packageViews: 'Paket baxışları',
+    whatsappClicks: 'WhatsApp klikləri',
     conversions: 'Satış sayı',
     salesAmount: 'Satış məbləği',
     commission: 'Komissiya',
@@ -154,6 +163,9 @@ const dashboardCopy = {
     open: 'Aç',
     approvalNotice: 'Referral kodunuz backend/admin panelde onaylandıktan sonra burada görünecek.',
     lead: 'Görüntüleme',
+    linkClicks: 'Link tıklamaları',
+    packageViews: 'Paket görüntüleme',
+    whatsappClicks: 'WhatsApp tıklamaları',
     conversions: 'Satış sayısı',
     salesAmount: 'Satış tutarı',
     commission: 'Komisyon',
@@ -202,6 +214,9 @@ const dashboardCopy = {
     open: 'Открыть',
     approvalNotice: 'Ваш реферальный код появится здесь после подтверждения в backend/admin панели.',
     lead: 'Просмотры',
+    linkClicks: 'Клики по ссылке',
+    packageViews: 'Просмотры пакетов',
+    whatsappClicks: 'WhatsApp-клики',
     conversions: 'Продажи',
     salesAmount: 'Сумма продаж',
     commission: 'Комиссия',
@@ -250,6 +265,9 @@ const dashboardCopy = {
     open: 'فتح',
     approvalNotice: 'سيظهر كود الإحالة هنا بعد اعتماده في لوحة الإدارة.',
     lead: 'المشاهدات',
+    linkClicks: 'نقرات الرابط',
+    packageViews: 'مشاهدات الباقات',
+    whatsappClicks: 'نقرات WhatsApp',
     conversions: 'عدد المبيعات',
     salesAmount: 'قيمة المبيعات',
     commission: 'العمولة',
@@ -298,6 +316,9 @@ const dashboardCopy = {
     open: 'Abrir',
     approvalNotice: 'Tu código de referido aparecerá aquí después de ser aprobado en el panel admin/backend.',
     lead: 'Vistas',
+    linkClicks: 'Clics del enlace',
+    packageViews: 'Vistas de paquetes',
+    whatsappClicks: 'Clics de WhatsApp',
     conversions: 'Ventas',
     salesAmount: 'Importe de ventas',
     commission: 'Comisión',
@@ -346,6 +367,9 @@ const dashboardCopy = {
     open: '打开',
     approvalNotice: '推荐代码在后台/admin 面板审核后会显示在这里。',
     lead: '浏览',
+    linkClicks: '链接点击',
+    packageViews: '套餐浏览',
+    whatsappClicks: 'WhatsApp 点击',
     conversions: '销售数',
     salesAmount: '销售金额',
     commission: '佣金',
@@ -525,6 +549,7 @@ function LeadDetails({ notes, t }: { notes: string | null; t: typeof dashboardCo
   const source = data['source'] || data['utm source'] || data['mənbə'];
   const medium = data['medium'] || data['utm medium'];
   const campaign = data['campaign'] || data['utm campaign'];
+  const event = data['event'];
   const orderReference = data['order reference'] || data['order_id'] || data['transaction id'] || data['provider order no'];
 
   return (
@@ -540,6 +565,12 @@ function LeadDetails({ notes, t }: { notes: string | null; t: typeof dashboardCo
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
+          {event && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              <TrendingUp className="w-3.5 h-3.5" />
+              {event}
+            </span>
+          )}
           {orderReference && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
               <Package className="w-3.5 h-3.5" />
@@ -806,10 +837,10 @@ export default function AgentDashboard() {
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">{t.intro}</p>
                   <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     {[
-                      { label: t.lead, value: totals.leads, icon: Users, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
-                      { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
-                      { label: t.salesAmount, value: money(totals.sales), icon: TrendingUp, tone: 'bg-slate-50 text-slate-700 ring-slate-100' },
-                      { label: t.commission, value: money(totals.commission), icon: Wallet, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
+                      { label: t.linkClicks, value: totals.linkClicks || 0, icon: ExternalLink, tone: 'bg-orange-50 text-orange-700 ring-orange-100' },
+                      { label: t.packageViews, value: totals.packageViews || 0, icon: Package, tone: 'bg-blue-50 text-blue-700 ring-blue-100' },
+                      { label: t.whatsappClicks, value: totals.whatsappClicks || 0, icon: Users, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
+                      { label: t.conversions, value: totals.conversions || 0, icon: TrendingUp, tone: 'bg-slate-50 text-slate-700 ring-slate-100' },
                     ].map((item) => {
                       const Icon = item.icon;
                       return (

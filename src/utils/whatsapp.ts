@@ -254,6 +254,7 @@ export const appendReferralToMessage = (message: string, language = 'az'): strin
 
 export const trackAgentLead = async (data: {
   productType?: 'esim' | 'taxi' | 'other';
+  eventType?: 'visit' | 'package_view' | 'whatsapp_click';
   packageCode?: string;
   packageName?: string;
   viewedPackage?: string;
@@ -272,6 +273,7 @@ export const trackAgentLead = async (data: {
       body: JSON.stringify({
         referralCode: ref,
         productType: data.productType || 'esim',
+        eventType: data.eventType || 'package_view',
         packageCode: data.packageCode,
         packageName: data.packageName,
         viewedPackage: data.viewedPackage,
