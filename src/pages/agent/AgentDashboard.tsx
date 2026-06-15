@@ -733,7 +733,11 @@ export default function AgentDashboard() {
       const response = await fetch('/api/agent-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agentToken: session.agentToken }),
+        body: JSON.stringify({
+          agentToken: session.agentToken,
+          email: session.email,
+          accessCode: session.accessCode,
+        }),
       });
       const responseText = await response.text();
       let payload: any = {};

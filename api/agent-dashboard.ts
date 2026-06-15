@@ -56,18 +56,46 @@ function normalizeAgent(raw: any) {
   };
 }
 
-async function getAdminAgentOverride(email: string) {
+async function getAdminAgentOverride(options: { email?: string; accessCode?: string; referralCode?: string }) {
   const supabase = getSupabase();
-  if (!supabase || !email) return null;
+  if (!supabase) return null;
 
-  const { data, error } = await supabase
-    .from('agents')
-    .select('full_name, company_name, email, referral_code, commission_rate, status')
-    .eq('email', email)
-    .maybeSingle();
+  const selectFields = 'full_name, company_name, email, referral_code, commission_rate, status, access_code';
+  const email = firstString(options.email).toLowerCase();
+  const accessCode = firstString(options.accessCode);
+  const referralCode = firstString(options.referralCode).toLowerCase();
 
-  if (error || !data) return null;
-  return data;
+  if (email) {
+    const { data, error } = await supabase
+      .from('agents')
+      .select(selectFields)
+      .eq('email', email)
+      .maybeSingle();
+
+    if (!error && data) return data;
+  }
+
+  if (accessCode) {
+    const { data, error } = await supabase
+      .from('agents')
+      .select(selectFields)
+      .eq('access_code', accessCode)
+      .maybeSingle();
+
+    if (!error && data) return data;
+  }
+
+  if (referralCode) {
+    const { data, error } = await supabase
+      .from('agents')
+      .select(selectFields)
+      .eq('referral_code', referralCode)
+      .maybeSingle();
+
+    if (!error && data) return data;
+  }
+
+  return null;
 }
 
 function mergeAdminAgentStatus(agent: ReturnType<typeof normalizeAgent>, adminAgent: any) {
@@ -91,6 +119,14 @@ function getAgentTokenFromRequest(req: VercelRequest) {
     req.body?.token,
     req.headers.authorization?.toString().replace(/^Bearer\s+/i, '')
   );
+}
+
+function getSessionEmailFromRequest(req: VercelRequest) {
+  return firstString(req.body?.email, req.body?.sessionEmail).toLowerCase();
+}
+
+function getSessionAccessCodeFromRequest(req: VercelRequest) {
+  return firstString(req.body?.accessCode);
 }
 
 async function readJson(response: Response) {
@@ -296,7 +332,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ]);
 
     const botAgent = normalizeAgent(mePayload);
-    const adminAgent = await getAdminAgentOverride(botAgent.email);
+    const adminAgent = await getAdminAgentOverride({
+      email: getSessionEmailFromRequest(req) || botAgent.email,
+      accessCode: getSessionAccessCodeFromRequest(req),
+      referralCode: firstString(botAgent.referral_code),
+    });
     const agent = mergeAdminAgentStatus(botAgent, adminAgent);
     const searches = normalizeRows(searchesPayload).map(normalizeSearch);
     const conversions = (purchasesResult as any)?.__error
