@@ -184,8 +184,12 @@ export function getCachedPackagesForCountry(countryCode: string): ESIMPackageRaw
 }
 
 function setCachedPackagesForCountry(countryCode: string, packages: ESIMPackageRaw[]) {
-  if (typeof window === 'undefined' || packages.length === 0) return;
+  if (typeof window === 'undefined') return;
   try {
+    if (packages.length === 0) {
+      sessionStorage.removeItem(getCountryPackagesCacheKey(countryCode));
+      return;
+    }
     sessionStorage.setItem(
       getCountryPackagesCacheKey(countryCode),
       JSON.stringify({ savedAt: Date.now(), packages } satisfies CachedCountryPackages)
@@ -255,15 +259,13 @@ async function fetchPackagesFromSupabase(countryCode: string): Promise<ESIMPacka
 }
 
 /**
- * Fetch packages for a specific country from the live API, with Supabase fallback.
+ * Fetch packages for a specific country from the live API, with Supabase fallback only on API errors.
  */
 export async function fetchPublicPackagesForCountry(countryCode: string): Promise<ESIMPackageRaw[]> {
   try {
     const live = await fetchPackagesFromPublicApi(countryCode);
-    if (live.length > 0) {
-      setCachedPackagesForCountry(countryCode, live);
-      return live;
-    }
+    setCachedPackagesForCountry(countryCode, live);
+    return live;
   } catch {
     // Keep the country page usable if the upstream API or proxy is unavailable.
   }
@@ -274,6 +276,7 @@ export async function fetchPublicPackagesForCountry(countryCode: string): Promis
 
 /**
  * Fetch all packages grouped by country from Supabase.
+ * The public API requires a country code, so search results are live-checked per country in the UI.
  */
 export async function fetchAllCountriesPackages(): Promise<Record<string, ESIMPackageRaw[]>> {
   const { data, error } = await supabase
@@ -380,6 +383,44 @@ export function mergeStaticWithLive(
       flag: countryCodeToFlag(cc),
       slug: slugForCountryCode(cc, staticPackages),
       region: 'all',
+      plans: [planFromLivePackage(cheapest)],
+    });
+  }
+
+  return merged.sort((a, b) => a.country.localeCompare(b.country));
+}
+
+/**
+ * Country search/list cards must show only sellable live countries.
+ * Static data is used only for slug, region and featured metadata.
+ */
+export function mergeLiveCountriesWithStaticMeta(
+  staticPackages: PackageData[],
+  liveByCountry: Record<string, ESIMPackageRaw[]>
+): PackageData[] {
+  const merged: PackageData[] = [];
+
+  for (const [rawCode, pkgs] of Object.entries(liveByCountry)) {
+    const cc = rawCode.toUpperCase();
+    const cheapest = pickCheapestPricedPackage(pkgs || []);
+    if (!cheapest) continue;
+
+    const staticMatch = staticPackages.find((p) => p.countryCode.toUpperCase() === cc);
+    merged.push({
+      ...(staticMatch || {
+        country: getCountryName(cc) || cc,
+        countryCode: cc,
+        flag: countryCodeToFlag(cc),
+        slug: slugForCountryCode(cc, staticPackages),
+        region: 'all',
+        plans: [],
+      }),
+      country: staticMatch?.country || getCountryName(cc) || cc,
+      countryCode: cc,
+      flag: staticMatch?.flag || countryCodeToFlag(cc),
+      slug: slugForCountryCode(cc, staticPackages),
+      region: staticMatch?.region || 'all',
+      featured: staticMatch?.featured || false,
       plans: [planFromLivePackage(cheapest)],
     });
   }

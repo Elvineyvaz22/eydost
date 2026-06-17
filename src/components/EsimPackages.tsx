@@ -6,7 +6,7 @@ import { usePackages } from '../contexts/PackagesContext';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import FlagImage from './FlagImage';
 import { trackEvent, EVENTS } from '../utils/analytics';
-import { fetchAllCountriesPackages, mergeStaticWithLive, getCountryNameLocalized, type ESIMPackageRaw } from '../services/esimApi';
+import { fetchAllCountriesPackages, fetchPublicPackagesForCountry, mergeLiveCountriesWithStaticMeta, getCountryNameLocalized, type ESIMPackageRaw } from '../services/esimApi';
 
 /* ─── Country row card (Airalo style) ─── */
 function CountryCard({ pkg }: { pkg: PackageData }) {
@@ -71,6 +71,7 @@ export default function EsimPackages() {
   const [search, setSearch] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [allPkgs, setAllPkgs] = useState<Record<string, ESIMPackageRaw[]>>({});
+  const [liveSearchStatus, setLiveSearchStatus] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
 
   const esimT = t.esimPackages as Record<string, string>;
@@ -83,7 +84,7 @@ export default function EsimPackages() {
   }, []);
 
   const activePackages = useMemo(
-    () => mergeStaticWithLive(staticPackages, allPkgs),
+    () => mergeLiveCountriesWithStaticMeta(staticPackages, allPkgs),
     [staticPackages, allPkgs]
   );
 
@@ -91,18 +92,62 @@ export default function EsimPackages() {
     const marked = activePackages.filter(p => p.featured);
     return (marked.length > 0 ? marked : activePackages).slice(0, 4);
   }, [activePackages]);
-  const allSorted = [...activePackages].sort((a, b) => a.country.localeCompare(b.country));
+  const allSorted = [...activePackages].sort((a, b) =>
+    getCountryNameLocalized(a.countryCode, language).localeCompare(getCountryNameLocalized(b.countryCode, language))
+  );
 
-  const searchResults =
-    search.length > 0
-      ? activePackages
-          .filter((p) => {
-            const local = (getCountryNameLocalized(p.countryCode, language) || p.country || '').toLowerCase();
-            return local.includes(search.toLowerCase());
+  const isSearching = search.trim().length > 0;
+  const searchCandidates = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query || !isSearching) return [];
+
+    return activePackages
+      .filter((p) => {
+        const terms = [
+          getCountryNameLocalized(p.countryCode, language),
+          getCountryNameLocalized(p.countryCode, 'en'),
+          p.country,
+          p.countryCode,
+          p.slug,
+        ];
+        return terms.some((term) => (term || '').toLowerCase().includes(query));
+      })
+      .slice(0, 8);
+  }, [activePackages, isSearching, language, search]);
+
+  useEffect(() => {
+    if (!isSearching || searchCandidates.length === 0) return;
+    let cancelled = false;
+
+    searchCandidates
+      .filter((pkg) => liveSearchStatus[pkg.countryCode.toUpperCase()] === undefined)
+      .forEach((pkg) => {
+        const cc = pkg.countryCode.toUpperCase();
+        fetchPublicPackagesForCountry(cc)
+          .then((pkgs) => {
+            if (cancelled) return;
+            setLiveSearchStatus((prev) => ({
+              ...prev,
+              [cc]: pkgs.some((item) => (item.sell_price_minor ?? 0) > 0),
+            }));
           })
-          .slice(0, 4)
-      : [];
-  const isSearching = search.length > 0;
+          .catch(() => {
+            if (cancelled) return;
+            setLiveSearchStatus((prev) => ({ ...prev, [cc]: true }));
+          });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSearching, searchCandidates, liveSearchStatus]);
+
+  const searchResults = searchCandidates
+    .filter((p) => liveSearchStatus[p.countryCode.toUpperCase()] === true)
+    .slice(0, 4);
+  const searchChecksPending = searchCandidates.some(
+    (p) => liveSearchStatus[p.countryCode.toUpperCase()] === undefined
+  );
 
   // Qalan ölkələri sadəcə 4 dənə göstəririk
   const displayList = isSearching ? searchResults : (showAll ? allSorted : allSorted.slice(0, 4));
@@ -147,7 +192,9 @@ export default function EsimPackages() {
         {/* Search results — shown when searching */}
         {isSearching ? (
           searchResults.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">{esimT.noResults}</div>
+            <div className="text-center py-16 text-gray-400">
+              {searchChecksPending ? (esimT.loading || 'Loading...') : esimT.noResults}
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {searchResults.map((pkg, i) => (
