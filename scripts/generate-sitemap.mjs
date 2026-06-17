@@ -58,6 +58,7 @@ function getMeta(p) {
   if (p === '/') return { priority: '1.0', changefreq: 'weekly' };
   if (p === '/esim') return { priority: '0.9', changefreq: 'daily' };
   if (p === '/taxi') return { priority: '0.9', changefreq: 'weekly' };
+  if (p === '/partners') return { priority: '0.8', changefreq: 'weekly' };
   if (/^\/(en|az|ru|tr|ar|es|zh)\/blog$/.test(p)) return { priority: '0.8', changefreq: 'weekly' };
   if (p === '/about') return { priority: '0.7', changefreq: 'monthly' };
   if (/^\/(en|az|ru|tr|ar|es|zh)\/blog\//.test(p)) return { priority: '0.7', changefreq: 'monthly' };
@@ -103,7 +104,7 @@ async function main() {
   ]);
 
   const staticPaths = [
-    '/', '/esim', '/taxi', '/about',
+    '/', '/esim', '/taxi', '/partners', '/about',
     '/privacy', '/terms', '/refund',
     ...localizedBlogPaths,
   ];
@@ -111,7 +112,7 @@ async function main() {
 
   const urls = Array.from(allPaths).sort((a, b) => {
     // Sort: home first, then main pages, then slugs
-    const order = ['/', '/esim', '/taxi', '/about'];
+    const order = ['/', '/esim', '/taxi', '/partners', '/about'];
     const ai = order.indexOf(a), bi = order.indexOf(b);
     if (ai !== -1 && bi !== -1) return ai - bi;
     if (ai !== -1) return -1;

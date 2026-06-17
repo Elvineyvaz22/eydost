@@ -1,4 +1,3 @@
-import { FormEvent, useState } from 'react';
 import {
   ArrowRight,
   BadgeCheck,
@@ -12,10 +11,8 @@ import {
   Handshake,
   Headphones,
   Link2,
-  Loader2,
   Megaphone,
   Plane,
-  Send,
   ShieldCheck,
   Smartphone,
   TrendingUp,
@@ -26,10 +23,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import Seo from '../components/Seo';
-import { supabase } from '../lib/supabase';
 import { useLanguage } from '../contexts/LanguageContext';
 
-type FormStatus = 'idle' | 'submitting' | 'success' | 'error';
 type PartnerLang = 'en' | 'az' | 'ru' | 'tr' | 'ar' | 'es' | 'zh';
 
 const fallback = {
@@ -458,7 +453,6 @@ const extraCopies: Partial<Record<PartnerLang, typeof fallback.en>> = {
 };
 
 const copy = { ...fallback, ...extraCopies } as Record<PartnerLang, typeof fallback.en>;
-const partnerTypeValues = ['agency', 'umrah', 'education', 'creator', 'corporate', 'other'];
 const stepIcons = [ClipboardList, Megaphone, Wallet];
 const segmentIcons = [Plane, Users, GraduationCap, Building2];
 const benefitIcons = [BarChart3, Headphones, Link2, Copy, ShieldCheck, TrendingUp];
@@ -467,49 +461,6 @@ export default function Partners() {
   const { language } = useLanguage();
   const lang = (copy[language as PartnerLang] ? language : 'en') as PartnerLang;
   const t = copy[lang];
-  const [status, setStatus] = useState<FormStatus>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [form, setForm] = useState({
-    fullName: '',
-    companyName: '',
-    email: '',
-    whatsapp: '',
-    partnerType: 'agency',
-    monthlyClients: '',
-    message: '',
-  });
-
-  const update = (key: keyof typeof form, value: string) => {
-    setForm((current) => ({ ...current, [key]: value }));
-  };
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    setStatus('submitting');
-    setErrorMessage('');
-
-    try {
-      const { error } = await supabase.from('partner_applications').insert([
-        {
-          full_name: form.fullName,
-          company_name: form.companyName,
-          email: form.email,
-          whatsapp: form.whatsapp,
-          partner_type: form.partnerType,
-          monthly_clients: form.monthlyClients,
-          message: form.message,
-        },
-      ]);
-
-      if (error) throw error;
-
-      setStatus('success');
-      setForm({ fullName: '', companyName: '', email: '', whatsapp: '', partnerType: 'agency', monthlyClients: '', message: '' });
-    } catch (err) {
-      setStatus('error');
-      setErrorMessage(err instanceof Error ? err.message : t.loadingError);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -642,63 +593,23 @@ export default function Partners() {
         </section>
 
         <section id="apply" className="bg-white py-16">
-          <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
-            <div>
-              <h2 className="mb-4 text-3xl font-extrabold text-slate-900">{t.formTitle}</h2>
-              <p className="mb-6 leading-relaxed text-slate-600">{t.formText}</p>
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <div className="overflow-hidden rounded-3xl bg-slate-950 text-white shadow-xl">
+              <div className="grid gap-8 p-8 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10">
+                <div>
+                  <h2 className="mb-4 text-3xl font-extrabold">{t.formTitle}</h2>
+                  <p className="max-w-2xl leading-relaxed text-slate-300">{t.formText}</p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+                  <a href="/agent/login" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-6 py-3.5 font-bold text-white transition-colors hover:bg-orange-600">
+                    {t.applyCta} <ArrowRight className="h-4 w-4" />
+                  </a>
+                  <a href="/agent/login" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-3.5 font-bold text-white transition-colors hover:bg-white/15">
+                    {t.agentLogin}
+                  </a>
+                </div>
+              </div>
             </div>
-
-            <form onSubmit={submit} className="space-y-4 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="block">
-                  <span className="text-sm font-bold text-slate-700">{t.fullName}</span>
-                  <input required value={form.fullName} onChange={(e) => update('fullName', e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100" />
-                </label>
-                <label className="block">
-                  <span className="text-sm font-bold text-slate-700">{t.companyName}</span>
-                  <input required value={form.companyName} onChange={(e) => update('companyName', e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100" />
-                </label>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="block">
-                  <span className="text-sm font-bold text-slate-700">{t.email}</span>
-                  <input required type="email" value={form.email} onChange={(e) => update('email', e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100" />
-                </label>
-                <label className="block">
-                  <span className="text-sm font-bold text-slate-700">{t.whatsapp}</span>
-                  <input value={form.whatsapp} onChange={(e) => update('whatsapp', e.target.value)} placeholder="+994..." className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100" />
-                </label>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="block">
-                  <span className="text-sm font-bold text-slate-700">{t.partnerType}</span>
-                  <select value={form.partnerType} onChange={(e) => update('partnerType', e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100">
-                    {partnerTypeValues.map((value, index) => (
-                      <option key={value} value={value}>{t.partnerTypes[index]}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="text-sm font-bold text-slate-700">{t.monthlyClients}</span>
-                  <input value={form.monthlyClients} onChange={(e) => update('monthlyClients', e.target.value)} placeholder={t.monthlyPlaceholder} className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100" />
-                </label>
-              </div>
-
-              <label className="block">
-                <span className="text-sm font-bold text-slate-700">{t.message}</span>
-                <textarea rows={4} value={form.message} onChange={(e) => update('message', e.target.value)} placeholder={t.messagePlaceholder} className="mt-2 w-full resize-y rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100" />
-              </label>
-
-              {status === 'success' && <div className="rounded-2xl bg-green-50 p-4 text-sm font-semibold text-green-700">{t.success}</div>}
-              {status === 'error' && <div className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">{errorMessage || t.error}</div>}
-
-              <button type="submit" disabled={status === 'submitting'} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 px-6 py-3.5 font-bold text-white transition-colors hover:bg-orange-700 disabled:opacity-60">
-                {status === 'submitting' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                {t.submit}
-              </button>
-            </form>
           </div>
         </section>
 
