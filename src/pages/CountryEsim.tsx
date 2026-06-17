@@ -494,18 +494,6 @@ export default function CountryEsim() {
   const countryName = getCountryNameLocalized(activeCountryCode || '', language);
   const flag = countryCodeToFlag(activeCountryCode || '');
 
-  const staticPlans: LivePlan[] = (staticPkg?.plans || []).map(p => ({
-    // `p.gb` is expressed in GB (can be fractional like 0.1 GB). Convert to bytes.
-    gb: p.gb * 1024 * 1024 * 1024,
-    days: p.days,
-    price: typeof p.price === 'string' ? p.price : `$${(p.price as number).toFixed(2)}`,
-    code: p.code || '',
-    id: p.id || '',
-    isUnlimited: false,
-    countryCode: activeCountryCode || '',
-    name: p.id || p.code || '',
-  }));
-
   const limitedPlans: LivePlan[] = livePkgs
     .filter(isDataPlanPackage)
     .map(p => ({
@@ -542,8 +530,8 @@ export default function CountryEsim() {
       return limitDiff || sortUnlimitedDays(a, b);
     });
 
-  const displayLimitedPlans = normalizeStandardPlans(limitedPlans.length > 0 ? limitedPlans : staticPlans);
-  const showFallbackNote = limitedPlans.length === 0 && staticPlans.length > 0;
+  const displayLimitedPlans = normalizeStandardPlans(limitedPlans);
+  const showFallbackNote = false;
   const unlimitedLimitOptions = Array.from(new Set(unlimitedPlans.map(plan => plan.dailyLimit || 'FUP')))
     .sort((a, b) => limitSortValue(a) - limitSortValue(b));
   const selectedUnlimitedLimit =
@@ -574,7 +562,7 @@ export default function CountryEsim() {
   const selectedPlanType = activePlanType === 'unlimited' && unlimitedPlans.length > 0 ? 'unlimited' : 'standard';
   const visiblePlans = selectedPlanType === 'unlimited' ? displayUnlimitedPlans : displayLimitedPlans;
 
-  if (liveLoading && staticPlans.length === 0 && livePkgs.length === 0) {
+  if (liveLoading && livePkgs.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
