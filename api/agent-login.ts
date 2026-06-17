@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
 
 const BOT_API_BASE_URL =
   process.env.PUBLIC_API_BASE_URL ||
@@ -6,9 +7,23 @@ const BOT_API_BASE_URL =
   'https://bot.eydost.az';
 const PUBLIC_API_KEY = process.env.PUBLIC_API_KEY;
 const PUBLIC_API_AUTH_TOKEN = process.env.PUBLIC_API_AUTH_TOKEN;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function getSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 
 function clean(value: unknown, max = 200) {
   return String(value || '').trim().slice(0, max);
+}
+
+function firstHeader(req: VercelRequest, name: string) {
+  const value = req.headers[name.toLowerCase()];
+  return Array.isArray(value) ? value[0] : value;
 }
 
 function normalizeAgent(raw: any, fallbackEmail: string) {
@@ -37,6 +52,31 @@ function pickAgentToken(raw: any) {
     raw?.data?.agent_token,
     2000
   );
+}
+
+async function recordAgentLogin(req: VercelRequest, agent: ReturnType<typeof normalizeAgent>) {
+  const supabase = getSupabase();
+  if (!supabase || !agent.email) return;
+
+  try {
+    const { data } = await supabase
+      .from('agents')
+      .select('id')
+      .eq('email', agent.email)
+      .maybeSingle();
+
+    await supabase.from('agent_login_events').insert({
+      agent_id: data?.id || null,
+      email: agent.email,
+      event_type: 'login',
+      ip_country: clean(firstHeader(req, 'x-vercel-ip-country'), 40) || null,
+      ip_region: clean(firstHeader(req, 'x-vercel-ip-country-region'), 80) || null,
+      ip_city: clean(firstHeader(req, 'x-vercel-ip-city'), 80) || null,
+      user_agent: clean(firstHeader(req, 'user-agent'), 300) || null,
+    });
+  } catch (error) {
+    console.warn('[agent-login] login analytics skipped:', error);
+  }
 }
 
 async function readJson(response: Response) {
@@ -88,8 +128,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(502).json({ error: 'Agent token did not return from bot API' });
     }
 
+    const agent = normalizeAgent(payload, email);
+    await recordAgentLogin(req, agent);
+
     return res.status(200).json({
-      agent: normalizeAgent(payload, email),
+      agent,
       agentToken,
     });
   } catch (error: any) {

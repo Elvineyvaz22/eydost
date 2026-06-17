@@ -14,6 +14,11 @@ function clean(value: unknown, max = 160) {
   return String(value || '').trim().slice(0, max);
 }
 
+function firstHeader(req: VercelRequest, name: string) {
+  const value = req.headers[name.toLowerCase()];
+  return Array.isArray(value) ? value[0] : value;
+}
+
 function isStrongAccessCode(value: string) {
   return value.length >= 8 && /[A-Z]/.test(value) && /\d/.test(value);
 }
@@ -123,6 +128,31 @@ async function mirrorAgentToSupabase(agent: ReturnType<typeof normalizeAgent>, v
   return true;
 }
 
+async function recordAgentLogin(req: VercelRequest, agent: ReturnType<typeof normalizeAgent>, eventType: 'login' | 'register') {
+  const supabase = getSupabase();
+  if (!supabase || !agent.email) return;
+
+  try {
+    const { data } = await supabase
+      .from('agents')
+      .select('id')
+      .eq('email', agent.email)
+      .maybeSingle();
+
+    await supabase.from('agent_login_events').insert({
+      agent_id: data?.id || null,
+      email: agent.email,
+      event_type: eventType,
+      ip_country: clean(firstHeader(req, 'x-vercel-ip-country'), 40) || null,
+      ip_region: clean(firstHeader(req, 'x-vercel-ip-country-region'), 80) || null,
+      ip_city: clean(firstHeader(req, 'x-vercel-ip-city'), 80) || null,
+      user_agent: clean(firstHeader(req, 'user-agent'), 300) || null,
+    });
+  } catch (error) {
+    console.warn('[agent-register] login analytics skipped:', error);
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -170,6 +200,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const agent = normalizeAgent(loginPayload || registerPayload, { fullName, companyName, email });
     const mirrored = await mirrorAgentToSupabase(agent, { fullName, companyName, phoneNumber, accessCode });
+    await recordAgentLogin(req, agent, 'register');
 
     return res.status(200).json({
       agent,

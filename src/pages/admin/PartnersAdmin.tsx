@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Copy, Loader2, RefreshCw, Search, Users } from 'lucide-react';
+import { Activity, BarChart3, CalendarClock, CheckCircle2, Copy, Loader2, RefreshCw, Search, TrendingUp, Users } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { supabase } from '../../lib/supabase';
 
@@ -31,6 +31,38 @@ type Agent = {
   created_at: string;
 };
 
+type AgentReferral = {
+  id: string;
+  agent_id: string;
+  sale_amount: number | null;
+  commission_amount: number | null;
+  status: string;
+  created_at: string;
+};
+
+type AgentLoginEvent = {
+  id: string;
+  agent_id: string | null;
+  email: string;
+  event_type: string;
+  ip_country: string | null;
+  ip_city: string | null;
+  created_at: string;
+};
+
+type AgentActivity = {
+  agent: Agent;
+  logins: AgentLoginEvent[];
+  referrals: AgentReferral[];
+  loginCount: number;
+  lastLogin: string | null;
+  leads: number;
+  sales: number;
+  saleAmount: number;
+  commission: number;
+  score: number;
+};
+
 function makeCode(input: string) {
   const base = input
     .toLowerCase()
@@ -44,9 +76,31 @@ function makeAccessCode() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
+function formatDateTime(value: string | null) {
+  if (!value) return '-';
+  return new Date(value).toLocaleString('az-AZ', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function money(value: number) {
+  return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function isRecent(value: string | null, hours: number) {
+  if (!value) return false;
+  return Date.now() - new Date(value).getTime() <= hours * 60 * 60 * 1000;
+}
+
 export default function PartnersAdmin() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [agentReferrals, setAgentReferrals] = useState<AgentReferral[]>([]);
+  const [agentLoginEvents, setAgentLoginEvents] = useState<AgentLoginEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
@@ -56,9 +110,19 @@ export default function PartnersAdmin() {
     setLoading(true);
     setError('');
     try {
-      const [applicationsResult, agentsResult] = await Promise.all([
+      const [applicationsResult, agentsResult, referralsResult, loginEventsResult] = await Promise.all([
         supabase.from('partner_applications').select('*').order('created_at', { ascending: false }),
         supabase.from('agents').select('*').order('created_at', { ascending: false }),
+        supabase
+          .from('agent_referrals')
+          .select('id, agent_id, sale_amount, commission_amount, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(2000),
+        supabase
+          .from('agent_login_events')
+          .select('id, agent_id, email, event_type, ip_country, ip_city, created_at')
+          .order('created_at', { ascending: false })
+          .limit(2000),
       ]);
 
       if (applicationsResult.error) throw applicationsResult.error;
@@ -66,6 +130,8 @@ export default function PartnersAdmin() {
 
       setApplications((applicationsResult.data || []) as Application[]);
       setAgents((agentsResult.data || []) as Agent[]);
+      setAgentReferrals(referralsResult.error ? [] : ((referralsResult.data || []) as AgentReferral[]));
+      setAgentLoginEvents(loginEventsResult.error ? [] : ((loginEventsResult.data || []) as AgentLoginEvent[]));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Partner məlumatları yüklənmədi');
     } finally {
@@ -84,6 +150,61 @@ export default function PartnersAdmin() {
     });
     return map;
   }, [agents]);
+
+  const agentActivity = useMemo<AgentActivity[]>(() => {
+    const loginMap = new Map<string, AgentLoginEvent[]>();
+    const referralMap = new Map<string, AgentReferral[]>();
+
+    agentLoginEvents.forEach((event) => {
+      const keys = [event.agent_id, event.email.toLowerCase()].filter(Boolean) as string[];
+      keys.forEach((key) => {
+        const list = loginMap.get(key) || [];
+        list.push(event);
+        loginMap.set(key, list);
+      });
+    });
+
+    agentReferrals.forEach((referral) => {
+      const list = referralMap.get(referral.agent_id) || [];
+      list.push(referral);
+      referralMap.set(referral.agent_id, list);
+    });
+
+    return agents
+      .map((agent) => {
+        const loginsById = loginMap.get(agent.id) || [];
+        const loginsByEmail = loginMap.get(agent.email.toLowerCase()) || [];
+        const logins = [...loginsById, ...loginsByEmail]
+          .filter((event, index, list) => list.findIndex((item) => item.id === event.id) === index)
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        const referrals = referralMap.get(agent.id) || [];
+        const paid = referrals.filter((item) => item.status === 'paid');
+        const leads = referrals.filter((item) => item.status !== 'paid').length;
+        const sales = paid.length;
+        const saleAmount = paid.reduce((sum, item) => sum + Number(item.sale_amount || 0), 0);
+        const commission = paid.reduce((sum, item) => sum + Number(item.commission_amount || 0), 0);
+        const lastLogin = logins[0]?.created_at || null;
+        const score = logins.length * 2 + leads * 3 + sales * 10 + saleAmount;
+
+        return {
+          agent,
+          logins,
+          referrals,
+          loginCount: logins.length,
+          lastLogin,
+          leads,
+          sales,
+          saleAmount,
+          commission,
+          score,
+        };
+      })
+      .sort((a, b) => b.score - a.score || new Date(b.agent.created_at).getTime() - new Date(a.agent.created_at).getTime());
+  }, [agents, agentLoginEvents, agentReferrals]);
+
+  const activeLast24h = agentActivity.filter((item) => isRecent(item.lastLogin, 24)).length;
+  const totalLeadCount = agentActivity.reduce((sum, item) => sum + item.leads, 0);
+  const totalSalesCount = agentActivity.reduce((sum, item) => sum + item.sales, 0);
 
   const filteredApplications = applications.filter((item) => {
     const text = `${item.full_name} ${item.company_name} ${item.email} ${item.whatsapp || ''}`.toLowerCase();
@@ -168,7 +289,7 @@ export default function PartnersAdmin() {
 
         {error && <div className="rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">{error}</div>}
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 xl:grid-cols-6 gap-4">
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <div className="text-sm text-gray-500">Müraciətlər</div>
             <div className="text-3xl font-bold text-gray-900">{applications.length}</div>
@@ -181,6 +302,103 @@ export default function PartnersAdmin() {
             <div className="text-sm text-gray-500">Təsdiq gözləyən agent</div>
             <div className="text-3xl font-bold text-gray-900">{agents.filter((a) => a.status === 'pending').length}</div>
           </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-5">
+            <div className="text-sm text-gray-500">Agent loginləri</div>
+            <div className="text-3xl font-bold text-gray-900">{agentLoginEvents.length}</div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-5">
+            <div className="text-sm text-gray-500">24 saat aktiv</div>
+            <div className="text-3xl font-bold text-gray-900">{activeLast24h}</div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-5">
+            <div className="text-sm text-gray-500">Lead / satış</div>
+            <div className="text-3xl font-bold text-gray-900">{totalLeadCount}/{totalSalesCount}</div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="p-5 border-b border-gray-200 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="font-bold text-gray-900 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+                Agent aktivliyi və müştəri gücü
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">Profil girişləri, referral lead-ləri və satış nəticələri eyni admin paneldə göstərilir.</p>
+            </div>
+            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
+              {agentActivity.length} agent
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="p-8 flex items-center gap-3 text-gray-600">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Yüklənir...
+            </div>
+          ) : agentActivity.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">Agent aktivliyi üçün məlumat yoxdur.</div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {agentActivity.slice(0, 20).map((item) => {
+                const recent = isRecent(item.lastLogin, 24);
+                const lastPlace = item.logins[0]
+                  ? [item.logins[0].ip_country, item.logins[0].ip_city].filter(Boolean).join(' / ')
+                  : '';
+
+                return (
+                  <div key={item.agent.id} className="p-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_170px_150px_150px_150px] xl:items-center">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="truncate text-base font-black text-gray-900">{item.agent.company_name || item.agent.full_name}</h3>
+                        <span className={`text-xs px-2 py-1 rounded-full font-bold ${
+                          item.agent.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
+                        }`}>
+                          {item.agent.status}
+                        </span>
+                        {recent && (
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 font-bold">
+                            <Activity className="w-3 h-3" />
+                            aktiv
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 text-sm text-gray-500">
+                        {item.agent.email} {item.agent.referral_code ? `• ${item.agent.referral_code}` : ''}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl bg-gray-50 p-3">
+                      <div className="text-xs font-bold uppercase text-gray-400 flex items-center gap-1">
+                        <CalendarClock className="w-3.5 h-3.5" />
+                        Son giriş
+                      </div>
+                      <div className="mt-1 text-sm font-bold text-gray-900">{formatDateTime(item.lastLogin)}</div>
+                      {lastPlace && <div className="mt-1 text-xs text-gray-500">{lastPlace}</div>}
+                    </div>
+
+                    <div className="rounded-2xl bg-blue-50 p-3">
+                      <div className="text-xs font-bold uppercase text-blue-500">Login</div>
+                      <div className="mt-1 text-2xl font-black text-blue-900">{item.loginCount}</div>
+                    </div>
+
+                    <div className="rounded-2xl bg-orange-50 p-3">
+                      <div className="text-xs font-bold uppercase text-orange-500">Lead</div>
+                      <div className="mt-1 text-2xl font-black text-orange-900">{item.leads}</div>
+                    </div>
+
+                    <div className="rounded-2xl bg-emerald-50 p-3">
+                      <div className="text-xs font-bold uppercase text-emerald-600 flex items-center gap-1">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        Satış
+                      </div>
+                      <div className="mt-1 text-lg font-black text-emerald-900">{item.sales} • {money(item.saleAmount)}</div>
+                      <div className="text-xs font-bold text-emerald-700">Komissiya {money(item.commission)}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl">
