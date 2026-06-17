@@ -63,6 +63,8 @@ type AgentActivity = {
   score: number;
 };
 
+type InsightKey = 'applications' | 'activeAgents' | 'pendingAgents' | 'logins' | 'recentActive' | 'leadsSales';
+
 function makeCode(input: string) {
   const base = input
     .toLowerCase()
@@ -105,6 +107,7 @@ export default function PartnersAdmin() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
+  const [selectedInsight, setSelectedInsight] = useState<InsightKey | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -205,6 +208,76 @@ export default function PartnersAdmin() {
   const activeLast24h = agentActivity.filter((item) => isRecent(item.lastLogin, 24)).length;
   const totalLeadCount = agentActivity.reduce((sum, item) => sum + item.leads, 0);
   const totalSalesCount = agentActivity.reduce((sum, item) => sum + item.sales, 0);
+  const activeAgents = agents.filter((agent) => agent.status === 'active');
+  const pendingAgents = agents.filter((agent) => agent.status === 'pending');
+
+  const insightTitle: Record<InsightKey, string> = {
+    applications: 'Müraciətlər',
+    activeAgents: 'Aktiv agentlər',
+    pendingAgents: 'Təsdiq gözləyən agentlər',
+    logins: 'Agent loginləri',
+    recentActive: 'Son 24 saat aktiv agentlər',
+    leadsSales: 'Lead və satış analizi',
+  };
+
+  const selectedInsightRows = useMemo(() => {
+    switch (selectedInsight) {
+      case 'applications':
+        return applications.map((item) => ({
+          id: item.id,
+          title: item.company_name || item.full_name,
+          subtitle: `${item.full_name} • ${item.email}`,
+          meta: item.status,
+          value: item.whatsapp || '-',
+        }));
+      case 'activeAgents':
+        return activeAgents.map((agent) => ({
+          id: agent.id,
+          title: agent.company_name || agent.full_name,
+          subtitle: `${agent.email} • ${agent.referral_code || 'kod yoxdur'}`,
+          meta: agent.status,
+          value: formatDateTime(agent.created_at),
+        }));
+      case 'pendingAgents':
+        return pendingAgents.map((agent) => ({
+          id: agent.id,
+          title: agent.company_name || agent.full_name,
+          subtitle: `${agent.email} • ${agent.referral_code || 'kod yoxdur'}`,
+          meta: agent.status,
+          value: formatDateTime(agent.created_at),
+        }));
+      case 'logins':
+        return agentLoginEvents.map((event) => ({
+          id: event.id,
+          title: event.email,
+          subtitle: [event.ip_country, event.ip_city].filter(Boolean).join(' / ') || event.event_type,
+          meta: event.event_type,
+          value: formatDateTime(event.created_at),
+        }));
+      case 'recentActive':
+        return agentActivity
+          .filter((item) => isRecent(item.lastLogin, 24))
+          .map((item) => ({
+            id: item.agent.id,
+            title: item.agent.company_name || item.agent.full_name,
+            subtitle: `${item.agent.email} • ${item.agent.referral_code || 'kod yoxdur'}`,
+            meta: `${item.loginCount} login`,
+            value: formatDateTime(item.lastLogin),
+          }));
+      case 'leadsSales':
+        return agentActivity
+          .filter((item) => item.leads > 0 || item.sales > 0)
+          .map((item) => ({
+            id: item.agent.id,
+            title: item.agent.company_name || item.agent.full_name,
+            subtitle: `${item.agent.email} • ${item.agent.referral_code || 'kod yoxdur'}`,
+            meta: `${item.leads} lead / ${item.sales} satış`,
+            value: `${money(item.saleAmount)} satış`,
+          }));
+      default:
+        return [];
+    }
+  }, [selectedInsight, applications, activeAgents, pendingAgents, agentLoginEvents, agentActivity]);
 
   const filteredApplications = applications.filter((item) => {
     const text = `${item.full_name} ${item.company_name} ${item.email} ${item.whatsapp || ''}`.toLowerCase();
@@ -289,7 +362,17 @@ export default function PartnersAdmin() {
 
         {error && <div className="rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm font-semibold">{error}</div>}
 
-        <div className="grid md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div
+          className="grid md:grid-cols-3 xl:grid-cols-6 gap-4 [&>div]:cursor-pointer [&>div]:transition [&>div:hover]:border-blue-300 [&>div:hover]:shadow-sm"
+          onClick={(event) => {
+            const card = (event.target as HTMLElement).closest('.rounded-xl');
+            if (!card) return;
+            const index = Array.from(event.currentTarget.children).indexOf(card);
+            const keys: InsightKey[] = ['applications', 'activeAgents', 'pendingAgents', 'logins', 'recentActive', 'leadsSales'];
+            const nextKey = keys[index];
+            if (nextKey) setSelectedInsight(nextKey);
+          }}
+        >
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <div className="text-sm text-gray-500">Müraciətlər</div>
             <div className="text-3xl font-bold text-gray-900">{applications.length}</div>
@@ -315,6 +398,43 @@ export default function PartnersAdmin() {
             <div className="text-3xl font-bold text-gray-900">{totalLeadCount}/{totalSalesCount}</div>
           </div>
         </div>
+
+        {selectedInsight && (
+          <div className="bg-white border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+            <div className="p-5 border-b border-blue-100 bg-blue-50/60 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-bold text-blue-950">{insightTitle[selectedInsight]}</h2>
+                <p className="text-sm text-blue-700 mt-1">Seçilmiş göstəricinin detallı siyahısı.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedInsight(null)}
+                className="rounded-lg bg-white px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-100"
+              >
+                Bağla
+              </button>
+            </div>
+
+            {selectedInsightRows.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">Bu göstərici üzrə məlumat yoxdur.</div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {selectedInsightRows.map((row) => (
+                  <div key={row.id} className="p-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_150px_170px] md:items-center">
+                    <div className="min-w-0">
+                      <div className="truncate font-black text-gray-900">{row.title}</div>
+                      <div className="mt-1 truncate text-sm text-gray-500">{row.subtitle}</div>
+                    </div>
+                    <div className="inline-flex w-fit rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-700">
+                      {row.meta}
+                    </div>
+                    <div className="text-sm font-bold text-gray-900 md:text-right">{row.value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
           <div className="p-5 border-b border-gray-200 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
