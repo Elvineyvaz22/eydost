@@ -241,6 +241,7 @@ export default function PartnersAdmin() {
       case 'pendingAgents':
         return pendingAgents.map((agent) => ({
           id: agent.id,
+          agentId: agent.id,
           title: agent.company_name || agent.full_name,
           subtitle: `${agent.email} • ${agent.referral_code || 'kod yoxdur'}`,
           meta: agent.status,
@@ -365,7 +366,10 @@ export default function PartnersAdmin() {
         <div
           className="grid md:grid-cols-3 xl:grid-cols-6 gap-4 [&>div]:cursor-pointer [&>div]:transition [&>div:hover]:border-blue-300 [&>div:hover]:shadow-sm"
           onClick={(event) => {
-            const card = (event.target as HTMLElement).closest('.rounded-xl');
+            const closestCard = (event.target as HTMLElement).closest('.rounded-xl');
+            const card = Array.from(event.currentTarget.children).find(
+              (child) => child === closestCard || child.contains(closestCard)
+            );
             if (!card) return;
             const index = Array.from(event.currentTarget.children).indexOf(card);
             const keys: InsightKey[] = ['applications', 'activeAgents', 'pendingAgents', 'logins', 'recentActive', 'leadsSales'];
@@ -408,7 +412,10 @@ export default function PartnersAdmin() {
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedInsight(null)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setSelectedInsight(null);
+                }}
                 className="rounded-lg bg-white px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-100"
               >
                 Bağla
@@ -420,7 +427,7 @@ export default function PartnersAdmin() {
             ) : (
               <div className="divide-y divide-gray-100">
                 {selectedInsightRows.map((row) => (
-                  <div key={row.id} className="p-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_150px_170px] md:items-center">
+                  <div key={row.id} className="p-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_150px_170px_auto] md:items-center">
                     <div className="min-w-0">
                       <div className="truncate font-black text-gray-900">{row.title}</div>
                       <div className="mt-1 truncate text-sm text-gray-500">{row.subtitle}</div>
@@ -429,6 +436,34 @@ export default function PartnersAdmin() {
                       {row.meta}
                     </div>
                     <div className="text-sm font-bold text-gray-900 md:text-right">{row.value}</div>
+                    {selectedInsight === 'pendingAgents' && 'agentId' in row ? (
+                      <div className="flex flex-wrap justify-start gap-2 md:justify-end">
+                        <button
+                          type="button"
+                          disabled={savingId === row.agentId}
+                          onClick={() => {
+                            const agent = agents.find((item) => item.id === row.agentId);
+                            if (agent) updateAgentStatus(agent, 'active');
+                          }}
+                          className="rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
+                        >
+                          {savingId === row.agentId ? 'Gözlə...' : 'Təsdiq et'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={savingId === row.agentId}
+                          onClick={() => {
+                            const agent = agents.find((item) => item.id === row.agentId);
+                            if (agent) updateAgentStatus(agent, 'blocked');
+                          }}
+                          className="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-60"
+                        >
+                          Ləğv et
+                        </button>
+                      </div>
+                    ) : (
+                      <div />
+                    )}
                   </div>
                 ))}
               </div>
