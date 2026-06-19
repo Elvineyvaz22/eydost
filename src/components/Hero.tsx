@@ -1,6 +1,7 @@
 import { Wifi, Car, ArrowRight, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getWhatsAppLink } from '../utils/whatsapp';
 
 export default function Hero() {
   const { t } = useLanguage();
@@ -12,10 +13,15 @@ export default function Hero() {
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-5" />
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6 sm:mb-8">
+        <a
+          href={getWhatsAppLink('esim', 'Salam! EyDost xidməti haqqında sualım var.')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-white/5 border border-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6 sm:mb-8 transition-colors hover:bg-white/10 hover:border-white/20"
+        >
           <Zap className="w-4 h-4 text-green-400" />
           <span className="text-sm font-medium tracking-wide">{hero.badge}</span>
-        </div>
+        </a>
 
         <h1 className="text-[1.65rem] leading-snug sm:text-5xl lg:text-7xl font-extrabold mb-4 sm:mb-6 tracking-tight">
           {hero.title}
