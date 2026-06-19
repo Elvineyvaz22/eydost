@@ -202,6 +202,12 @@ export default function AllPackages() {
       <main className="flex-1">
         {/* Hero Section */}
         <div className="bg-gray-50 pt-28 pb-12 border-b border-gray-100">
+          <style>{`
+            @keyframes esimSearchHint {
+              0%, 100% { transform: translateX(0); opacity: .72; }
+              50% { transform: translateX(8px); opacity: 1; }
+            }
+          `}</style>
           <div className="max-w-4xl mx-auto px-4 text-center">
             <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 leading-tight uppercase">
               {esimT.destinationsTitle}
@@ -211,8 +217,13 @@ export default function AllPackages() {
             <div ref={searchRef} className="relative max-w-2xl mx-auto mt-6 z-30">
               <div className="relative">
                 <div className="absolute left-6 top-1/2 -translate-y-1/2">
-                  <Search className="w-6 h-6 text-gray-400" />
+                  <Search className="w-6 h-6 text-blue-500 animate-pulse" />
                 </div>
+                {search.length === 0 && (
+                  <span className="pointer-events-none absolute left-16 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-600" style={{ animation: 'esimSearchHint 2.4s ease-in-out infinite' }}>
+                    {esimT.searchPlaceholder}
+                  </span>
+                )}
                 <input
                   type="text"
                   value={search}
@@ -221,7 +232,7 @@ export default function AllPackages() {
                     setSearch(e.target.value);
                     setShowSuggestions(true);
                   }}
-                  placeholder={esimT.searchPlaceholder}
+                  placeholder=""
                   className="w-full pl-16 pr-14 py-5 bg-white border-2 border-blue-200 rounded-full shadow-2xl shadow-blue-100/70 focus:border-blue-500 focus:ring-4 focus:ring-blue-100/70 outline-none text-lg font-semibold text-gray-900 transition-all placeholder:text-gray-600"
                 />
                 {search.length > 0 && (
