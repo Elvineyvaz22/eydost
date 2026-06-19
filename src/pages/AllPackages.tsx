@@ -222,7 +222,7 @@ export default function AllPackages() {
                     setShowSuggestions(true);
                   }}
                   placeholder={esimT.searchPlaceholder}
-                  className="w-full pl-16 pr-14 py-5 bg-white border-2 border-transparent rounded-full shadow-2xl focus:border-blue-500 focus:ring-0 outline-none text-lg transition-all placeholder-gray-400"
+                  className="w-full pl-16 pr-14 py-5 bg-white border-2 border-blue-200 rounded-full shadow-2xl shadow-blue-100/70 focus:border-blue-500 focus:ring-4 focus:ring-blue-100/70 outline-none text-lg font-semibold text-gray-900 transition-all placeholder:text-gray-600"
                 />
                 {search.length > 0 && (
                   <button
