@@ -6,7 +6,7 @@ import { usePackages } from '../contexts/PackagesContext';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import FlagImage from './FlagImage';
 import { trackEvent, EVENTS } from '../utils/analytics';
-import { fetchAllCountriesPackages, fetchPublicPackagesForCountry, mergeLiveCountriesWithStaticMeta, getCountryNameLocalized, type ESIMPackageRaw } from '../services/esimApi';
+import { fetchAllCountriesPackages, fetchPublicPackagesForCountry, mergeLiveCountriesWithStaticMeta, mergeStaticWithLive, getCountryNameLocalized, type ESIMPackageRaw } from '../services/esimApi';
 
 /* ─── Country row card (Airalo style) ─── */
 function CountryCard({ pkg }: { pkg: PackageData }) {
@@ -83,9 +83,13 @@ export default function EsimPackages() {
       .catch(() => setLoading(false));
   }, []);
 
-  const activePackages = useMemo(
+  const liveActivePackages = useMemo(
     () => mergeLiveCountriesWithStaticMeta(staticPackages, allPkgs),
     [staticPackages, allPkgs]
+  );
+  const activePackages = useMemo(
+    () => liveActivePackages.length > 0 ? liveActivePackages : mergeStaticWithLive(staticPackages, allPkgs),
+    [staticPackages, allPkgs, liveActivePackages]
   );
 
   const featured = useMemo(() => {
@@ -184,7 +188,7 @@ export default function EsimPackages() {
                 }
               }}
               placeholder={esimT.searchPlaceholder}
-              className="w-full pl-12 pr-5 py-3.5 border-transparent bg-gray-100 rounded-full focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 outline-none text-sm shadow-sm transition-all placeholder-gray-400"
+              className="w-full pl-12 pr-5 py-4 border-2 border-blue-200 bg-white rounded-full focus:border-blue-500 focus:ring-4 focus:ring-blue-100/70 outline-none text-base font-semibold text-gray-900 shadow-md shadow-blue-100/70 transition-all placeholder:text-gray-600"
             />
           </div>
         </div>
