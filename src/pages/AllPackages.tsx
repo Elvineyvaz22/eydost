@@ -204,8 +204,8 @@ export default function AllPackages() {
         <div className="bg-gray-50 pt-28 pb-12 border-b border-gray-100">
           <style>{`
             @keyframes esimSearchHint {
-              0%, 100% { transform: translateX(0); opacity: .72; }
-              50% { transform: translateX(8px); opacity: 1; }
+              0%, 100% { transform: translateY(-50%) translateX(0); opacity: .72; }
+              50% { transform: translateY(-50%) translateX(8px); opacity: 1; }
             }
           `}</style>
           <div className="max-w-4xl mx-auto px-4 text-center">
