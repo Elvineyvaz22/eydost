@@ -48,7 +48,7 @@ export const translations = {
       showAll: 'Show all countries',
       showLess: 'Show less',
       costPerGB: 'Cost per GB',
-      destinationsTitle: 'Global eSIM: 200+ Destinations',
+      destinationsTitle: 'Global eSIM: 150+ Destinations',
     },
     howEsim: {
       title: 'How eSIM Works',
@@ -284,7 +284,7 @@ export const translations = {
       showAll: 'Bütün ölkələri göstər',
       showLess: 'Yığ',
       costPerGB: '1 GB qiyməti',
-      destinationsTitle: 'Qlobal eSIM: 200+ ölkə',
+      destinationsTitle: 'Qlobal eSIM: 150+ ölkə',
     },
     howEsim: {
       title: 'eSIM necə işləyir?',
@@ -520,7 +520,7 @@ export const translations = {
       showAll: 'Показать все страны',
       showLess: 'Меньше',
       costPerGB: 'Цена за 1 ГБ',
-      destinationsTitle: 'Глобальная eSIM: 200+ направлений',
+      destinationsTitle: 'Глобальная eSIM: 150+ направлений',
     },
     howEsim: {
       title: 'Как работает eSIM',
@@ -763,7 +763,7 @@ const EN: any = translations.en;
     showAll: 'Tüm ülkeleri göster',
     showLess: 'Daha az göster',
     costPerGB: 'GB başına',
-    destinationsTitle: 'Global eSIM: 200+ Destinasyon',
+    destinationsTitle: 'Global eSIM: 150+ Destinasyon',
   },
   howEsim: {
     ...EN.howEsim,
@@ -932,7 +932,7 @@ const EN: any = translations.en;
     showAll: 'عرض كل الدول',
     showLess: 'عرض أقل',
     costPerGB: 'السعر لكل GB',
-    destinationsTitle: 'eSIM عالمي: +200 وجهة',
+    destinationsTitle: 'eSIM عالمي: +150 وجهة',
   },
   howEsim: {
     ...EN.howEsim,
@@ -1097,7 +1097,7 @@ const EN: any = translations.en;
     showAll: 'Mostrar todos',
     showLess: 'Mostrar menos',
     costPerGB: 'Costo por GB',
-    destinationsTitle: 'eSIM global: 200+ destinos',
+    destinationsTitle: 'eSIM global: 150+ destinos',
   },
   howEsim: {
     ...EN.howEsim,
@@ -1261,7 +1261,7 @@ const EN: any = translations.en;
     showAll: '显示全部',
     showLess: '收起',
     costPerGB: '每 GB 成本',
-    destinationsTitle: '全球 eSIM：200+ 目的地',
+    destinationsTitle: '全球 eSIM：150+ 目的地',
   },
   howEsim: {
     ...EN.howEsim,
