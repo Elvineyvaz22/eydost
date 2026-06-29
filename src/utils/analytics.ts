@@ -38,6 +38,64 @@ function canTrackTikTok(): boolean {
   return Boolean((window as { ttq?: { track?: (...args: unknown[]) => void } }).ttq?.track);
 }
 
+function canTrackServerTikTok(): boolean {
+  if (typeof window === 'undefined') return false;
+  return getStoredConsent() === 'all';
+}
+
+function getCookieValue(name: string): string | undefined {
+  if (typeof document === 'undefined') return undefined;
+  return document.cookie
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
+}
+
+function getTikTokClickId(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const urlValue = new URLSearchParams(window.location.search).get('ttclid') || undefined;
+  if (urlValue) {
+    try {
+      sessionStorage.setItem('eydost_ttclid', urlValue);
+    } catch {
+      // Ignore storage failures.
+    }
+    return urlValue;
+  }
+  try {
+    return sessionStorage.getItem('eydost_ttclid') || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function sendTikTokServerEvent(eventName: TikTokEventName, params: TikTokTrackParams, eventId: string) {
+  if (!canTrackServerTikTok()) return;
+
+  const body = {
+    event: eventName,
+    event_id: eventId,
+    contents: params.contents,
+    value: params.value,
+    currency: params.currency,
+    search_string: params.search_string,
+    url: window.location.href,
+    user_agent: navigator.userAgent,
+    ttclid: getTikTokClickId(),
+    ttp: getCookieValue('_ttp'),
+  };
+
+  fetch('/api/tiktok-event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    keepalive: true,
+  }).catch(() => {
+    // Analytics must never block the customer journey.
+  });
+}
+
 export function parseUsdPrice(price: string): number {
   const n = parseFloat(price.replace(/[^0-9.]/g, ''));
   return Number.isFinite(n) && n > 0 ? n : 1.0;
@@ -77,12 +135,14 @@ export function trackTikTokEvent(
   params: TikTokTrackParams = {},
   eventId?: string,
 ) {
-  if (!canTrackTikTok()) return;
-  const ttq = (window as { ttq?: { track?: (...args: unknown[]) => void } }).ttq!;
   const normalizedEventId =
     eventId?.trim() ||
     `${eventName}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-  ttq.track?.(eventName, params, { event_id: normalizedEventId });
+  if (canTrackTikTok()) {
+    const ttq = (window as { ttq?: { track?: (...args: unknown[]) => void } }).ttq!;
+    ttq.track?.(eventName, params, { event_id: normalizedEventId });
+  }
+  sendTikTokServerEvent(eventName, params, normalizedEventId);
 }
 
 export function trackTikTokProductEvent(
