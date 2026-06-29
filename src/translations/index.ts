@@ -215,7 +215,7 @@ export const translations = {
     cookieConsent: {
       title: 'Cookies & privacy',
       description:
-        'We use cookies for analytics and ads measurement (Google). In the EU you can choose which cookies we set. See our',
+        'We use cookies for analytics and ads measurement (Google/TikTok). In the EU you can choose which cookies we set. See our',
       privacyLink: 'Privacy Policy',
       accept: 'Accept all',
       reject: 'Essential only',
@@ -451,7 +451,7 @@ export const translations = {
     cookieConsent: {
       title: 'Kuki və məxfilik',
       description:
-        'Analitika və reklam ölçümü (Google) üçün kukilərdən istifadə edirik. AB-də hansı kukilərin qoyulacağını özünüz seçə bilərsiniz. Daha ətraflı:',
+        'Analitika və reklam ölçümü (Google/TikTok) üçün kukilərdən istifadə edirik. AB-də hansı kukilərin qoyulacağını özünüz seçə bilərsiniz. Daha ətraflı:',
       privacyLink: 'Məxfilik siyasəti',
       accept: 'Hamısını qəbul et',
       reject: 'Yalnız zəruri',
@@ -687,7 +687,7 @@ export const translations = {
     cookieConsent: {
       title: 'Файлы cookie и конфиденциальность',
       description:
-        'Мы используем cookie для аналитики и рекламы (Google). В ЕС вы можете выбрать, какие cookie разрешить. См.',
+        'Мы используем cookie для аналитики и рекламы (Google/TikTok). В ЕС вы можете выбрать, какие cookie разрешить. См.',
       privacyLink: 'Политику конфиденциальности',
       accept: 'Принять все',
       reject: 'Только необходимые',

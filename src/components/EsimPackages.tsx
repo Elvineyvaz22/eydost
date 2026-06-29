@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { usePackages } from '../contexts/PackagesContext';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import FlagImage from './FlagImage';
-import { trackEvent, EVENTS } from '../utils/analytics';
+import { trackEvent, trackTikTokProductEvent, EVENTS } from '../utils/analytics';
 import { fetchAllCountriesPackages, fetchPublicPackagesForCountry, mergeLiveCountriesWithStaticMeta, mergeStaticWithLive, getCountryNameLocalized, type ESIMPackageRaw } from '../services/esimApi';
 
 /* ─── Country row card (Airalo style) ─── */
@@ -182,9 +182,16 @@ export default function EsimPackages() {
               type="text"
               value={search}
               onChange={e => {
-                setSearch(e.target.value);
-                if (e.target.value.length > 2) {
-                  trackEvent(EVENTS.ESIM_SEARCH, { query: e.target.value });
+                const nextSearch = e.target.value;
+                setSearch(nextSearch);
+                if (nextSearch.length > 2) {
+                  trackEvent(EVENTS.ESIM_SEARCH, { query: nextSearch });
+                  trackTikTokProductEvent('Search', {
+                    contentId: 'home_esim_search',
+                    contentName: 'Homepage eSIM search',
+                    searchString: nextSearch.trim(),
+                    eventId: `search_home_${nextSearch.trim().toLowerCase()}_${Date.now()}`,
+                  });
                 }
               }}
               placeholder={esimT.searchPlaceholder}

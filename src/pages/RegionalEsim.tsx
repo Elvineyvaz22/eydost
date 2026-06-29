@@ -8,9 +8,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import FlagImage from '../components/FlagImage';
 import { appendReferralToMessage, getWaId, createOrder, trackAgentLead } from '../utils/whatsapp';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Seo from '../components/Seo';
-import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
+import { trackEvent, trackGoogleAdsEsimPurchase, trackTikTokProductEvent, parseUsdPrice, EVENTS } from '../utils/analytics';
 import EuropeCoverageNetworks from '../components/EuropeCoverageNetworks';
 import { EUROPE_COVERAGE_COUNT } from '../data/europeCoverage';
 
@@ -94,6 +94,8 @@ export default function RegionalEsim() {
     if (!slug || !liveRegionalPackages) return undefined;
     const p = liveRegionalPackages.find(p => `${p.name.toLowerCase().replace(/\s+/g, '-')}-esim` === slug);
     if (!p) return undefined;
+    const gb = parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1));
+    const markup = gb === 50 || gb === 100 ? 1.5 : 1.75;
 
     return {
       name: p.name,
@@ -101,9 +103,9 @@ export default function RegionalEsim() {
       flags: p.location.split(',').slice(0, 4).map((code: string) => code.trim().toUpperCase()),
       countryCount: p.location.split(',').length,
       plans: [{
-        gb: parseFloat((p.volume / (1024 * 1024 * 1024)).toFixed(1)),
+        gb,
         days: p.duration,
-        price: `$${((p.sellingPrice || p.price * 1.75) / 10000).toFixed(2)}`,
+        price: `$${((p.sellingPrice || p.price * markup) / 10000).toFixed(2)}`,
         code: p.packageCode,
         id: p.slug
       }]
@@ -122,6 +124,21 @@ export default function RegionalEsim() {
     (window as any).Telegram?.WebApp?.platform !== undefined &&
     (window as any).Telegram?.WebApp?.platform !== 'unknown';
 
+  useEffect(() => {
+    if (!pkg || pkg.plans.length === 0) return;
+    const firstPlan = pkg.plans[0];
+    const dedupeKey = `tt_view_${pkg.slug}`;
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(dedupeKey)) return;
+    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(dedupeKey, '1');
+
+    trackTikTokProductEvent('ViewContent', {
+      contentId: pkg.slug,
+      contentName: `${pkg.name} eSIM`,
+      value: parseUsdPrice(firstPlan.price),
+      eventId: `view_${pkg.slug}_${Date.now()}`,
+    });
+  }, [pkg]);
+
   if (!pkg) return <Navigate to="/" replace />;
 
   const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string, plan: RegionalPackage['plans'][number]) => {
@@ -134,6 +151,12 @@ export default function RegionalEsim() {
       region: pkg.name,
       package_code: plan.code,
       package_id: plan.id,
+    });
+    trackTikTokProductEvent('InitiateCheckout', {
+      contentId: plan.id || plan.code || pkg.slug,
+      contentName: `${pkg.name} eSIM ${plan.gb} GB ${plan.days} days`,
+      value: parseUsdPrice(plan.price),
+      eventId: `checkout_${plan.id || plan.code || pkg.slug}_${Date.now()}`,
     });
     trackAgentLead({
       productType: 'esim',

@@ -2,6 +2,7 @@
 import { Eye, EyeOff, Loader2, LockKeyhole, LogIn, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Seo from '../../components/Seo';
+import { trackTikTokProductEvent } from '../../utils/analytics';
 
 function isStrongAccessCode(value: string) {
   return value.length >= 8 && /[A-Z]/.test(value) && /\d/.test(value);
@@ -310,6 +311,11 @@ export default function AgentLogin() {
       }
       if (!response.ok) throw new Error(payload.error || t.registrationFailed);
 
+      trackTikTokProductEvent('CompleteRegistration', {
+        contentId: 'agent_registration',
+        contentName: 'Agent registration',
+        eventId: `agent_registration_${Date.now()}`,
+      });
       saveSession(payload.agent, accessCode, payload.agentToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.registrationFailed);

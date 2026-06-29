@@ -9,7 +9,7 @@ import { appendReferralToMessage, getWaId, createOrder, trackAgentLead } from '.
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
-import { trackEvent, trackGoogleAdsEsimPurchase, parseUsdPrice, EVENTS } from '../utils/analytics';
+import { trackEvent, trackGoogleAdsEsimPurchase, trackTikTokProductEvent, parseUsdPrice, EVENTS } from '../utils/analytics';
 import { fetchPublicPackagesForCountry, getCachedPackagesForCountry, countryCodeToFlag, getCountryNameLocalized, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
 
 const WA_LINK = 'https://wa.me/994992010117';
@@ -256,6 +256,12 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
       value: parseUsdPrice(plan.price),
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
+    trackTikTokProductEvent('InitiateCheckout', {
+      contentId: plan.id || plan.code,
+      contentName: plan.name || `${countryName} eSIM ${formatGB(plan.gb)} ${plan.days} days`,
+      value: parseUsdPrice(plan.price),
+      eventId: `checkout_${plan.id || plan.code}_${Date.now()}`,
+    });
     trackAgentLead({
       productType: 'esim',
       eventType: 'whatsapp_click',
@@ -370,6 +376,12 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
       value: parseUsdPrice(plan.price),
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
+    trackTikTokProductEvent('InitiateCheckout', {
+      contentId: plan.id || plan.code,
+      contentName: plan.name || `${countryName} eSIM unlimited ${plan.days} days`,
+      value: parseUsdPrice(plan.price),
+      eventId: `checkout_${plan.id || plan.code}_${Date.now()}`,
+    });
     trackAgentLead({
       productType: 'esim',
       eventType: 'whatsapp_click',
@@ -561,6 +573,22 @@ export default function CountryEsim() {
   const totalPlans = displayLimitedPlans.length + unlimitedPlans.length;
   const selectedPlanType = activePlanType === 'unlimited' && unlimitedPlans.length > 0 ? 'unlimited' : 'standard';
   const visiblePlans = selectedPlanType === 'unlimited' ? displayUnlimitedPlans : displayLimitedPlans;
+
+  useEffect(() => {
+    if (!activeCountryCode || totalPlans === 0) return;
+    const firstPlan = displayLimitedPlans[0] || displayUnlimitedPlans[0] || unlimitedPlans[0];
+    const contentId = activeCountryCode.toUpperCase();
+    const dedupeKey = `tt_view_${contentId}_${slug || ''}`;
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(dedupeKey)) return;
+    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(dedupeKey, '1');
+
+    trackTikTokProductEvent('ViewContent', {
+      contentId,
+      contentName: `${countryName} eSIM`,
+      value: firstPlan ? parseUsdPrice(firstPlan.price) : undefined,
+      eventId: `view_${contentId}_${Date.now()}`,
+    });
+  }, [activeCountryCode, countryName, displayLimitedPlans, displayUnlimitedPlans, slug, totalPlans, unlimitedPlans]);
 
   if (liveLoading && livePkgs.length === 0) {
     return (

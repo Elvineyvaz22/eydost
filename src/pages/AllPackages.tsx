@@ -9,6 +9,7 @@ import FlagImage from '../components/FlagImage';
 import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import Seo from '../components/Seo';
 import { fetchAllCountriesPackages, mergeStaticWithLive, type ESIMPackageRaw } from '../services/esimApi';
+import { trackTikTokProductEvent } from '../utils/analytics';
 
 function CountryCard({ pkg }: { pkg: PackageData }) {
   const { t } = useLanguage();
@@ -229,8 +230,17 @@ export default function AllPackages() {
                   value={search}
                   onFocus={() => setShowSuggestions(true)}
                   onChange={e => {
-                    setSearch(e.target.value);
+                    const nextSearch = e.target.value;
+                    setSearch(nextSearch);
                     setShowSuggestions(true);
+                    if (nextSearch.trim().length > 2) {
+                      trackTikTokProductEvent('Search', {
+                        contentId: 'esim_country_search',
+                        contentName: 'eSIM country search',
+                        searchString: nextSearch.trim(),
+                        eventId: `search_${nextSearch.trim().toLowerCase()}_${Date.now()}`,
+                      });
+                    }
                   }}
                   placeholder=""
                   className="w-full pl-16 pr-14 py-5 bg-white border-2 border-blue-200 rounded-full shadow-2xl shadow-blue-100/70 focus:border-blue-500 focus:ring-4 focus:ring-blue-100/70 outline-none text-lg font-semibold text-gray-900 transition-all placeholder:text-gray-600"
