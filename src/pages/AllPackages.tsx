@@ -10,9 +10,11 @@ import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import Seo from '../components/Seo';
 import { fetchAllCountriesPackages, mergeStaticWithLive, type ESIMPackageRaw } from '../services/esimApi';
 import { trackTikTokProductEvent } from '../utils/analytics';
+import { formatPriceStringForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
 
 function CountryCard({ pkg }: { pkg: PackageData }) {
   const { t } = useLanguage();
+  const { currency } = useVisitorCurrency();
   const esimT = t.esimPackages as Record<string, string>;
   const cheapest = pkg.plans[0];
   
@@ -38,7 +40,7 @@ function CountryCard({ pkg }: { pkg: PackageData }) {
           {esimT.costPerGB || 'From'}
         </span>
         <span className="text-lg font-extrabold text-green-600">
-          {cheapest ? cheapest.price : '—'}
+          {cheapest ? formatPriceStringForVisitor(cheapest.price, currency) : '—'}
         </span>
       </div>
     </Link>
@@ -47,6 +49,7 @@ function CountryCard({ pkg }: { pkg: PackageData }) {
 
 function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
   const { t } = useLanguage();
+  const { currency } = useVisitorCurrency();
   const esimT = t.esimPackages as Record<string, string>;
   const cheapest = pkg.plans[0];
   
@@ -79,7 +82,7 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
           <span className="text-[10px] text-gray-400">{pkg.countryCount} {esimT.countriesLabel || 'countries'}</span>
         </div>
         <span className="text-lg font-extrabold text-green-600">
-          {cheapest ? cheapest.price : '—'}
+          {cheapest ? formatPriceStringForVisitor(cheapest.price, currency) : '—'}
         </span>
       </div>
     </Link>

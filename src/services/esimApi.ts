@@ -24,12 +24,13 @@ export interface ESIMPackageRaw {
 
 // ── Price helpers ─────────────────────────────────────────────────────────────
 
-export function formatPrice(sellMinor: number, currency = 'AZN'): string {
+export function formatPrice(sellMinor: number, currency = 'AZN', displayCurrency: 'USD' | 'AZN' = 'USD'): string {
   // sell_price_minor is in minor units (10000 = 1 AZN or 1 USD depending on currency)
   // Bot API returns AZN prices in AZN minor units
-  // Convert AZN → USD at 1.7 rate for display
-  const azn = currency === 'AZN' ? sellMinor / 10000 : sellMinor / 10000;
-  const usd = azn / 1.7;
+  const amount = sellMinor / 10000;
+  const sourceCurrency = currency.toUpperCase();
+  const usd = sourceCurrency === 'AZN' ? amount / 1.7 : amount;
+  if (displayCurrency === 'AZN') return '₼' + (usd * 1.7).toFixed(2);
   return '$' + usd.toFixed(2);
 }
 

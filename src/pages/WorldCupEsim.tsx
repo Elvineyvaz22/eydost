@@ -3,6 +3,8 @@ import { ArrowRight, BadgePercent, CalendarDays, Check, Globe2, MessageCircle, S
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Seo from '../components/Seo';
+import { formatUsdForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
+import type { DisplayCurrency } from '../contexts/VisitorCurrencyContext';
 import { appendReferralToMessage, getWhatsAppLink, trackAgentLead } from '../utils/whatsapp';
 
 type HostCountry = 'United States' | 'Canada' | 'Mexico';
@@ -65,8 +67,8 @@ interface ApiPackage {
 
 const USD_TO_AZN_RATE = 1.7;
 
-function money(value: number): string {
-  return `$${(value / USD_TO_AZN_RATE).toFixed(2)}`;
+function money(value: number, displayCurrency: DisplayCurrency): string {
+  return formatUsdForVisitor(value / USD_TO_AZN_RATE, displayCurrency);
 }
 
 function bytesToGb(value: string | number): number {
@@ -141,6 +143,7 @@ function footballPattern(index: number): string {
 }
 
 export default function WorldCupEsim() {
+  const { currency: displayCurrency } = useVisitorCurrency();
   const [country, setCountry] = useState<HostCountry>('United States');
   const [type, setType] = useState<PlanType>('standard');
   const [apiPackages, setApiPackages] = useState<ApiPackage[]>([]);
@@ -191,7 +194,7 @@ export default function WorldCupEsim() {
       eventType: 'whatsapp_click',
       packageName: plan.name,
       packageCode: plan.packageCode,
-      viewedPackage: `World Cup 2026 ${plan.country} ${plan.data} ${plan.days} days ${money(plan.price)}`,
+      viewedPackage: `World Cup 2026 ${plan.country} ${plan.data} ${plan.days} days ${money(plan.price, displayCurrency)}`,
       page: '/world-cup-2026-esim',
     });
 
@@ -200,7 +203,7 @@ export default function WorldCupEsim() {
         'Salam, World Cup 2026 ucun eSIM almaq isteyirem.',
         `Olke: ${plan.country}`,
         `Paket: ${plan.data} / ${plan.days} gun`,
-        `Qiymet: ${money(plan.price)}`,
+        `Qiymet: ${money(plan.price, displayCurrency)}`,
         `Paket kodu: ${plan.packageCode}`,
       ].join('\n'),
       'az'
@@ -367,10 +370,10 @@ export default function WorldCupEsim() {
                   <div className="relative mt-5 flex items-end justify-between">
                     <div>
                       <div className="flex items-center gap-2 text-gray-400">
-                        <span className="text-lg font-black line-through">{money(plan.comparePrice)}</span>
+                        <span className="text-lg font-black line-through">{money(plan.comparePrice, displayCurrency)}</span>
                         <BadgePercent className="h-4 w-4" />
                       </div>
-                      <p className="text-3xl font-black text-gray-950">{money(plan.price)}</p>
+                      <p className="text-3xl font-black text-gray-950">{money(plan.price, displayCurrency)}</p>
                     </div>
                     {plan.featured && (
                       <div className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">

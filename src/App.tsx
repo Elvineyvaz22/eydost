@@ -42,6 +42,7 @@ import Seo from './components/Seo';
 import TaxiLinkRedirect from './components/TaxiLinkRedirect';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import { PackagesProvider } from './contexts/PackagesContext';
+import { VisitorCurrencyProvider } from './contexts/VisitorCurrencyContext';
 
 const REGIONAL_SLUGS = new Set([
   'europe-esim',
@@ -238,16 +239,17 @@ function App() {
     <BrowserRouter>
       <AdminProvider>
         <PackagesProvider>
-          <LanguageProvider>
-            <CookieConsent />
-            <VercelAnalytics />
-            <VercelSpeedInsights />
-            <TikTokPixel />
-            <TaxiLinkRedirect />
-            <ReferralTracker />
-            <EsimDemoChatbot />
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
+          <VisitorCurrencyProvider>
+            <LanguageProvider>
+              <CookieConsent />
+              <VercelAnalytics />
+              <VercelSpeedInsights />
+              <TikTokPixel />
+              <TaxiLinkRedirect />
+              <ReferralTracker />
+              <EsimDemoChatbot />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/terms" element={<Terms />} />
@@ -377,9 +379,10 @@ function App() {
                 />
                 <Route path="/:slug" element={<EsimRouter />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </LanguageProvider>
+                </Routes>
+              </Suspense>
+            </LanguageProvider>
+          </VisitorCurrencyProvider>
         </PackagesProvider>
       </AdminProvider>
     </BrowserRouter>

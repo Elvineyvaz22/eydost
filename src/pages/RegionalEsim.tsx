@@ -13,6 +13,7 @@ import Seo from '../components/Seo';
 import { trackEvent, trackGoogleAdsEsimPurchase, trackTikTokProductEvent, parseUsdPrice, EVENTS } from '../utils/analytics';
 import EuropeCoverageNetworks from '../components/EuropeCoverageNetworks';
 import { EUROPE_COVERAGE_COUNT } from '../data/europeCoverage';
+import { formatPriceStringForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
 
 const WA_LINK = 'https://wa.me/994992010117';
 const ALLOWED_GB = [1, 3, 5, 10, 20, 50, 100];
@@ -36,6 +37,7 @@ function filterPlansForAds(plans: RegionalPackage['plans']): RegionalPackage['pl
 }
 
 type OrderLang = 'en' | 'az' | 'ru' | 'tr' | 'ar' | 'es' | 'zh';
+type DisplayRegionalPlan = RegionalPackage['plans'][number] & { usdPrice?: number };
 
 function msg(lang: OrderLang, map: { en: string; az: string; ru: string; tr: string; ar: string; es: string; zh: string }) {
   return map[lang] ?? map.en;
@@ -81,6 +83,7 @@ function getRegionalBySlug(slug: string): RegionalPackage | undefined {
 export default function RegionalEsim() {
   const { slug } = useParams<{ slug: string }>();
   const { t, language } = useLanguage();
+  const { currency: displayCurrency } = useVisitorCurrency();
   // WhatsApp message rule: if UI is Arabic, still send EN message text.
   const orderLang: OrderLang =
     language === 'ar'
@@ -115,8 +118,15 @@ export default function RegionalEsim() {
   const rawPkg = livePkg || (slug ? getRegionalBySlug(slug) : undefined);
   const pkg = useMemo(() => {
     if (!rawPkg) return undefined;
-    return { ...rawPkg, plans: filterPlansForAds(rawPkg.plans) };
-  }, [rawPkg]);
+    return {
+      ...rawPkg,
+      plans: filterPlansForAds(rawPkg.plans).map((plan) => ({
+        ...plan,
+        usdPrice: parseUsdPrice(plan.price),
+        price: formatPriceStringForVisitor(plan.price, displayCurrency),
+      })),
+    };
+  }, [displayCurrency, rawPkg]);
 
   const [isOrdering, setIsOrdering] = useState(false);
   const waId = getWaId();
@@ -134,7 +144,7 @@ export default function RegionalEsim() {
     trackTikTokProductEvent('ViewContent', {
       contentId: pkg.slug,
       contentName: `${pkg.name} eSIM`,
-      value: parseUsdPrice(firstPlan.price),
+      value: (firstPlan as DisplayRegionalPlan).usdPrice ?? parseUsdPrice(firstPlan.price),
       eventId: `view_${pkg.slug}_${Date.now()}`,
     });
   }, [pkg]);
@@ -144,7 +154,7 @@ export default function RegionalEsim() {
   const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>, rawMsg: string, plan: RegionalPackage['plans'][number]) => {
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,
-      value: parseUsdPrice(plan.price),
+      value: (plan as DisplayRegionalPlan).usdPrice ?? parseUsdPrice(plan.price),
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, {
       source: 'regional_esim',
@@ -155,7 +165,7 @@ export default function RegionalEsim() {
     trackTikTokProductEvent('InitiateCheckout', {
       contentId: plan.id || plan.code || pkg.slug,
       contentName: `${pkg.name} eSIM ${plan.gb} GB ${plan.days} days`,
-      value: parseUsdPrice(plan.price),
+      value: (plan as DisplayRegionalPlan).usdPrice ?? parseUsdPrice(plan.price),
       eventId: `checkout_${plan.id || plan.code || pkg.slug}_${Date.now()}`,
     });
     trackAgentLead({

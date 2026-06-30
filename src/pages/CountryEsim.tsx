@@ -11,6 +11,7 @@ import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
 import { trackEvent, trackGoogleAdsEsimPurchase, trackTikTokProductEvent, parseUsdPrice, EVENTS } from '../utils/analytics';
 import { fetchPublicPackagesForCountry, getCachedPackagesForCountry, countryCodeToFlag, getCountryNameLocalized, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
+import { formatPriceStringForVisitor, useVisitorCurrency, type DisplayCurrency } from '../contexts/VisitorCurrencyContext';
 
 const WA_LINK = 'https://wa.me/994992010117';
 const UNLIMITED_DAY_ORDER = [3, 5, 7, 10, 15, 30];
@@ -129,12 +130,22 @@ interface LivePlan {
   name?: string;
 }
 
-function multiplyPlanPrice(plan: LivePlan, days: number): string {
+function multiplyPlanPrice(plan: LivePlan, days: number, displayCurrency: DisplayCurrency): string {
   if (typeof plan.priceMinor === 'number') {
-    return formatPrice(plan.priceMinor * days, plan.currencyCode || 'AZN');
+    return formatPrice(plan.priceMinor * days, plan.currencyCode || 'AZN', displayCurrency);
   }
   const amount = Number((plan.price || '').replace(/[^0-9.]/g, ''));
-  return Number.isFinite(amount) && amount > 0 ? `$${(amount * days).toFixed(2)}` : plan.price;
+  return Number.isFinite(amount) && amount > 0
+    ? formatPriceStringForVisitor(`$${(amount * days).toFixed(2)}`, displayCurrency)
+    : plan.price;
+}
+
+function planUsdValue(plan: LivePlan): number {
+  if (typeof plan.priceMinor === 'number') {
+    const amount = plan.priceMinor / 10000;
+    return (plan.currencyCode || 'AZN').toUpperCase() === 'AZN' ? amount / 1.7 : amount;
+  }
+  return parseUsdPrice(plan.price);
 }
 
 // Build a localized WhatsApp order message. Keeps `Code:` and `ID:` as machine
@@ -253,13 +264,13 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
 
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,
-      value: parseUsdPrice(plan.price),
+      value: planUsdValue(plan),
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
     trackTikTokProductEvent('InitiateCheckout', {
       contentId: plan.id || plan.code,
       contentName: plan.name || `${countryName} eSIM ${formatGB(plan.gb)} ${plan.days} days`,
-      value: parseUsdPrice(plan.price),
+      value: planUsdValue(plan),
       eventId: `checkout_${plan.id || plan.code}_${Date.now()}`,
     });
     trackAgentLead({
@@ -373,13 +384,13 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
 
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,
-      value: parseUsdPrice(plan.price),
+      value: planUsdValue(plan),
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
     trackTikTokProductEvent('InitiateCheckout', {
       contentId: plan.id || plan.code,
       contentName: plan.name || `${countryName} eSIM unlimited ${plan.days} days`,
-      value: parseUsdPrice(plan.price),
+      value: planUsdValue(plan),
       eventId: `checkout_${plan.id || plan.code}_${Date.now()}`,
     });
     trackAgentLead({
@@ -477,6 +488,7 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
 export default function CountryEsim() {
   const { slug } = useParams<{ slug: string }>();
   const { t, language } = useLanguage();
+  const { currency: displayCurrency } = useVisitorCurrency();
 
   const staticPkg = slug ? getPackageBySlug(slug) : undefined;
   const staticCountryCode = staticPkg?.countryCode;
@@ -511,7 +523,7 @@ export default function CountryEsim() {
     .map(p => ({
       gb: p.volume as number,
       days: p.duration,
-      price: formatPrice(p.sell_price_minor, p.currencyCode),
+      price: formatPrice(p.sell_price_minor, p.currencyCode, displayCurrency),
       priceMinor: p.sell_price_minor,
       currencyCode: p.currencyCode,
       code: p.packageCode,
@@ -527,7 +539,7 @@ export default function CountryEsim() {
     .map(p => ({
       gb: 0,
       days: p.duration,
-      price: formatPrice(p.sell_price_minor, p.currencyCode),
+      price: formatPrice(p.sell_price_minor, p.currencyCode, displayCurrency),
       priceMinor: p.sell_price_minor,
       currencyCode: p.currencyCode,
       code: p.packageCode,
@@ -565,7 +577,7 @@ export default function CountryEsim() {
       ? UNLIMITED_DAY_ORDER.map(days => ({
           ...baseUnlimitedPlan,
           days,
-          price: multiplyPlanPrice(baseUnlimitedPlan, days),
+          price: multiplyPlanPrice(baseUnlimitedPlan, days, displayCurrency),
           id: `${baseUnlimitedPlan.id}-${days}d`,
           name: `${baseUnlimitedPlan.name || baseUnlimitedPlan.dailyLimit || 'Unlimited'} ${days} days`,
         }))
@@ -585,7 +597,7 @@ export default function CountryEsim() {
     trackTikTokProductEvent('ViewContent', {
       contentId,
       contentName: `${countryName} eSIM`,
-      value: firstPlan ? parseUsdPrice(firstPlan.price) : undefined,
+      value: firstPlan ? planUsdValue(firstPlan) : undefined,
       eventId: `view_${contentId}_${Date.now()}`,
     });
   }, [activeCountryCode, countryName, displayLimitedPlans, displayUnlimitedPlans, slug, totalPlans, unlimitedPlans]);

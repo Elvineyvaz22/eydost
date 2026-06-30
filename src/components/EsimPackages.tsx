@@ -7,10 +7,12 @@ import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import FlagImage from './FlagImage';
 import { trackEvent, trackTikTokProductEvent, EVENTS } from '../utils/analytics';
 import { fetchAllCountriesPackages, fetchPublicPackagesForCountry, mergeLiveCountriesWithStaticMeta, mergeStaticWithLive, getCountryNameLocalized, type ESIMPackageRaw } from '../services/esimApi';
+import { formatPriceStringForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
 
 /* ─── Country row card (Airalo style) ─── */
 function CountryCard({ pkg }: { pkg: PackageData }) {
   const { language } = useLanguage();
+  const { currency } = useVisitorCurrency();
   const countryName = getCountryNameLocalized(pkg.countryCode, language);
   return (
     <Link
@@ -24,7 +26,7 @@ function CountryCard({ pkg }: { pkg: PackageData }) {
         {countryName || pkg.country}
       </span>
       <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-        {pkg.plans[0]?.price || '—'}
+        {pkg.plans[0] ? formatPriceStringForVisitor(pkg.plans[0].price, currency) : '—'}
       </span>
     </Link>
   );
@@ -33,6 +35,7 @@ function CountryCard({ pkg }: { pkg: PackageData }) {
 /* ─── Regional row card ─── */
 function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
   const { t } = useLanguage();
+  const { currency } = useVisitorCurrency();
   const esimT = t.esimPackages as Record<string, string>;
   return (
     <Link
@@ -51,7 +54,7 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
         <p className="text-xs text-gray-400">{pkg.countryCount} {esimT.countriesLabel}</p>
       </div>
       <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-        {pkg.plans[0]?.price || '—'}
+        {pkg.plans[0] ? formatPriceStringForVisitor(pkg.plans[0].price, currency) : '—'}
       </span>
     </Link>
   );
@@ -62,6 +65,7 @@ type Tab = 'popular' | 'countries' | 'regional' | 'global';
 
 export default function EsimPackages() {
   const { t, language } = useLanguage();
+  const { currency } = useVisitorCurrency();
   const {
     packages: staticPackages,
     regionalPackages: staticRegional,
@@ -299,7 +303,7 @@ export default function EsimPackages() {
                 </p>
               </div>
               <span className="text-sm font-bold text-gray-900">
-                {staticGlobal.plans[0]?.price}
+                {staticGlobal.plans[0] ? formatPriceStringForVisitor(staticGlobal.plans[0].price, currency) : '—'}
               </span>
             </Link>
           </div>
