@@ -330,15 +330,42 @@ export default function PartnersAdmin() {
     await navigator.clipboard.writeText(text);
   };
 
+  const syncTaxiAffiliateCode = async (agent: Agent, status: 'active' | 'paused' | 'blocked') => {
+    if (!agent.referral_code) return;
+
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error('Admin session not found');
+
+    const response = await fetch('/api/taxi-affiliate-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        affiliate_code: agent.referral_code,
+        action: status === 'active' ? 'put' : 'delete',
+      }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.error || 'Taxibooker affiliate sync failed');
+    }
+  };
+
   const updateAgentStatus = async (agent: Agent, status: 'active' | 'paused' | 'blocked') => {
     setSavingId(agent.id);
     setError('');
     try {
       const { error: updateError } = await supabase.from('agents').update({ status }).eq('id', agent.id);
       if (updateError) throw updateError;
+      await syncTaxiAffiliateCode(agent, status);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Agent statusu yenilənmədi');
+      await load();
     } finally {
       setSavingId(null);
     }
