@@ -59,6 +59,8 @@ function getMeta(p) {
   if (p === '/esim') return { priority: '0.9', changefreq: 'daily' };
   if (p === '/taxi') return { priority: '0.9', changefreq: 'weekly' };
   if (p === '/partners') return { priority: '0.8', changefreq: 'weekly' };
+  if (p === '/world-cup-2026-esim') return { priority: '0.8', changefreq: 'weekly' };
+  if (p === '/chatbot-demo') return { priority: '0.6', changefreq: 'monthly' };
   if (/^\/(en|az|ru|tr|ar|es|zh)\/blog$/.test(p)) return { priority: '0.8', changefreq: 'weekly' };
   if (p === '/about') return { priority: '0.7', changefreq: 'monthly' };
   if (/^\/(en|az|ru|tr|ar|es|zh)\/blog\//.test(p)) return { priority: '0.7', changefreq: 'monthly' };
@@ -105,6 +107,7 @@ async function main() {
 
   const staticPaths = [
     '/', '/esim', '/taxi', '/partners', '/about',
+    '/world-cup-2026-esim', '/chatbot-demo',
     '/privacy', '/terms', '/refund',
     ...localizedBlogPaths,
   ];

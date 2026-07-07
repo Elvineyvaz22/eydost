@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -629,7 +628,6 @@ export default function Partners() {
       </main>
 
       <Footer />
-      <FloatingWhatsApp />
     </div>
   );
 }
