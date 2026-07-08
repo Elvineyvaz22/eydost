@@ -1,10 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { deleteAffiliateCode, syncAffiliateCode } from './lib/taxibooker';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-const BSQD_BOT_ID = process.env.TAXIBOOKER_BSQD_BOT_ID || '388c046c-c54f-4b56-9107-24f4ffca0600';
-const BSQD_TOKEN = process.env.TAXIBOOKER_BSQD_TOKEN;
 
 type AuthResult = { ok: true } | { ok: false; status: number; message: string };
 
@@ -48,40 +47,6 @@ function resolveExpireDate(value: unknown) {
   return nextYear.toISOString().slice(0, 10);
 }
 
-async function sendToBsqd(action: 'put' | 'delete', affiliateCode: string, expireDate?: string) {
-  if (!BSQD_TOKEN) {
-    return { status: 500, body: { error: 'TAXIBOOKER_BSQD_TOKEN not configured' } };
-  }
-
-  const eventName = action === 'delete' ? 'affiliate_DEL' : 'affiliate_PUT';
-  const url = `https://bsqd.me/api/bot/${BSQD_BOT_ID}/master/event/${eventName}`;
-  const payload =
-    action === 'delete'
-      ? { affiliate_code: affiliateCode }
-      : { affiliate_code: affiliateCode, expire_date: expireDate };
-
-  const upstream = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${BSQD_TOKEN}`,
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const text = await upstream.text();
-  const body = text ? safeJson(text) : { ok: upstream.ok };
-  return { status: upstream.ok ? 200 : 502, body: { ok: upstream.ok, upstream_status: upstream.status, upstream_body: body } };
-}
-
-function safeJson(text: string) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
@@ -101,6 +66,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action: 'put' | 'delete' =
     ['delete', 'del', 'remove', 'paused', 'blocked', 'inactive'].includes(actionRaw) ? 'delete' : 'put';
 
-  const result = await sendToBsqd(action, affiliateCode, resolveExpireDate(req.body?.expire_date));
-  return res.status(result.status).json(result.body);
+  const result =
+    action === 'delete'
+      ? await deleteAffiliateCode(affiliateCode)
+      : await syncAffiliateCode(affiliateCode, resolveExpireDate(req.body?.expire_date));
+
+  return res.status(result.ok ? 200 : result.status).json({
+    ok: result.ok,
+    upstream_status: result.status,
+    upstream_body: result.body,
+    attempted: result.attempted,
+  });
 }

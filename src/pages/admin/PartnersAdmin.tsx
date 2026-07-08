@@ -310,6 +310,24 @@ export default function PartnersAdmin() {
       });
       if (insertError) throw insertError;
 
+      await syncTaxiAffiliateCode(
+        {
+          id: application.id,
+          application_id: application.id,
+          full_name: application.full_name,
+          company_name: application.company_name,
+          email: application.email.toLowerCase(),
+          whatsapp: application.whatsapp,
+          partner_type: application.partner_type,
+          referral_code: referralCode,
+          access_code: accessCode,
+          commission_rate: 10,
+          status: 'active',
+          created_at: new Date().toISOString(),
+        },
+        'active'
+      );
+
       await supabase.from('partner_applications').update({ status: 'approved' }).eq('id', application.id);
       await load();
     } catch (err) {

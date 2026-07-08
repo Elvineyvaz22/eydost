@@ -104,6 +104,7 @@
     { "src": "/(en|az|ru|tr|ar|es|zh)/blog/(.*)", "dest": "/index.html" },
     { "src": "/api/taxi-webhook", "dest": "/api/taxi-webhook.ts" },
     { "src": "/api/taxi-affiliate-code", "dest": "/api/taxi-affiliate-code.ts" },
+    { "src": "/api/taxi-affiliate-code-test", "dest": "/api/taxi-affiliate-code-test.ts" },
     { "src": "/api/taxi-affiliate-trip-start", "dest": "/api/taxi-affiliate-trip-start.ts" },
     { "src": "/api/taxi-session", "dest": "/api/taxi-session.ts" },
     { "src": "/api/taxi-link-data", "dest": "/api/taxi-link-data.ts" },
