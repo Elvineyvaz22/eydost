@@ -10,13 +10,28 @@ import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import Seo from '../components/Seo';
 import { fetchAllCountriesPackages, mergeStaticWithLive, type ESIMPackageRaw } from '../services/esimApi';
 import { trackTikTokProductEvent } from '../utils/analytics';
-import { formatPriceStringForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
+import { formatUsdForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
+import { parseUsdPrice } from '../utils/analytics';
+
+function pickDisplayPlan(plans: PackageData['plans']) {
+  const exactOneGb = plans.find((plan) => Math.abs(plan.gb - 1) < 0.001);
+  if (exactOneGb) return exactOneGb;
+  return [...plans]
+    .filter((plan) => plan.gb > 0)
+    .sort((a, b) => a.gb - b.gb || parseUsdPrice(a.price) - parseUsdPrice(b.price))[0] || null;
+}
+
+function formatPerGbPrice(price: string, gb: number, currency: 'USD' | 'AZN') {
+  const usd = parseUsdPrice(price);
+  if (!Number.isFinite(usd) || usd <= 0 || !Number.isFinite(gb) || gb <= 0) return '—';
+  return formatUsdForVisitor(usd / gb, currency);
+}
 
 function CountryCard({ pkg }: { pkg: PackageData }) {
   const { t } = useLanguage();
   const { currency } = useVisitorCurrency();
   const esimT = t.esimPackages as Record<string, string>;
-  const cheapest = pkg.plans[0];
+  const displayPlan = pickDisplayPlan(pkg.plans);
   
   return (
     <Link
@@ -40,7 +55,7 @@ function CountryCard({ pkg }: { pkg: PackageData }) {
           {esimT.costPerGB || 'From'}
         </span>
         <span className="text-lg font-extrabold text-green-600">
-          {cheapest ? formatPriceStringForVisitor(cheapest.price, currency) : '—'}
+          {displayPlan ? formatPerGbPrice(displayPlan.price, displayPlan.gb, currency) : '—'}
         </span>
       </div>
     </Link>
@@ -51,7 +66,7 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
   const { t } = useLanguage();
   const { currency } = useVisitorCurrency();
   const esimT = t.esimPackages as Record<string, string>;
-  const cheapest = pkg.plans[0];
+  const displayPlan = pickDisplayPlan(pkg.plans);
   
   return (
     <Link
@@ -82,7 +97,7 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
           <span className="text-[10px] text-gray-400">{pkg.countryCount} {esimT.countriesLabel || 'countries'}</span>
         </div>
         <span className="text-lg font-extrabold text-green-600">
-          {cheapest ? formatPriceStringForVisitor(cheapest.price, currency) : '—'}
+          {displayPlan ? formatPerGbPrice(displayPlan.price, displayPlan.gb, currency) : '—'}
         </span>
       </div>
     </Link>

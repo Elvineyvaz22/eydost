@@ -7,13 +7,29 @@ import type { PackageData, RegionalPackage } from '../data/esimPackages';
 import FlagImage from './FlagImage';
 import { trackEvent, trackTikTokProductEvent, EVENTS } from '../utils/analytics';
 import { fetchAllCountriesPackages, fetchPublicPackagesForCountry, mergeLiveCountriesWithStaticMeta, mergeStaticWithLive, getCountryNameLocalized, type ESIMPackageRaw } from '../services/esimApi';
-import { formatPriceStringForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
+import { formatUsdForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
+import { parseUsdPrice } from '../utils/analytics';
+
+function pickDisplayPlan(plans: PackageData['plans']) {
+  const exactOneGb = plans.find((plan) => Math.abs(plan.gb - 1) < 0.001);
+  if (exactOneGb) return exactOneGb;
+  return [...plans]
+    .filter((plan) => plan.gb > 0)
+    .sort((a, b) => a.gb - b.gb || parseUsdPrice(a.price) - parseUsdPrice(b.price))[0] || null;
+}
+
+function formatPerGbPrice(price: string, gb: number, currency: 'USD' | 'AZN') {
+  const usd = parseUsdPrice(price);
+  if (!Number.isFinite(usd) || usd <= 0 || !Number.isFinite(gb) || gb <= 0) return '—';
+  return formatUsdForVisitor(usd / gb, currency);
+}
 
 /* ─── Country row card (Airalo style) ─── */
 function CountryCard({ pkg }: { pkg: PackageData }) {
   const { language } = useLanguage();
   const { currency } = useVisitorCurrency();
   const countryName = getCountryNameLocalized(pkg.countryCode, language);
+  const displayPlan = pickDisplayPlan(pkg.plans);
   return (
     <Link
       to={`/${pkg.slug}`}
@@ -26,7 +42,7 @@ function CountryCard({ pkg }: { pkg: PackageData }) {
         {countryName || pkg.country}
       </span>
       <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-        {pkg.plans[0] ? formatPriceStringForVisitor(pkg.plans[0].price, currency) : '—'}
+        {displayPlan ? formatPerGbPrice(displayPlan.price, displayPlan.gb, currency) : '—'}
       </span>
     </Link>
   );
@@ -37,6 +53,7 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
   const { t } = useLanguage();
   const { currency } = useVisitorCurrency();
   const esimT = t.esimPackages as Record<string, string>;
+  const displayPlan = pickDisplayPlan(pkg.plans);
   return (
     <Link
       to={`/${pkg.slug}`}
@@ -54,7 +71,7 @@ function RegionalCard({ pkg }: { pkg: RegionalPackage }) {
         <p className="text-xs text-gray-400">{pkg.countryCount} {esimT.countriesLabel}</p>
       </div>
       <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-        {pkg.plans[0] ? formatPriceStringForVisitor(pkg.plans[0].price, currency) : '—'}
+        {displayPlan ? formatPerGbPrice(displayPlan.price, displayPlan.gb, currency) : '—'}
       </span>
     </Link>
   );
@@ -303,7 +320,10 @@ export default function EsimPackages() {
                 </p>
               </div>
               <span className="text-sm font-bold text-gray-900">
-                {staticGlobal.plans[0] ? formatPriceStringForVisitor(staticGlobal.plans[0].price, currency) : '—'}
+                {(() => {
+                  const displayPlan = pickDisplayPlan(staticGlobal.plans);
+                  return displayPlan ? formatPerGbPrice(displayPlan.price, displayPlan.gb, currency) : '—';
+                })()}
               </span>
             </Link>
           </div>
