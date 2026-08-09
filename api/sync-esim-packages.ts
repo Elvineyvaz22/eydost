@@ -73,12 +73,16 @@ interface BotPackage {
   description?: string;
 }
 
+type BotFetchResult =
+  | { ok: true; packages: BotPackage[] }
+  | { ok: false; error: string };
+
 // ── Fetch from bot API ─────────────────────────────────────────────────────────
 // The bot occasionally returns an empty `data` array (200 OK, no rows) when
 // it gets hit with too many concurrent requests for the same country. To stop
 // these false zeros from clobbering legitimate countries (TR, DE, FR, US, ...)
 // we retry once with a short jittered delay if the first response is empty.
-async function fetchBotPackagesOnce(countryCode: string): Promise<BotPackage[] | null> {
+async function fetchBotPackagesOnce(countryCode: string): Promise<BotFetchResult> {
   const url = `${BOT_API}?country_code=${encodeURIComponent(countryCode)}`;
   try {
     const res = await fetch(url, {
@@ -87,26 +91,36 @@ async function fetchBotPackagesOnce(countryCode: string): Promise<BotPackage[] |
         'Content-Type': 'application/json',
       },
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      return { ok: false, error: `Bot API returned HTTP ${res.status}` };
+    }
     const data = await res.json();
-    if (!data.success || !Array.isArray(data.data)) return [];
-    return data.data as BotPackage[];
-  } catch {
-    return null;
+    if (!data.success || !Array.isArray(data.data)) {
+      return { ok: false, error: 'Bot API returned an invalid package payload' };
+    }
+    return { ok: true, packages: data.data as BotPackage[] };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Bot API request failed' };
   }
 }
 
 async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
   const first = await fetchBotPackagesOnce(countryCode);
   // If the first call genuinely returned packages, we're done.
-  if (first && first.length > 0) return first;
+  if (first.ok && first.packages.length > 0) return first.packages;
   // Otherwise back off briefly (jitter to avoid retrying in lockstep) and try
   // again. This lets us tell apart "country has no packages" from "bot just
   // rate-limited us under high concurrency".
   await new Promise((r) => setTimeout(r, 400 + Math.floor(Math.random() * 600)));
   const second = await fetchBotPackagesOnce(countryCode);
-  if (second && second.length > 0) return second;
-  return first ?? second ?? [];
+  if (second.ok && second.packages.length > 0) return second.packages;
+  if (first.ok && second.ok) return [];
+
+  const errors = [first, second]
+    .filter((result): result is { ok: false; error: string } => !result.ok)
+    .map((result) => result.error)
+    .join('; ');
+  throw new Error(errors || 'Bot API fetch failed');
 }
 
 // ── Upsert single country packages (compound-unique upsert) ──────────────────
