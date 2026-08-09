@@ -152,6 +152,8 @@ export default function TaxiOrderTest() {
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipSaveRef = useRef(true);
+  const initialLocateLinkRef = useRef<string | null>(linkId);
+  const initialLocateHandledRef = useRef(false);
 
   const buildDraft = useCallback(
     (): TaxiOrderDraft => ({
@@ -190,32 +192,31 @@ export default function TaxiOrderTest() {
         if (cancelled) return;
         setOrders(profile.orders.slice(0, 4));
         const session = profile.session;
-        if (!session) return;
-        if (session.pickupAddress) setPickupAddress(session.pickupAddress);
-        if (session.dropoffAddress) setDropoffAddress(session.dropoffAddress);
-        if (session.pickupCoords) setPickupCoords(session.pickupCoords);
-        if (session.dropoffCoords) setDropoffCoords(session.dropoffCoords);
-        if (session.pickupCountryCode !== undefined) setPickupCountryCode(session.pickupCountryCode);
-        if (
-          session.step === 'select_dropoff' ||
-          session.step === 'confirm_ride' ||
-          session.step === 'select_pickup'
-        ) {
-          setStep(session.step);
+        if (session) {
+          if (session.pickupAddress) setPickupAddress(session.pickupAddress);
+          if (session.dropoffAddress) setDropoffAddress(session.dropoffAddress);
+          if (session.pickupCoords) setPickupCoords(session.pickupCoords);
+          if (session.dropoffCoords) setDropoffCoords(session.dropoffCoords);
+          if (session.pickupCountryCode !== undefined) setPickupCountryCode(session.pickupCountryCode);
+          if (
+            session.step === 'select_dropoff' ||
+            session.step === 'confirm_ride' ||
+            session.step === 'select_pickup'
+          ) {
+            setStep(session.step);
+          }
+          if (session.pickupCoords) setMapCenter(session.pickupCoords);
         }
-        if (session.pickupCoords) setMapCenter(session.pickupCoords);
+        setSessionLoading(false);
+        skipSaveRef.current = false;
       })
       .catch((e) => {
         if (!cancelled) {
           console.warn('[taxi-order] load failed', e);
           setSessionError(t.sessionError);
           setOrders([]);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
           setSessionLoading(false);
-          skipSaveRef.current = false;
+          skipSaveRef.current = true;
         }
       });
     return () => {
@@ -287,6 +288,14 @@ export default function TaxiOrderTest() {
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     geocoderRef.current = new google.maps.Geocoder();
+    if (initialLocateLinkRef.current !== linkId) {
+      initialLocateLinkRef.current = linkId;
+      initialLocateHandledRef.current = false;
+    }
+    if (initialLocateHandledRef.current) return;
+    initialLocateHandledRef.current = true;
+    if (pickupCoords || pickupAddress.trim().length > 0) return;
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -303,7 +312,7 @@ export default function TaxiOrderTest() {
         { enableHighAccuracy: true, timeout: 10000 }
       );
     }
-  }, [geocodeLatLng]);
+  }, [geocodeLatLng, linkId, pickupAddress, pickupCoords]);
 
   const onMapDragEnd = useCallback(() => {
     if (!mapRef.current || step === 'confirm_ride') return;
