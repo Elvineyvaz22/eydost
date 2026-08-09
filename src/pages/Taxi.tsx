@@ -34,6 +34,20 @@ const CAR_CLASSES = [
   { id: 'minivan',  name: 'Minivan',  desc: 'Groups up to 6 people',           icon: Users,    priceStr: 'from €20' },
 ];
 
+type DispatchCoords = { lat: number; lng: number };
+
+const hasDispatchableCoords = (coords: DispatchCoords | null): coords is DispatchCoords =>
+  Boolean(
+    coords &&
+      Number.isFinite(coords.lat) &&
+      Number.isFinite(coords.lng) &&
+      coords.lat >= -90 &&
+      coords.lat <= 90 &&
+      coords.lng >= -180 &&
+      coords.lng <= 180 &&
+      !(coords.lat === 0 && coords.lng === 0)
+  );
+
 export default function Taxi() {
   const { t, language } = useLanguage();
   const [searchParams] = useSearchParams();
@@ -90,7 +104,7 @@ export default function Taxi() {
         ? { home: 'Главная', requests: 'Заказы', requestsTitle: 'История заказов', requestsEmpty: 'Заказов пока нет.', repeat: 'Повторить' }
         : { home: 'Home', requests: 'Requests', requestsTitle: 'Past orders', requestsEmpty: 'No orders yet.', repeat: 'Repeat' };
 
-  const { orders, activeTab, setActiveTab, saveOrderToHistory } = useTaxiLinkStorage(
+  const { orders, activeTab, setActiveTab, profileReady, saveOrderToHistory } = useTaxiLinkStorage(
     linkId,
     resolveTaxiWaId(searchParams) || getWaId(),
     {
@@ -112,37 +126,7 @@ export default function Taxi() {
     }
   );
 
-  const locateUser = useCallback((map?: google.maps.Map) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
-          setMapCenter(userPos);
-          setPickupCoords(userPos);
-          if (map) map.panTo(userPos);
-          else mapRef.current?.panTo(userPos);
-          geocodeLatLng(userPos, 'pickup');
-        },
-        (error) => {
-          console.warn("Location error:", error);
-          setPickupCoords(defaultCenter);
-          if (map) geocodeLatLng(defaultCenter, 'pickup');
-        },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-      );
-    } else {
-      setPickupCoords(defaultCenter);
-      if (map) geocodeLatLng(defaultCenter, 'pickup');
-    }
-  }, []);
-
-  const onMapLoad = useCallback((map: google.maps.Map) => {
-    mapRef.current = map;
-    geocoderRef.current = new google.maps.Geocoder();
-    locateUser(map);
-  }, [locateUser]);
-
-  const applyPickupCountry = (components?: google.maps.GeocoderAddressComponent[]) => {
+  const applyPickupCountry = useCallback((components?: google.maps.GeocoderAddressComponent[]) => {
     const { code, name } = extractCountry(components);
     if (code && pickupCountryCode && code !== pickupCountryCode) {
       setDropoffAddress('');
@@ -151,24 +135,70 @@ export default function Taxi() {
     }
     setPickupCountryCode(code);
     setPickupCountryName(name);
-  };
+  }, [pickupCountryCode]);
 
-  const geocodeLatLng = (latlng: google.maps.LatLngLiteral, target: 'pickup' | 'dropoff') => {
-    if (!geocoderRef.current) return;
-    
-    geocoderRef.current.geocode({ location: latlng }, (results, status) => {
-      if (status === 'OK' && results?.[0]) {
-        const address = formatGeocoderResult(results[0]);
-        const components = results[0].address_components;
-        if (target === 'pickup') {
-          setPickupAddress(address);
-          applyPickupCountry(components);
-        } else if (isSameCountry(components, pickupCountryCode)) {
-          setDropoffAddress(address);
+  const geocodeLatLng = useCallback(
+    (latlng: google.maps.LatLngLiteral, target: 'pickup' | 'dropoff') => {
+      if (!geocoderRef.current) return;
+
+      geocoderRef.current.geocode({ location: latlng }, (results, status) => {
+        if (status === 'OK' && results?.[0]) {
+          const address = formatGeocoderResult(results[0]);
+          const components = results[0].address_components;
+          if (target === 'pickup') {
+            setPickupAddress(address);
+            applyPickupCountry(components);
+          } else if (isSameCountry(components, pickupCountryCode)) {
+            setDropoffAddress(address);
+          }
         }
+      });
+    },
+    [applyPickupCountry, pickupCountryCode]
+  );
+
+  const locateUser = useCallback((map?: google.maps.Map) => {
+    const target = isMobile && mobileStep === 'select_dropoff' ? 'dropoff' : activeInput;
+    const applyLocatedPosition = (position: google.maps.LatLngLiteral) => {
+      setMapCenter(position);
+      if (map) map.panTo(position);
+      else mapRef.current?.panTo(position);
+
+      if (target === 'pickup') {
+        setPickupCoords(position);
+        geocodeLatLng(position, 'pickup');
+      } else {
+        setDropoffCoords(position);
+        geocodeLatLng(position, 'dropoff');
       }
-    });
-  };
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
+          applyLocatedPosition(userPos);
+        },
+        (error) => {
+          console.warn("Location error:", error);
+          if (target === 'pickup') applyLocatedPosition(defaultCenter);
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      );
+    } else {
+      if (target === 'pickup') applyLocatedPosition(defaultCenter);
+    }
+  }, [activeInput, geocodeLatLng, isMobile, mobileStep]);
+
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+    geocoderRef.current = new google.maps.Geocoder();
+    if (pickupCoords) {
+      map.panTo(pickupCoords);
+      return;
+    }
+    if (!pickupAddress.trim()) locateUser(map);
+  }, [locateUser, pickupAddress, pickupCoords]);
 
   const onMapDragEnd = () => {
     if (!mapRef.current) return;
@@ -286,6 +316,16 @@ export default function Taxi() {
         alert(language === 'az' ? "Zəhmət olmasa Haradan və Haraya ünvanlarını tam seçin." : (language === 'ru' ? "Пожалуйста, выберите пункты отправления и назначения." : "Please select both pickup and drop-off locations."));
         return;
       }
+      if (!hasDispatchableCoords(pickupCoords) || !hasDispatchableCoords(dropoffCoords)) {
+        alert(
+          language === 'az'
+            ? 'Zəhmət olmasa xəritədə həm pickup, həm də təyinat nöqtəsini dəqiq seçin.'
+            : language === 'ru'
+            ? 'Пожалуйста, точно выберите точки посадки и назначения на карте.'
+            : 'Please select exact pickup and drop-off points on the map.'
+        );
+        return;
+      }
       if (!pickupCountryCode) {
         alert(language === 'az' ? 'Pickup ölkəsi təyin olunmayıb.' : language === 'ru' ? 'Страна отправления не определена.' : 'Pickup country not set.');
         return;
@@ -340,14 +380,14 @@ export default function Taxi() {
             pickup: {
               display_name: pickupAddress.split(',')[0] || pickupAddress,
               formatted_address: pickupAddress,
-              lat: pickupCoords?.lat ?? 0,
-              lng: pickupCoords?.lng ?? 0,
+              lat: pickupCoords.lat,
+              lng: pickupCoords.lng,
             },
             destination: {
               display_name: dropoffAddress.split(',')[0] || dropoffAddress,
               formatted_address: dropoffAddress,
-              lat: dropoffCoords?.lat ?? 0,
-              lng: dropoffCoords?.lng ?? 0,
+              lat: dropoffCoords.lat,
+              lng: dropoffCoords.lng,
             },
             confirmed_at: new Date().toISOString(),
           }),
@@ -356,9 +396,18 @@ export default function Taxi() {
         if (!res.ok) {
           const body = await res.text();
           console.warn('[TAXI_WEBHOOK] error body:', body);
+          throw new Error(`Taxi webhook failed with status ${res.status}`);
         }
       } catch (e) {
-        console.warn('Taxi webhook failed:', e);
+        console.warn('Taxi booking failed:', e);
+        alert(
+          language === 'az'
+            ? 'Sifariş göndərilmədi. Zəhmət olmasa bir az sonra yenidən cəhd edin.'
+            : language === 'ru'
+            ? 'Заказ не был отправлен. Пожалуйста, попробуйте еще раз чуть позже.'
+            : 'The order was not sent. Please try again in a moment.'
+        );
+        return;
       }
       } finally {
         setIsOrdering(false);
@@ -523,6 +572,22 @@ export default function Taxi() {
         </a>
         <p className="text-gray-400 text-sm mt-3">
           {language === 'az' ? '← Geri qayıt' : language === 'ru' ? '← Вернуться' : '← Go Back'}
+        </p>
+      </div>
+    );
+  }
+
+  if (linkId && !profileReady) {
+    return (
+      <div className="min-h-screen bg-[#0A0F1C] text-white flex flex-col items-center justify-center p-6 text-center">
+        <Seo title="Global Taxi Booking via WhatsApp" canonicalPath="/taxi" />
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mb-4"></div>
+        <p className="text-sm text-gray-300">
+          {language === 'az'
+            ? 'Sifariş məlumatları yüklənir...'
+            : language === 'ru'
+            ? 'Данные заказа загружаются...'
+            : 'Loading order details...'}
         </p>
       </div>
     );
