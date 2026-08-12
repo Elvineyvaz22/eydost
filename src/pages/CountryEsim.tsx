@@ -9,7 +9,7 @@ import { appendReferralToMessage, getWaId, createOrder, trackAgentLead } from '.
 import { useState, useEffect } from 'react';
 import Seo from '../components/Seo';
 import { showToast } from '../components/Toast';
-import { trackEvent, trackGoogleAdsEsimPurchase, trackTikTokProductEvent, parseUsdPrice, EVENTS } from '../utils/analytics';
+import { trackEvent, trackGoogleAdsEsimPurchase, trackMetaEvent, trackTikTokProductEvent, parseUsdPrice, EVENTS } from '../utils/analytics';
 import { fetchPublicPackagesForCountry, getCachedPackagesForCountry, countryCodeToFlag, getCountryNameLocalized, formatPrice, formatGB, type ESIMPackageRaw } from '../services/esimApi';
 import { formatPriceStringForVisitor, useVisitorCurrency, type DisplayCurrency } from '../contexts/VisitorCurrencyContext';
 
@@ -266,6 +266,12 @@ function LimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName: s
       transactionId: plan.id || plan.code,
       value: planUsdValue(plan),
     });
+    trackMetaEvent('Lead', {
+      content_name: `${countryName} eSIM`,
+      content_category: 'eSIM',
+      value: planUsdValue(plan),
+      currency: 'USD',
+    });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
     trackTikTokProductEvent('InitiateCheckout', {
       contentId: plan.id || plan.code,
@@ -385,6 +391,12 @@ function UnlimitedPlanCard({ plan, countryName }: { plan: LivePlan; countryName:
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,
       value: planUsdValue(plan),
+    });
+    trackMetaEvent('Lead', {
+      content_name: `${countryName} eSIM`,
+      content_category: 'eSIM',
+      value: planUsdValue(plan),
+      currency: 'USD',
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, { code: plan.code, id: plan.id });
     trackTikTokProductEvent('InitiateCheckout', {

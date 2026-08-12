@@ -10,7 +10,7 @@ import FlagImage from '../components/FlagImage';
 import { appendReferralToMessage, getWaId, createOrder, trackAgentLead } from '../utils/whatsapp';
 import { useState, useMemo, useEffect } from 'react';
 import Seo from '../components/Seo';
-import { trackEvent, trackGoogleAdsEsimPurchase, trackTikTokProductEvent, parseUsdPrice, EVENTS } from '../utils/analytics';
+import { trackEvent, trackGoogleAdsEsimPurchase, trackMetaEvent, trackTikTokProductEvent, parseUsdPrice, EVENTS } from '../utils/analytics';
 import EuropeCoverageNetworks from '../components/EuropeCoverageNetworks';
 import { EUROPE_COVERAGE_COUNT } from '../data/europeCoverage';
 import { formatPriceStringForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
@@ -155,6 +155,12 @@ export default function RegionalEsim() {
     trackGoogleAdsEsimPurchase({
       transactionId: plan.id || plan.code,
       value: (plan as DisplayRegionalPlan).usdPrice ?? parseUsdPrice(plan.price),
+    });
+    trackMetaEvent('Lead', {
+      content_name: `${pkg.name} eSIM`,
+      content_category: 'eSIM',
+      value: (plan as DisplayRegionalPlan).usdPrice ?? parseUsdPrice(plan.price),
+      currency: 'USD',
     });
     trackEvent(EVENTS.WHATSAPP_ESIM_ORDER, {
       source: 'regional_esim',

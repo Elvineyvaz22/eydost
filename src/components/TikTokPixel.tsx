@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getStoredConsent } from '../utils/cookieConsent';
 
-const TIKTOK_PIXEL_ID = 'D914PTRC77U133LMFKFG';
+const TIKTOK_PIXEL_ID = 'D9U4UCBC77U8CMCCG18G';
 
 type TikTokQueue = unknown[][] & {
   methods?: string[];

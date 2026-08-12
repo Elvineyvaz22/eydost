@@ -6,6 +6,7 @@ import Seo from '../components/Seo';
 import { formatUsdForVisitor, useVisitorCurrency } from '../contexts/VisitorCurrencyContext';
 import type { DisplayCurrency } from '../contexts/VisitorCurrencyContext';
 import { appendReferralToMessage, getWhatsAppLink, trackAgentLead } from '../utils/whatsapp';
+import { trackGoogleAdsEsimPurchase, trackMetaEvent, trackTikTokProductEvent } from '../utils/analytics';
 
 type HostCountry = 'United States' | 'Canada' | 'Mexico';
 type PlanType = 'standard' | 'daily';
@@ -189,6 +190,22 @@ export default function WorldCupEsim() {
   }, [apiPackages, country, type]);
 
   const openWhatsApp = async (plan: WorldCupPlan) => {
+    trackGoogleAdsEsimPurchase({
+      transactionId: plan.slug || plan.packageCode,
+      value: plan.price,
+    });
+    trackMetaEvent('Lead', {
+      content_name: `${plan.country} eSIM`,
+      content_category: 'eSIM',
+      value: plan.price,
+      currency: 'USD',
+    });
+    trackTikTokProductEvent('InitiateCheckout', {
+      contentId: plan.slug || plan.packageCode,
+      contentName: `${plan.country} eSIM ${plan.data} ${plan.days} days`,
+      value: plan.price,
+      eventId: `checkout_${plan.slug || plan.packageCode}_${Date.now()}`,
+    });
     await trackAgentLead({
       productType: 'esim',
       eventType: 'whatsapp_click',

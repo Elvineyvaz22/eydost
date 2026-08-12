@@ -38,6 +38,12 @@ function canTrackTikTok(): boolean {
   return Boolean((window as { ttq?: { track?: (...args: unknown[]) => void } }).ttq?.track);
 }
 
+function canTrackMeta(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (getStoredConsent() !== 'all') return false;
+  return Boolean((window as { fbq?: (...args: unknown[]) => void }).fbq);
+}
+
 function canTrackServerTikTok(): boolean {
   if (typeof window === 'undefined') return false;
   return getStoredConsent() === 'all';
@@ -181,6 +187,17 @@ export function trackTikTokProductEvent(
     payload,
     params.eventId,
   );
+}
+
+type MetaEventName = 'ViewContent' | 'Lead' | 'InitiateCheckout' | 'Purchase';
+
+export function trackMetaEvent(
+  eventName: MetaEventName,
+  params: Record<string, unknown> = {},
+) {
+  if (!canTrackMeta()) return;
+  const fbq = (window as { fbq?: (...args: unknown[]) => void }).fbq!;
+  fbq('track', eventName, params);
 }
 
 // Common event names for the Super App
