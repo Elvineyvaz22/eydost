@@ -29,6 +29,10 @@ declare global {
 function loadTikTokPixel() {
   if (typeof window === 'undefined') return;
   if (window.__eydostTikTokPixelLoaded) return;
+  if (window.ttq?.load) {
+    window.__eydostTikTokPixelLoaded = true;
+    return;
+  }
 
   window.__eydostTikTokPixelLoaded = true;
   const analyticsObject = 'ttq';
