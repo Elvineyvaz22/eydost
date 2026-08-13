@@ -16,6 +16,7 @@ import CookieConsent from './components/CookieConsent';
 import VercelAnalytics from './components/VercelAnalytics';
 import VercelSpeedInsights from './components/VercelSpeedInsights';
 import TikTokPixel from './components/TikTokPixel';
+import MetaPixel from './components/MetaPixel';
 import ReferralTracker from './components/ReferralTracker';
 import EsimDemoChatbot from './components/EsimDemoChatbot';
 import CountryEsim from './pages/CountryEsim';
@@ -245,6 +246,7 @@ function App() {
               <VercelAnalytics />
               <VercelSpeedInsights />
               <TikTokPixel />
+              <MetaPixel />
               <TaxiLinkRedirect />
               <ReferralTracker />
               <EsimDemoChatbot />

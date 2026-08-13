@@ -44,6 +44,12 @@ function canTrackMeta(): boolean {
   return Boolean((window as { fbq?: (...args: unknown[]) => void }).fbq);
 }
 
+function metaTrack(eventName: string, params: Record<string, unknown> = {}) {
+  if (!canTrackMeta()) return;
+  const fbq = (window as { fbq?: (...args: unknown[]) => void }).fbq!;
+  fbq('track', eventName, params);
+}
+
 function canTrackServerTikTok(): boolean {
   if (typeof window === 'undefined') return false;
   return getStoredConsent() === 'all';
@@ -195,9 +201,11 @@ export function trackMetaEvent(
   eventName: MetaEventName,
   params: Record<string, unknown> = {},
 ) {
-  if (!canTrackMeta()) return;
-  const fbq = (window as { fbq?: (...args: unknown[]) => void }).fbq!;
-  fbq('track', eventName, params);
+  metaTrack(eventName, params);
+}
+
+export function trackMetaPageView() {
+  metaTrack('PageView');
 }
 
 // Common event names for the Super App

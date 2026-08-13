@@ -6,6 +6,10 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const WEBHOOK_SECRET = process.env.AGENT_WEBHOOK_SECRET;
 const CUSTOMER_DISCOUNT_PERCENT = 10;
 const AGENT_COMMISSION_PERCENT = 15;
+const TIKTOK_EVENTS_API = 'https://business-api.tiktok.com/open_api/v1.3/event/track/';
+const TIKTOK_PIXEL_ID = process.env.TIKTOK_PIXEL_ID || 'D9U4UCBC77U8CMCCG18G';
+const TIKTOK_ACCESS_TOKEN = process.env.TIKTOK_ACCESS_TOKEN;
+const TIKTOK_EVENT_SECRET = process.env.TIKTOK_EVENT_SECRET;
 
 function getSupabase() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
@@ -137,6 +141,65 @@ function pickMetadataFromNotes(notes: string | null) {
   return out;
 }
 
+async function sendTikTokPurchaseEvent(args: {
+  eventId: string;
+  orderReference: string;
+  saleAmountUsd: number;
+  referralCode: string;
+  productType: string;
+}) {
+  if (!TIKTOK_ACCESS_TOKEN) return;
+
+  const payload = {
+    pixel_code: TIKTOK_PIXEL_ID,
+    event: 'Purchase',
+    event_id: args.eventId,
+    timestamp: new Date().toISOString(),
+    context: {
+      page: { url: 'https://eydost.com' },
+      user: {},
+    },
+    properties: {
+      content_type: 'product',
+      value: args.saleAmountUsd,
+      currency: 'USD',
+      contents: [
+        {
+          content_id: args.orderReference,
+          content_type: 'product',
+          content_name: `${args.productType} purchase`,
+        },
+      ],
+      referral_code: args.referralCode,
+    },
+  };
+
+  const response = await fetch(TIKTOK_EVENTS_API, {
+    method: 'POST',
+    headers: {
+      'Access-Token': TIKTOK_ACCESS_TOKEN,
+      'Content-Type': 'application/json',
+      ...(TIKTOK_EVENT_SECRET ? { 'x-tiktok-event-secret': TIKTOK_EVENT_SECRET } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await response.text();
+  let json: unknown = text;
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    // Keep raw response when TikTok returns non-JSON text.
+  }
+
+  if (!response.ok) {
+    console.error('[agent-conversion][tiktok] upstream error', response.status, json);
+    throw new Error(`TikTok Purchase event failed (${response.status})`);
+  }
+
+  console.log('[agent-conversion][tiktok] purchase sent', json);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') {
@@ -253,5 +316,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
+
+  if (status === 'paid') {
+    try {
+      await sendTikTokPurchaseEvent({
+        eventId: `${referralCode}_${orderReference || data.id}`,
+        orderReference: orderReference || String(data.id),
+        saleAmountUsd,
+        referralCode,
+        productType,
+      });
+    } catch (purchaseError: any) {
+      console.error('[agent-conversion] purchase tracking failed', purchaseError?.message || purchaseError);
+    }
+  }
+
   return res.status(200).json({ ok: true, referral: data, updated: false });
 }
