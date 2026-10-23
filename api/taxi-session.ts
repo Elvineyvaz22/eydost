@@ -12,6 +12,15 @@ function validateLinkId(value: unknown): string | null {
   return LINK_ID_RE.test(trimmed) ? trimmed : null;
 }
 
+function toNullableNumber(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 type SessionRow = {
   link_id: string;
   wa_id: string | null;
@@ -131,18 +140,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       dropoff_address: typeof body.dropoff_address === 'string' ? body.dropoff_address : '',
       pickup_country_code:
         typeof body.pickup_country_code === 'string' ? body.pickup_country_code : null,
+      pickup_lat: toNullableNumber(body.pickup_lat),
+      pickup_lng: toNullableNumber(body.pickup_lng),
+      dropoff_lat: toNullableNumber(body.dropoff_lat),
+      dropoff_lng: toNullableNumber(body.dropoff_lng),
     };
 
     if (waId) payload.wa_id = waId;
-
-    if (body.pickup_lat != null && body.pickup_lng != null) {
-      payload.pickup_lat = Number(body.pickup_lat);
-      payload.pickup_lng = Number(body.pickup_lng);
-    }
-    if (body.dropoff_lat != null && body.dropoff_lng != null) {
-      payload.dropoff_lat = Number(body.dropoff_lat);
-      payload.dropoff_lng = Number(body.dropoff_lng);
-    }
 
     const { data, error } = await supabase
       .from('taxi_link_sessions')
