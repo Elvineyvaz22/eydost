@@ -82,6 +82,8 @@ export default function Taxi() {
   const dropoffTopBarRef = useRef<HTMLDivElement>(null);
   const dropoffSearchRef = useRef<PlaceSearchInputHandle>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  const initialLocateLinkRef = useRef<string | null>(linkId);
+  const initialLocateHandledRef = useRef(false);
 
   const tabLabels =
     language === 'az'
@@ -90,7 +92,7 @@ export default function Taxi() {
         ? { home: 'Главная', requests: 'Заказы', requestsTitle: 'История заказов', requestsEmpty: 'Заказов пока нет.', repeat: 'Повторить' }
         : { home: 'Home', requests: 'Requests', requestsTitle: 'Past orders', requestsEmpty: 'No orders yet.', repeat: 'Repeat' };
 
-  const { orders, activeTab, setActiveTab, saveOrderToHistory } = useTaxiLinkStorage(
+  const { orders, activeTab, setActiveTab, profileReady, saveOrderToHistory } = useTaxiLinkStorage(
     linkId,
     resolveTaxiWaId(searchParams) || getWaId(),
     {
@@ -136,11 +138,30 @@ export default function Taxi() {
     }
   }, []);
 
+  const maybeLocateInitialPickup = useCallback((map: google.maps.Map) => {
+    if (initialLocateLinkRef.current !== linkId) {
+      initialLocateLinkRef.current = linkId;
+      initialLocateHandledRef.current = false;
+    }
+    if (initialLocateHandledRef.current) return;
+    if (linkId && !profileReady) return;
+
+    initialLocateHandledRef.current = true;
+    if (!linkId || (!pickupCoords && pickupAddress.trim().length === 0)) {
+      locateUser(map);
+    }
+  }, [linkId, locateUser, pickupAddress, pickupCoords, profileReady]);
+
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     geocoderRef.current = new google.maps.Geocoder();
-    locateUser(map);
-  }, [locateUser]);
+    maybeLocateInitialPickup(map);
+  }, [maybeLocateInitialPickup]);
+
+  useEffect(() => {
+    if (!mapRef.current || !geocoderRef.current) return;
+    maybeLocateInitialPickup(mapRef.current);
+  }, [maybeLocateInitialPickup]);
 
   const applyPickupCountry = (components?: google.maps.GeocoderAddressComponent[]) => {
     const { code, name } = extractCountry(components);

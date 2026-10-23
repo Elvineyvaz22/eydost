@@ -103,13 +103,15 @@ export function useTaxiLinkStorage(
           }
         }
         restoredRef.current = true;
+        setProfileReady(true);
+        skipSaveRef.current = false;
       })
-      .catch((e) => console.warn('[taxi] profile load', e))
-      .finally(() => {
+      .catch((e) => {
         if (!cancelled) {
-          restoredRef.current = true;
+          console.warn('[taxi] profile load', e);
+          restoredRef.current = false;
           setProfileReady(true);
-          skipSaveRef.current = false;
+          skipSaveRef.current = true;
         }
       });
     return () => {
