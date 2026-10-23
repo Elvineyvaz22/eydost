@@ -4,6 +4,22 @@ const BSQD_URL = 'https://bsqd.me/api/bot/388c046c-c54f-4b56-9107-24f4ffca0600/m
 const BOT_ID = '388c046c-c54f-4b56-9107-24f4ffca0600';
 const BSQD_TOKEN = 'vlmftc3wuyeme247ns3sbg2drggop5ba7dgja4vr';
 
+type LocationPayload = { lat?: unknown; lng?: unknown };
+
+const hasDispatchableCoords = (location: LocationPayload | undefined): boolean =>
+  Boolean(
+    location &&
+      typeof location.lat === 'number' &&
+      typeof location.lng === 'number' &&
+      Number.isFinite(location.lat) &&
+      Number.isFinite(location.lng) &&
+      location.lat >= -90 &&
+      location.lat <= 90 &&
+      location.lng >= -180 &&
+      location.lng <= 180 &&
+      !(location.lat === 0 && location.lng === 0)
+  );
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[VERCEL_taxi-webhook] method:', req.method);
   console.log('[VERCEL_taxi-webhook] body:', JSON.stringify(req.body, null, 2));
@@ -23,6 +39,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!body || !body.pickup || !body.destination) {
     console.log('[VERCEL_taxi-webhook] Invalid payload - missing pickup or destination');
     return res.status(400).json({ error: 'Invalid payload' });
+  }
+
+  if (!hasDispatchableCoords(body.pickup) || !hasDispatchableCoords(body.destination)) {
+    console.log('[VERCEL_taxi-webhook] Invalid payload - missing or invalid coordinates');
+    return res.status(400).json({ error: 'Invalid coordinates' });
   }
 
   try {
