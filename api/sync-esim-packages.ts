@@ -78,6 +78,8 @@ interface BotPackage {
 // it gets hit with too many concurrent requests for the same country. To stop
 // these false zeros from clobbering legitimate countries (TR, DE, FR, US, ...)
 // we retry once with a short jittered delay if the first response is empty.
+// A failed fetch is different from a confirmed empty response: failed countries
+// must be skipped so existing active rows are not deactivated during outages.
 async function fetchBotPackagesOnce(countryCode: string): Promise<BotPackage[] | null> {
   const url = `${BOT_API}?country_code=${encodeURIComponent(countryCode)}`;
   try {
@@ -89,14 +91,14 @@ async function fetchBotPackagesOnce(countryCode: string): Promise<BotPackage[] |
     });
     if (!res.ok) return null;
     const data = await res.json();
-    if (!data.success || !Array.isArray(data.data)) return [];
+    if (!data.success || !Array.isArray(data.data)) return null;
     return data.data as BotPackage[];
   } catch {
     return null;
   }
 }
 
-async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
+async function fetchBotPackages(countryCode: string): Promise<BotPackage[] | null> {
   const first = await fetchBotPackagesOnce(countryCode);
   // If the first call genuinely returned packages, we're done.
   if (first && first.length > 0) return first;
@@ -106,7 +108,10 @@ async function fetchBotPackages(countryCode: string): Promise<BotPackage[]> {
   await new Promise((r) => setTimeout(r, 400 + Math.floor(Math.random() * 600)));
   const second = await fetchBotPackagesOnce(countryCode);
   if (second && second.length > 0) return second;
-  return first ?? second ?? [];
+  // Only two successful empty responses prove "no packages". If either attempt
+  // failed, preserve existing rows and surface the country as an error instead.
+  if (first === null || second === null) return null;
+  return [];
 }
 
 // ── Upsert single country packages (compound-unique upsert) ──────────────────
@@ -216,6 +221,15 @@ async function syncAllPackages(): Promise<{
       batch.map(async (countryCode) => {
         try {
           const packages = await fetchBotPackages(countryCode);
+          if (packages === null) {
+            return {
+              countryCode,
+              upserted: 0,
+              errors: 1,
+              ok: false,
+              message: 'Bot package fetch failed; preserved existing rows',
+            };
+          }
           const r: any = await upsertPackagesForCountry(
             supabase,
             countryCode,
@@ -332,6 +346,12 @@ export default async function handler(req: any, res: any) {
     });
     try {
       const packages = await fetchBotPackages(debugCountry);
+      if (packages === null) {
+        return res.status(502).json({
+          country: debugCountry,
+          error: 'Bot package fetch failed; existing rows were preserved',
+        });
+      }
       const result = await upsertPackagesForCountry(supabase, debugCountry, packages);
       const { data: rows, error: readErr } = await supabase
         .from('esim_packages')
